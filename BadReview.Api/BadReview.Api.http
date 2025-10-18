@@ -1,0 +1,6 @@
+@BadReview.Api_HostAddress = http://localhost:5003
+
+GET {{BadReview.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
