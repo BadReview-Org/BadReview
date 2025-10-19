@@ -4,9 +4,8 @@ namespace BadReview.Api.Data
 {
     public class BadReviewContext : DbContext
     {
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public BadReviewContext(DbContextOptions<BadReviewContext> options) : base(options)
         {
-            optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=BadReviewDb;Trusted_Connection=True;TrustServerCertificate=True;");
         }
 
         public DbSet<User> Users { get; set; } = null!;
