@@ -22,6 +22,13 @@ namespace BadReview.Api.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure User entity with unique indexes
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasIndex(e => e.Username).IsUnique();
+                entity.HasIndex(e => e.Email).IsUnique();
+            });
+
             modelBuilder.Entity<Review>(entity =>
             {
                 entity.HasKey(e => e.Id);
