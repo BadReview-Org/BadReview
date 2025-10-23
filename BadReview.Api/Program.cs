@@ -1,5 +1,6 @@
 using BadReview.Api.Data;
 using BadReview.Api.Endpoints;
+using BadReview.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,10 @@ builder.Services.AddOpenApi();
 // Add DbContext
 builder.Services.AddDbContext<BadReviewContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add IGDB Client
+builder.Services.AddHttpClient<IGDBClient>(client =>
+    client.BaseAddress = new Uri("https://api.igdb.com/v4/"));
 
 var app = builder.Build();
 

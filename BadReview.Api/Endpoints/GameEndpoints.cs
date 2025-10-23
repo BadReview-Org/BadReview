@@ -1,5 +1,7 @@
+using Azure;
 using BadReview.Api.Data;
 using BadReview.Api.Models;
+using BadReview.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 using System.Text;
@@ -12,9 +14,10 @@ public static class GameEndpoints
     public static void MapGameEndpoints(this WebApplication app)
     {
         // GET: /api/games - Obtener todos los juegos
-        app.MapGet("/api/games", async (BadReviewContext db) =>
+        app.MapGet("/api/games", async (BadReviewContext db, IGDBClient igdb) =>
         {
-            var games = await db.Games
+
+            /*var games = await db.Games
                 .Include(g => g.GameGenres)
                     .ThenInclude(gg => gg.Genre)
                 .Include(g => g.GameDevelopers)
@@ -23,11 +26,15 @@ public static class GameEndpoints
                     .ThenInclude(gp => gp.Platform)
                 .ToListAsync();
 
-            return Results.Ok(games);
+            return Results.Ok(games);*/
+            string[] fields = ["id", "name", "cover.url", "first_release_date", "summary", "rating", "videos.video_id"];
+            var options = new IGDBQueryOptions { Fields = fields, Limit = 3 };
+            
+            return await igdb.GetGamesAsync(options);
         });
 
         // GET: /api/games/{id} - Obtener un juego por ID
-        app.MapGet("/api/games/{id}", async (int id, BadReviewContext db, IConfiguration config) =>
+        app.MapGet("/api/games/{id}", async (int id, BadReviewContext db, IGDBClient igdb) =>
         {
             // Primero buscar en la base de datos local
             var game = await db.Games
@@ -47,15 +54,7 @@ public static class GameEndpoints
             // Si no está en la BD, buscar en IGDB
             try
             {
-                var clientId = config["IGDB:ClientId"];
-                var accessToken = config["IGDB:AccessToken"];
-                //Verificamos las credenciales
-                if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(accessToken))
-                {
-                    return Results.Problem("IGDB credentials not configured");
-                }
-                //Completamos el request con los headers y body necesarios
-                using var client = new HttpClient();
+                /*using var client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Client-ID", clientId);
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -63,8 +62,11 @@ public static class GameEndpoints
                 var body = $"fields id, name, cover.url, first_release_date, summary, rating, videos.video_id; where id = {id};";
                 var content = new StringContent(body, Encoding.UTF8, "text/plain");
 
-                var response = await client.PostAsync("https://api.igdb.com/v4/games", content);
-
+                var response = await client.PostAsync("https://api.igdb.com/v4/games", content);*/
+                string[] fields = ["id", "name", "cover.url", "first_release_date", "summary", "rating", "videos.video_id"];
+                var options = new IGDBQueryOptions { Id = id, Fields =  fields};
+                var response = await igdb.GetGamesAsync(options);
+                
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonContent = await response.Content.ReadAsStringAsync();
