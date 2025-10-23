@@ -29,17 +29,17 @@ namespace BadReview.Api.Endpoints
                 // Validar que Username sea único
                 if (await db.Users.AnyAsync(u => u.Username == user.Username))
                 {
-                    return Results.BadRequest(new { error = "Username already exists" });
+                    return Results.Conflict(new { error = "Already exists: Username" });
                 }
-
                 // Validar que Email sea único
                 if (await db.Users.AnyAsync(u => u.Email == user.Email))
                 {
-                    return Results.BadRequest(new { error = "Email already exists" });
+                    return Results.Conflict(new { error = "Already exists: Email" });
                 }
 
                 db.Users.Add(user);
                 await db.SaveChangesAsync();
+
                 return Results.Created($"/api/users/{user.Id}", user);
             })
             .WithName("CreateUser");
