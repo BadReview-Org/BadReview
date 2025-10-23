@@ -26,17 +26,20 @@ namespace BadReview.Api.Endpoints
             // POST: /api/users - Crear un nuevo usuario
             app.MapPost("/api/users", async (User user, BadReviewContext db) =>
             {
+                // Validar que Username sea único
+                if (await db.Users.AnyAsync(u => u.Username == user.Username))
+                {
+                    return Results.Conflict(new { error = "Already exists: Username" });
+                }
+                // Validar que Email sea único
+                if (await db.Users.AnyAsync(u => u.Email == user.Email))
+                {
+                    return Results.Conflict(new { error = "Already exists: Email" });
+                }
 
                 db.Users.Add(user);
-                try
-                {
-                    await db.SaveChangesAsync();
-                }
-                catch (DbUpdateException e)
-                {
-                    return Results.Conflict(e.Message);
-                }
-                
+                await db.SaveChangesAsync();
+
                 return Results.Created($"/api/users/{user.Id}", user);
             })
             .WithName("CreateUser");
