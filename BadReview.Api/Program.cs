@@ -24,5 +24,6 @@ app.UseHttpsRedirection();
 
 // Map endpoints
 app.MapUserEndpoints();
+app.MapGameEndpoints();
 
 app.Run();

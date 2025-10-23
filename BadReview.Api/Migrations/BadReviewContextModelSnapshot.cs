@@ -50,10 +50,7 @@ namespace BadReview.Api.Migrations
             modelBuilder.Entity("BadReview.Api.Models.Game", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Cover")
                         .IsRequired()

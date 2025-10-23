@@ -28,6 +28,12 @@ namespace BadReview.Api.Data
                 entity.HasIndex(e => e.Email).IsUnique();
             });
 
+            // Configure Game entity - NO usar IDENTITY para mantener IDs de IGDB
+            modelBuilder.Entity<Game>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+            });
+
             modelBuilder.Entity<Review>(entity =>
             {
                 entity.HasKey(e => e.Id);
