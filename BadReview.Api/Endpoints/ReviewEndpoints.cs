@@ -1,8 +1,8 @@
 using BadReview.Api.Data;
 using BadReview.Api.Models;
-using BadReview.Api.DTOs;
+using BadReview.Api.DTOs.Request;
 using Microsoft.EntityFrameworkCore;
-using BadReview.Api.DTOs.Review;
+using BadReview.Api.DTOs.Response;
 
 namespace BadReview.Api.Endpoints;
 
@@ -32,34 +32,46 @@ public static class ReviewEndpoints
             {
                 return Results.BadRequest(new { error = "userId must be a valid integer" });
             }
-            if (!context.Request.Query.ContainsKey("gameId"))
-            {
-                return Results.BadRequest(new { error = "Game parameters are required" });
-            }
-            var gameIdString = context.Request.Query["gameId"].ToString();
-            if (!int.TryParse(gameIdString, out var gameId))
-            {
-                return Results.BadRequest(new { error = "gameId must be a valid integer" });
-            }
+            var gameId = review.GameId;
             var gameExists = await db.Games.AnyAsync(g => g.Id == gameId);
             if (!gameExists)
             {
                 return Results.NotFound(new { error = $"Game with id {gameId} not found" });
             }
             // Verificar que el usuario existe en la base de datos
-            var userExists = await db.Users.AnyAsync(u => u.Id == userId);
-            if (!userExists)
+            var user = await db.Users.FindAsync(userId);
+            if (user == null)
             {
                 return Results.NotFound(new { error = $"User with id {userId} not found" });
             }
-
-            // Asignar el userId a la review
-            review.UserId = userId;
-            review.GameId = gameId;
-
-            db.Reviews.Add(review);
+            var reviewdb = new Review
+            {
+                Rating = review.Rating,
+                StartDate = review.StartDate,
+                EndDate = review.EndDate,
+                ReviewText = review.ReviewText,
+                StateEnum = review.StateEnum,
+                IsFavorite = review.IsFavorite
+            };
+            db.Reviews.Add(reviewdb);
             await db.SaveChangesAsync();
-            return Results.Created($"/api/reviews/{review.Id}", review);
+            var reviewdto = new ReviewDto
+            (
+                reviewdb.Id,
+                reviewdb.Rating,
+                reviewdb.StartDate,
+                reviewdb.EndDate,
+                reviewdb.ReviewText,
+                reviewdb.StateEnum,
+                reviewdb.IsFavorite,
+                new UserDto(
+                    userId,
+                    user.Username,
+                    user.Email
+                )
+            );
+
+            return Results.Created($"/api/reviews/{reviewdto.Id}", reviewdto);
         });
     }
 }

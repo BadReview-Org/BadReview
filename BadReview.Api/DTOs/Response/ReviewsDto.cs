@@ -1,10 +1,13 @@
+using BadReview.Api.Utils;
+
 namespace BadReview.Api.DTOs.Response;
+
 
 public record ReviewWithGameDto(
     int Id,
     int Rating,
-    DateTime StartDate,
-    DateTime EndDate,
+    DateTime? StartDate,
+    DateTime? EndDate,
     string ReviewText,
     string StateEnum,
     bool IsFavorite,
@@ -14,11 +17,11 @@ public record ReviewWithGameDto(
 
 public record ReviewDto(
     int Id,
-    int Rating,
-    DateTime StartDate,
-    DateTime EndDate,
-    string ReviewText,
-    string StateEnum,
+    int? Rating,
+    DateTime? StartDate,
+    DateTime? EndDate,
+    string? ReviewText,
+    ReviewState StateEnum,
     bool IsFavorite,
     UserDto User
 );

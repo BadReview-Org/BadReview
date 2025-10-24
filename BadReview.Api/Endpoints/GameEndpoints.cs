@@ -1,5 +1,7 @@
 using Azure;
 using BadReview.Api.Data;
+using BadReview.Api.DTOs.Request;
+using BadReview.Api.DTOs.Response;
 using BadReview.Api.Models;
 using BadReview.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -44,11 +46,50 @@ public static class GameEndpoints
                     .ThenInclude(gd => gd.Developer)
                 .Include(g => g.GamePlatforms)
                     .ThenInclude(gp => gp.Platform)
+                .Include(g => g.Reviews)
+                    .ThenInclude(r => r.User)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (game != null)
             {
-                return Results.Ok(game);
+                var gameDto = new GameWithReviewsDto(
+                    game.Id,
+                    game.Name,
+                    game.Cover,
+                    game.Date,
+                    game.Summary,
+                    game.RatingIGDB,
+                    game.RatingBadReview,
+                    game.Video,
+                    game.Reviews.Select(r => new ReviewDto(
+                        r.Id,
+                        r.Rating,
+                        r.StartDate,
+                        r.EndDate,
+                        r.ReviewText,
+                        r.StateEnum,
+                        r.IsFavorite,
+                        new UserDto(
+                            r.User.Id,
+                            r.User.Username,
+                            r.User.FullName
+                        )
+                    )).ToList(),
+                    game.GameGenres.Select(gg => new GenreDto(
+                        gg.Genre.Id,
+                        gg.Genre.Name
+                    )).ToList(),
+                    game.GameDevelopers.Select(gd => new DeveloperDto(
+                        gd.Developer.Id,
+                        gd.Developer.Name
+                    )).ToList(),
+                    game.GamePlatforms.Select(gp => new PlatformDto(
+                        gp.Platform.Id,
+                        gp.Platform.Name
+                    )).ToList()
+                );
+
+                return Results.Ok(gameDto);
             }
 
             // Si no está en la BD, buscar en IGDB

@@ -33,7 +33,7 @@ namespace BadReview.Api.Data
             {
                 entity.Property(e => e.Id).ValueGeneratedNever();
             });
-
+            
             modelBuilder.Entity<Review>(entity =>
             {
                 //entity.HasKey(e => e.Id);
@@ -53,7 +53,7 @@ namespace BadReview.Api.Data
 
             modelBuilder.Entity<GameGenre>(entity =>
             {
-                //entity.HasKey(gg => new { gg.GameId, gg.GenreId });
+                entity.HasKey(gg => new { gg.GameId, gg.GenreId });
 
                 entity.HasOne(gg => gg.Game)
                     .WithMany(g => g.GameGenres)
@@ -68,7 +68,7 @@ namespace BadReview.Api.Data
 
             modelBuilder.Entity<GamePlatform>(entity =>
             {
-                //entity.HasKey(gp => new { gp.GameId, gp.PlatformId });
+                entity.HasKey(gp => new { gp.GameId, gp.PlatformId });
 
                 entity.HasOne(gp => gp.Game)
                     .WithMany(g => g.GamePlatforms)
@@ -83,7 +83,7 @@ namespace BadReview.Api.Data
 
             modelBuilder.Entity<GameDeveloper>(entity =>
             {
-                //entity.HasKey(gd => new { gd.GameId, gd.DeveloperId });
+                entity.HasKey(gd => new { gd.GameId, gd.DeveloperId });
 
                 entity.HasOne(gd => gd.Game)
                     .WithMany(g => g.GameDevelopers)
