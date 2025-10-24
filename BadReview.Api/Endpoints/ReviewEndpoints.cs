@@ -1,8 +1,11 @@
 using BadReview.Api.Data;
 using BadReview.Api.Models;
+using BadReview.Api.DTOs;
 using Microsoft.EntityFrameworkCore;
+using BadReview.Api.DTOs.Review;
 
 namespace BadReview.Api.Endpoints;
+
 public static class ReviewEndpoints
 {
     public static void MapReviewEndpoints(this WebApplication app)
@@ -17,7 +20,7 @@ public static class ReviewEndpoints
             return Results.Ok(reviews);
         });
         // POST: /api/reviews - Crear una nueva reseña
-        _ = app.MapPost("/api/reviews", async (Review review, HttpContext context, BadReviewContext db) =>
+        app.MapPost("/api/reviews", async (CreateReviewRequest review, HttpContext context, BadReviewContext db) =>
         {
 
             if (!context.Request.Headers.TryGetValue("userId", out var userIdHeader))
@@ -39,10 +42,10 @@ public static class ReviewEndpoints
                 return Results.BadRequest(new { error = "gameId must be a valid integer" });
             }
             var gameExists = await db.Games.AnyAsync(g => g.Id == gameId);
-            if(!gameExists)
+            if (!gameExists)
             {
                 return Results.NotFound(new { error = $"Game with id {gameId} not found" });
-            }   
+            }
             // Verificar que el usuario existe en la base de datos
             var userExists = await db.Users.AnyAsync(u => u.Id == userId);
             if (!userExists)
