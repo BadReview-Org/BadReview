@@ -51,7 +51,9 @@ public static class ReviewEndpoints
                 EndDate = review.EndDate,
                 ReviewText = review.ReviewText,
                 StateEnum = review.StateEnum,
-                IsFavorite = review.IsFavorite
+                IsFavorite = review.IsFavorite,
+                UserId = userId,
+                GameId = gameId
             };
             db.Reviews.Add(reviewdb);
             await db.SaveChangesAsync();
