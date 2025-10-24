@@ -1,7 +1,4 @@
-using BadReview.Api.DTOs.User;
-using BadReview.Api.DTOs.Game;
-
-namespace BadReview.Api.DTOs.Review;
+namespace BadReview.Api.DTOs.Response;
 
 public record ReviewWithGameDto(
     int Id,

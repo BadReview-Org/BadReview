@@ -1,9 +1,4 @@
-using BadReview.Api.DTOs.Review;
-using BadReview.Api.DTOs.Genre;
-using BadReview.Api.DTOs.Developer;
-using BadReview.Api.DTOs.Platform;
-
-namespace BadReview.Api.DTOs.Game;
+namespace BadReview.Api.DTOs.Response;
 
 public record GameDto(
     int Id,

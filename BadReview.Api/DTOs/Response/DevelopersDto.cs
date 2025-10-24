@@ -1,3 +1,3 @@
-namespace BadReview.Api.DTOs.Developer;
+namespace BadReview.Api.DTOs.Response;
 
 public record DeveloperDto(int Id, string Name);

@@ -1,3 +1,3 @@
-namespace BadReview.Api.DTOs.Platform;
+namespace BadReview.Api.DTOs.Response;
 
 public record PlatformDto(int Id, string Name);
