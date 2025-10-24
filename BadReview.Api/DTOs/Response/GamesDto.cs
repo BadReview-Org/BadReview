@@ -1,17 +1,35 @@
+using BadReview.Api.DTOs.Review;
+using BadReview.Api.DTOs.Genre;
+using BadReview.Api.DTOs.Developer;
+using BadReview.Api.DTOs.Platform;
+
 namespace BadReview.Api.DTOs.Game;
 
-public class GameWithReviewsDto
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = null!;
-    public string Cover { get; set; } = null!;
-    public DateTime Date { get; set; }
-    public string Summary { get; set; } = null!;
-    public double RatingIGDB { get; set; }
-    public double RatingBadReview { get; set; }
-    public string Video { get; set; } = null!;
-    public List<ReviewDto> Reviews { get; set; } = new();
-    public List<GenreDto> Genres { get; set; } = new();
-    public List<DeveloperDto> Developers { get; set; } = new();
-    public List<PlatformDto> Platforms { get; set; } = new();
-}
+public record GameDto(
+    int Id,
+    string Name,
+    string Cover,
+    Datetime Date,
+    string Summary,
+    double RatingIGDB,
+    double RatingBadReview,
+    string Video,
+    List<GenreDto> Genres,
+    List<DeveloperDto> Developers,
+    List<PlatformDto> Platforms
+);
+
+public record GameWithReviewsDto(
+    int Id,
+    string Name,
+    string Cover,
+    Datetime Date,
+    string Summary,
+    double RatingIGDB,
+    double RatingBadReview,
+    string Video,
+    List<ReviewDto> Reviews,
+    List<GenreDto> Genres,
+    List<DeveloperDto> Developers,
+    List<PlatformDto> Platforms
+);

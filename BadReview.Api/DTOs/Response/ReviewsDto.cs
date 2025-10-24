@@ -1,13 +1,27 @@
+using BadReview.Api.DTOs.User;
+using BadReview.Api.DTOs.Game;
+
 namespace BadReview.Api.DTOs.Review;
 
-public class ReviewDto
-{
-    public int Id { get; set; }
-    public int Rating { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime? EndDate { get; set; }
-    public string ReviewText { get; set; } = null!;
-    public string StateEnum { get; set; } = null!;
-    public bool IsFavorite { get; set; }
-    public UserDto User { get; set; } = null!;
-}
+public record ReviewWithGameDto(
+    int Id,
+    int Rating,
+    DateTime StartDate,
+    Datetime EndDate,
+    string ReviewText
+    string StateEnum,
+    bool IsFavorite,
+    UserDto User,
+    GameDto Game
+);
+
+public record ReviewDto(
+    int Id,
+    int Rating,
+    DateTime StartDate,
+    Datetime EndDate,
+    string ReviewText
+    string StateEnum,
+    bool IsFavorite,
+    UserDto User
+)
