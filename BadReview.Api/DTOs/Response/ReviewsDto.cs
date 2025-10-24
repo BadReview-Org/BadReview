@@ -7,8 +7,8 @@ public record ReviewWithGameDto(
     int Id,
     int Rating,
     DateTime StartDate,
-    Datetime EndDate,
-    string ReviewText
+    DateTime EndDate,
+    string ReviewText,
     string StateEnum,
     bool IsFavorite,
     UserDto User,
@@ -19,9 +19,9 @@ public record ReviewDto(
     int Id,
     int Rating,
     DateTime StartDate,
-    Datetime EndDate,
-    string ReviewText
+    DateTime EndDate,
+    string ReviewText,
     string StateEnum,
     bool IsFavorite,
     UserDto User
-)
+);
