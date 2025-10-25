@@ -1,13 +1,12 @@
-using Azure;
+using Microsoft.EntityFrameworkCore;
+
 using BadReview.Api.Data;
-using BadReview.Api.DTOs.Request;
-using BadReview.Api.DTOs.Response;
 using BadReview.Api.Models;
 using BadReview.Api.Services;
-using Microsoft.EntityFrameworkCore;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
+using BadReview.Api.DTOs.Request;
+using BadReview.Api.DTOs.Response;
+using BadReview.Api.DTOs.External;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BadReview.Api.Endpoints;
 
@@ -16,9 +15,8 @@ public static class GameEndpoints
     public static void MapGameEndpoints(this WebApplication app)
     {
         // GET: /api/games - Obtener todos los juegos
-        app.MapGet("/api/games", async (BadReviewContext db, IGDBClient igdb) =>
+        app.MapGet("/api/games", async (BadReviewContext db, IGDBClient igdb, [AsParameters] SelectGamesRequest query) =>
         {
-
             /*var games = await db.Games
                 .Include(g => g.GameGenres)
                     .ThenInclude(gg => gg.Genre)
@@ -29,10 +27,12 @@ public static class GameEndpoints
                 .ToListAsync();
 
             return Results.Ok(games);*/
-            string[] fields = ["id", "name", "cover.url", "first_release_date", "summary", "rating", "videos.video_id"];
-            var options = new IGDBQueryOptions { Fields = fields, Limit = 3 };
-            
-            return await igdb.GetGamesAsync(options);
+            query.SetDefaults();
+            Console.WriteLine($"----------------------------------\nQUERY:\n{query}\n-------------------------");
+
+            var options = new IGDBQueryOptions { Limit = 10 };
+
+            return await igdb.GetGamesAsync<BaseGameIgdbDto>(options);
         });
 
         // GET: /api/games/{id} - Obtener un juego por ID
@@ -91,11 +91,12 @@ public static class GameEndpoints
 
                 return Results.Ok(gameDto);
             }
-
+            return Results.NotFound();
+            /*
             // Si no está en la BD, buscar en IGDB
             try
             {
-                /*using var client = new HttpClient();
+                using var client = new HttpClient();
                 client.DefaultRequestHeaders.Add("Client-ID", clientId);
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -103,7 +104,7 @@ public static class GameEndpoints
                 var body = $"fields id, name, cover.url, first_release_date, summary, rating, videos.video_id; where id = {id};";
                 var content = new StringContent(body, Encoding.UTF8, "text/plain");
 
-                var response = await client.PostAsync("https://api.igdb.com/v4/games", content);*/
+                var response = await client.PostAsync("https://api.igdb.com/v4/games", content);
                 string[] fields = ["id", "name", "cover.url", "first_release_date", "summary", "rating", "videos.video_id"];
                 var options = new IGDBQueryOptions { Id = id, Fields =  fields};
                 var response = await igdb.GetGamesAsync(options);
@@ -147,6 +148,7 @@ public static class GameEndpoints
             {
                 return Results.Problem($"Error fetching from IGDB: {ex.Message}");
             }
+            */
         });
     }
 }

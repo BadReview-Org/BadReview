@@ -2,6 +2,11 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+using BadReview.Api.DTOs.External;
+using System.Reflection;
 
 namespace BadReview.Api.Services;
 
@@ -9,7 +14,8 @@ public record IGDBQueryOptions
 {
     public int? Id { get; init; } = null;
     public int Limit { get; init; } = 10;
-    public string[] Fields { get; init; } = [];
+
+    //public string[] Fields { get; init; } = [];
 }
 
 public class IGDBClient
@@ -39,7 +45,7 @@ public class IGDBClient
     }*/
 
     // devolver json formateado con todos los campos incluidos en fields, mapeados a la clase Game
-    public async Task<HttpResponseMessage> GetGamesAsync(IGDBQueryOptions options)
+    public async Task<List<T>?> GetGamesAsync<T>(IGDBQueryOptions options)
     {
         /*if (_clientId is null || _bearerToken is null) {
             await GetCredentials();
@@ -49,18 +55,29 @@ public class IGDBClient
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+        IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception();
+        string fields = attr.Fields;
+
         string bodyString =
             options.Id is null
-                ? $"fields {string.Join(", ", options.Fields)}; limit {options.Limit};"
-                : $"fields {string.Join(", ", options.Fields)}; where id = {options.Id};";
+                ? $"fields {string.Join(", ", fields)}; limit {options.Limit};"
+                : $"fields {string.Join(", ", fields)}; where id = {options.Id};";
         // Ejemplo de cuerpo de consulta IGDB
         var body = new StringContent(bodyString, Encoding.UTF8, "text/plain");
         Console.WriteLine(bodyString);
 
-        var response = await _httpClient.PostAsync("games", body);
+        HttpResponseMessage response = await _httpClient.PostAsync("games", body);
 
-        Console.WriteLine(await response.Content.ReadAsStringAsync());
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
 
-        return response;
+        var igdbGames = await response.Content.ReadFromJsonAsync<List<T>>(jsonOptions);
+
+        //Console.WriteLine(await response.Content.ReadAsStringAsync());
+
+        return igdbGames;
     }
 }
