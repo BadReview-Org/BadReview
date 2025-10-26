@@ -2,7 +2,6 @@ using BadReview.Api.Utils;
 
 namespace BadReview.Api.DTOs.Response;
 
-
 public record ReviewWithGameDto(
     int Id,
     int Rating,

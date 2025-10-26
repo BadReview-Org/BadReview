@@ -9,3 +9,10 @@ public static class CONSTANTS
     public const int DEF_PAGESIZE = 10;
     public const SortOrder DEF_SORTORDER = SortOrder.ASC;
 }
+
+/*public static class IGDBFields
+{
+    public enum IGDBFieldsEnum { BASE, DETAIL };
+
+    public static 
+}*/

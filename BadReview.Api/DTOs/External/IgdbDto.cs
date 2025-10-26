@@ -7,7 +7,6 @@ public class IgdbFieldsAttribute : Attribute
     public IgdbFieldsAttribute(string fields) => Fields = fields;
 }
 
-
 public record CoverDto(string? Url);
 public record VideoDto(string? Video_Id);
 
