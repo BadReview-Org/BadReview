@@ -1,6 +1,6 @@
 namespace BadReview.Api.DTOs.Response;
 
-public record GameDto(
+public record DetailGameDto(
     int Id,
     string Name,
     string? Cover,
@@ -9,22 +9,17 @@ public record GameDto(
     double RatingIGDB,
     double RatingBadReview,
     string? Video,
+    List<DetailReviewDto> Reviews,
     List<GenreDto> Genres,
     List<DeveloperDto> Developers,
     List<PlatformDto> Platforms
 );
 
-public record GameWithReviewsDto(
+public record BasicGameDto(
     int Id,
     string Name,
     string? Cover,
-    DateTime? Date,
-    string? Summary,
     double RatingIGDB,
-    double RatingBadReview,
-    string? Video,
-    List<ReviewDto> Reviews,
-    List<GenreDto> Genres,
-    List<DeveloperDto> Developers,
-    List<PlatformDto> Platforms
+    double RatingBadReview
 );
+

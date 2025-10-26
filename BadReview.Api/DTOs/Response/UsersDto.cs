@@ -1,3 +1,16 @@
 namespace BadReview.Api.DTOs.Response;
 
-public record UserDto(int Id, string Username, string FullName);
+public record UserDto(
+    int Id,
+    string Username,
+    string FullName,
+    DateTime? Birthday,
+    string? Country,
+    List<DetailReviewDto>? Reviews
+);
+
+public record BasicUserDto(
+    int Id,
+    string Username,
+    string FullName
+);

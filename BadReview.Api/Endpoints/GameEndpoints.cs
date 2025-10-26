@@ -52,7 +52,7 @@ public static class GameEndpoints
 
             if (game != null)
             {
-                var gameDto = new GameWithReviewsDto(
+                var gameDto = new DetailGameDto(
                     game.Id,
                     game.Name,
                     game.Cover,
@@ -61,7 +61,7 @@ public static class GameEndpoints
                     game.RatingIGDB,
                     game.RatingBadReview,
                     game.Video,
-                    game.Reviews.Select(r => new ReviewDto(
+                    game.Reviews.Select(r => new DetailReviewDto(
                         r.Id,
                         r.Rating,
                         r.StartDate,
@@ -69,11 +69,12 @@ public static class GameEndpoints
                         r.ReviewText,
                         r.StateEnum,
                         r.IsFavorite,
-                        new UserDto(
+                        new BasicUserDto(
                             r.User.Id,
                             r.User.Username,
                             r.User.FullName
-                        )
+                        ),
+                        null!
                     )).ToList(),
                     game.GameGenres.Select(gg => new GenreDto(
                         gg.Genre.Id,

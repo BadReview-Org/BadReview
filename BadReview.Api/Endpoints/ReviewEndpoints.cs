@@ -16,9 +16,32 @@ public static class ReviewEndpoints
             var reviews = await db.Reviews
                 .Include(r => r.User)
                 .ToListAsync();
+                
+            if (reviews != null)
+            {
+                return Results.Ok(reviews.Select(r => new DetailReviewDto(
+                    r.Id,
+                    r.Rating,
+                    r.StartDate,
+                    r.EndDate,
+                    r.ReviewText,
+                    r.StateEnum,
+                    r.IsFavorite,
+                    new BasicUserDto(
+                        r.User.Id,
+                        r.User.Username,
+                        r.User.FullName
+                    ),
+                    null!
+                )).ToList());
 
-            return Results.Ok(reviews);
+            }
+            return Results.NotFound();
         });
+
+
+
+
         // POST: /api/reviews - Crear una nueva reseña
         app.MapPost("/api/reviews", async (CreateReviewRequest review, HttpContext context, BadReviewContext db) =>
         {
@@ -57,7 +80,7 @@ public static class ReviewEndpoints
             };
             db.Reviews.Add(reviewdb);
             await db.SaveChangesAsync();
-            var reviewdto = new ReviewDto
+            var reviewdto = new DetailReviewDto
             (
                 reviewdb.Id,
                 reviewdb.Rating,
@@ -66,13 +89,13 @@ public static class ReviewEndpoints
                 reviewdb.ReviewText,
                 reviewdb.StateEnum,
                 reviewdb.IsFavorite,
-                new UserDto(
+                new BasicUserDto(
                     userId,
                     user.Username,
-                    user.Email
-                )
+                    user.FullName
+                ),
+                null!
             );
-
             return Results.Created($"/api/reviews/{reviewdto.Id}", reviewdto);
         });
     }
