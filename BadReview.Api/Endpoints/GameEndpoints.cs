@@ -7,6 +7,7 @@ using BadReview.Api.DTOs.Request;
 using BadReview.Api.DTOs.Response;
 using BadReview.Api.DTOs.External;
 using Microsoft.AspNetCore.Mvc;
+using BadReview.Api.Utils;
 
 namespace BadReview.Api.Endpoints;
 
@@ -32,7 +33,16 @@ public static class GameEndpoints
 
             var options = new IGDBQueryOptions { Limit = 10 };
 
-            return await igdb.GetGamesAsync<BaseGameIgdbDto>(options);
+            IGDBFieldsEnum info = IGDBFieldsEnum.BASE;
+
+
+            switch (info)
+            {
+                case IGDBFieldsEnum.BASE:
+                    return await igdb.GetGamesAsync<BasicGameIgdbDto>(options);
+                case IGDBFieldsEnum.DETAIL:
+                    return await igdb.GetGamesAsync<DetailGameDto>(options);
+            }
         });
 
         // GET: /api/games/{id} - Obtener un juego por ID
