@@ -22,9 +22,9 @@ public static class Mapper
         };
     }
 
-    public static ReviewDto CreateReviewDto(Review model, int userId, string userName, string userEmail)
+    public static DetailReviewDto CreateReviewDto(Review model, int userId, string userName, string userEmail)
     {
-        return new ReviewDto
+        return new DetailReviewDto
         (
             model.Id,
             model.Rating,
@@ -33,12 +33,13 @@ public static class Mapper
             model.ReviewText,
             model.StateEnum,
             model.IsFavorite,
-            CreateUserDto(userId, userName, userEmail)
+            CreateUserDto(userId, userName, userEmail),
+            null
         );
     }
 
-    public static UserDto CreateUserDto(int id, string name, string email)
+    public static BasicUserDto CreateUserDto(int id, string name, string email)
     {
-        return new UserDto(id, name, email);
+        return new BasicUserDto(id, name, email);
     }
 }
