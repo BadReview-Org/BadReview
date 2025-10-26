@@ -15,7 +15,7 @@ public static class GameEndpoints
     public static void MapGameEndpoints(this WebApplication app)
     {
         // GET: /api/games - Obtener todos los juegos
-        app.MapGet("/api/games", async (BadReviewContext db, IGDBClient igdb, [AsParameters] SelectGamesRequest query) =>
+        app.MapGet("/api/games", async ([AsParameters] SelectGamesRequest query, BadReviewContext db, IGDBClient igdb) =>
         {
             /*var games = await db.Games
                 .Include(g => g.GameGenres)
