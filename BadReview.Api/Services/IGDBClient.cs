@@ -60,7 +60,9 @@ public class IGDBClient
                 : $"fields {string.Join(", ", fields)}; where id = {query.Id};";*/
 
         string bodyString =
-            $"fields {fields}; where {filters}; sort {query.OrderBy} {query.Order}; limit {query.PageSize}; offset {query.PageSize * query.Page}";
+            $"fields {fields}; where {filters}; sort {query.OrderBy} {query.Order}; limit {query.PageSize}; offset {query.PageSize * query.Page};";
+
+        Console.WriteLine(bodyString);
 
         // Ejemplo de cuerpo de consulta IGDB
         var body = new StringContent(bodyString, Encoding.UTF8, "text/plain");
@@ -75,7 +77,7 @@ public class IGDBClient
 
         var igdbGames = await response.Content.ReadFromJsonAsync<List<T>>(jsonOptions);
 
-        //Console.WriteLine(await response.Content.ReadAsStringAsync());
+        Console.WriteLine(await response.Content.ReadAsStringAsync());
 
         return igdbGames;
     }
