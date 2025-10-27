@@ -14,3 +14,16 @@ public static class CONSTANTS
     public const SortOrder DEF_SORTORDER = SortOrder.ASC;
     public const IGDBFieldsEnum DEF_DETAIL = IGDBFieldsEnum.BASE;
 }
+
+public static class ExtensionMethods
+{
+    public static string SortOrderStr(this SortOrder? order)
+    {
+        return order switch
+        {
+            SortOrder.ASC => "asc",
+            SortOrder.DSC => "desc",
+            _ => "",
+        };
+    }
+}

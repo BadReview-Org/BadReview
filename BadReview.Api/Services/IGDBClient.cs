@@ -8,6 +8,8 @@ using System.Text.Json.Serialization;
 using BadReview.Api.DTOs.External;
 using System.Reflection;
 using BadReview.Api.DTOs.Request;
+using Microsoft.IdentityModel.Tokens;
+using BadReview.Api.Utils;
 
 namespace BadReview.Api.Services;
 
@@ -49,18 +51,14 @@ public class IGDBClient
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception();
-        string fields = attr.Fields;
 
-        //query.Filters = ...;
-        string filters = "id = 115";
+        string fields = $"fields {attr.Fields};";
+        string filters = query.Filters.IsNullOrEmpty() ? "" : $"where {query.Filters};";
+        string sort = query.OrderBy.IsNullOrEmpty() ? "" : $"sort {query.OrderBy} {query.Order.SortOrderStr()};";
+        string limit = $"limit {query.PageSize};";
+        string offset = query.Page <= 0 ? "" : $"offset {query.PageSize * query.Page};";
 
-        /*string bodyString =
-            query. is null
-                ? $"fields {string.Join(", ", fields)}; limit {query.Limit};"
-                : $"fields {string.Join(", ", fields)}; where id = {query.Id};";*/
-
-        string bodyString =
-            $"fields {fields}; where {filters}; sort {query.OrderBy} {query.Order}; limit {query.PageSize}; offset {query.PageSize * query.Page};";
+        string bodyString = $"{fields}{filters}{sort}{limit}{offset}";
 
         Console.WriteLine(bodyString);
 
