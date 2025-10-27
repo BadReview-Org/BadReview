@@ -2,6 +2,7 @@ using BadReview.Api.Data;
 using BadReview.Api.Models;
 using BadReview.Api.DTOs.Response;
 using Microsoft.EntityFrameworkCore;
+using BadReview.Api.DTOs.Request;
 
 namespace BadReview.Api.Endpoints
 {
@@ -12,9 +13,35 @@ namespace BadReview.Api.Endpoints
             // GET: /api/users - Obtener todos los usuarios
             app.MapGet("/api/users", async (BadReviewContext db) =>
             {
-                return await db.Users
+                var users = await db.Users
                     .Include(u => u.Reviews)
+                        .ThenInclude(r => r.Game)
                     .ToListAsync();
+
+                return users.Select(u => new UserDto(
+                    u.Id,
+                    u.Username,
+                    u.FullName,
+                    u.Birthday,
+                    u.Country,
+                    u.Reviews.Select(r => new DetailReviewDto(
+                        r.Id,
+                        r.Rating,
+                        r.StartDate,
+                        r.EndDate,
+                        r.ReviewText,
+                        r.StateEnum,
+                        r.IsFavorite,
+                        null,
+                        new BasicGameDto(
+                            r.Game.Id,
+                            r.Game.Name,
+                            r.Game.Cover,
+                            r.Game.RatingIGDB,
+                            r.Game.RatingBadReview
+                        )
+                    )).ToList()
+                ));
             })
             .WithName("GetUsers");
 
@@ -24,10 +51,6 @@ namespace BadReview.Api.Endpoints
                 var user = await db.Users
                     .Include(u => u.Reviews)
                         .ThenInclude(r => r.Game)
-
-                
-
-                
                     .FirstOrDefaultAsync(u => u.Id == id);
                 var userdto = user is not null ? new UserDto(
                     user.Id,
@@ -59,7 +82,7 @@ namespace BadReview.Api.Endpoints
 
 
             // POST: /api/users - Crear un nuevo usuario
-            app.MapPost("/api/users", async (User user, BadReviewContext db) =>
+            app.MapPost("/api/users", async (CreateUserRequest user, BadReviewContext db) =>
             {
                 // Validar que Username sea único
                 if (await db.Users.AnyAsync(u => u.Username == user.Username))
@@ -72,27 +95,32 @@ namespace BadReview.Api.Endpoints
                     return Results.Conflict(new { error = "Already exists: Email" });
                 }
 
-                db.Users.Add(user);
+                var newUser = new User
+                {
+                    Username = user.Username,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    Birthday = user.Birthday,
+                    Country = user.Country
+                };
+
+                db.Users.Add(newUser);
                 await db.SaveChangesAsync();
                 var userdto = new UserDto(
-                    user.Id,
-                    user.Username,
-                    user.FullName,
-                    user.Birthday,
-                    user.Country,
+                    newUser.Id,
+                    newUser.Username,
+                    newUser.FullName,
+                    newUser.Birthday,
+                    newUser.Country,
                     new List<DetailReviewDto>()
                 );
-                return Results.Created($"/api/users/{user.Id}", userdto);
+                return Results.Created($"/api/users/{newUser.Id}", userdto);
             })
             .WithName("CreateUser");
 
             // PUT: /api/users/{id} - Actualizar un usuario existente
-            app.MapPut("/api/users/{id}", async (int id, User user, BadReviewContext db) =>
+            app.MapPut("/api/users/{id}", async (int id, CreateUserRequest user, BadReviewContext db) =>
             {
-                if (id != user.Id)
-                {
-                    return Results.BadRequest();
-                }
 
                 var existingUser = await db.Users.FindAsync(id);
                 if (existingUser is null)

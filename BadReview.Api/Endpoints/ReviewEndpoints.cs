@@ -16,7 +16,7 @@ public static class ReviewEndpoints
             var reviews = await db.Reviews
                 .Include(r => r.User)
                 .ToListAsync();
-                
+
             if (reviews != null)
             {
                 return Results.Ok(reviews.Select(r => new DetailReviewDto(
@@ -38,7 +38,89 @@ public static class ReviewEndpoints
             }
             return Results.NotFound();
         });
+        // GET: /api/reviews/{id} - Obtener una reseña por ID
+        app.MapGet("/api/reviews/{id}", async (int id, BadReviewContext db) =>
+        {
+            var review = await db.Reviews
+                .Include(r => r.User)
+                .Include(r => r.Game)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
+            if (review != null)
+            {
+                var reviewdto = new DetailReviewDto
+                (
+                    review.Id,
+                    review.Rating,
+                    review.StartDate,
+                    review.EndDate,
+                    review.ReviewText,
+                    review.StateEnum,
+                    review.IsFavorite,
+                    new BasicUserDto(
+                        review.User.Id,
+                        review.User.Username,
+                        review.User.FullName
+                    ),
+                    new BasicGameDto(
+                        review.Game.Id,
+                        review.Game.Name,
+                        review.Game.Cover,
+                        review.Game.RatingIGDB,
+                        review.Game.RatingBadReview
+                    ) 
+                );
+
+                return Results.Ok(reviewdto);
+            }
+            return Results.NotFound();
+        });
+
+        //PUT: /api/reviews/{id} - Actualizar una reseña por ID
+        app.MapPut("/api/reviews/{id}", async (int id, CreateReviewRequest updatedReview, BadReviewContext db) =>
+        {
+            var review = await db.Reviews.Include(r => r.User)
+                                         .Include(r => r.Game)
+                                         .FirstOrDefaultAsync(r => r.Id == id);
+            if (review == null)
+            {
+                return Results.NotFound(new { error = $"Review with id {id} not found" });
+            }
+
+            review.Rating = updatedReview.Rating;
+            review.StartDate = updatedReview.StartDate;
+            review.EndDate = updatedReview.EndDate;
+            review.ReviewText = updatedReview.ReviewText;
+            review.StateEnum = updatedReview.StateEnum;
+            review.IsFavorite = updatedReview.IsFavorite;
+
+            await db.SaveChangesAsync();
+
+            var reviewdto = new DetailReviewDto
+            (
+                review.Id,
+                review.Rating,
+                review.StartDate,
+                review.EndDate,
+                review.ReviewText,
+                review.StateEnum,
+                review.IsFavorite,
+                new BasicUserDto(
+                    review.User.Id,
+                    review.User.Username,
+                    review.User.FullName
+                ),
+                new BasicGameDto(
+                    review.Game.Id,
+                    review.Game.Name,
+                    review.Game.Cover,
+                    review.Game.RatingIGDB,
+                    review.Game.RatingBadReview
+                )
+            );
+
+            return Results.Ok(reviewdto);
+        });
 
 
 

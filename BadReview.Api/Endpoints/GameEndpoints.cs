@@ -35,14 +35,7 @@ public static class GameEndpoints
 
             IGDBFieldsEnum info = IGDBFieldsEnum.BASE;
 
-
-            switch (info)
-            {
-                case IGDBFieldsEnum.BASE:
-                    return await igdb.GetGamesAsync<BasicGameIgdbDto>(options);
-                case IGDBFieldsEnum.DETAIL:
-                    return await igdb.GetGamesAsync<DetailGameDto>(options);
-            }
+            return await igdb.GetGamesAsync<BasicGameIgdbDto>(options);
         });
 
         // GET: /api/games/{id} - Obtener un juego por ID
