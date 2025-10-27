@@ -36,6 +36,34 @@ builder.Services
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
         };
+        
+        // JWT Debugger
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"JWT Authentication Failed: {context.Exception.Message}");
+                Console.WriteLine($"   Exception Type: {context.Exception.GetType().Name}");
+                if (context.Exception.InnerException != null)
+                    Console.WriteLine($"   Inner Exception: {context.Exception.InnerException.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("JWT Token Validated Successfully");
+                var claims = context.Principal?.Claims.Select(c => $"{c.Type}: {c.Value}");
+                Console.WriteLine($"   Claims: {string.Join(", ", claims ?? new[] { "No claims" })}");
+                return Task.CompletedTask;
+            },
+            OnMessageReceived = context =>
+            {
+                var token = context.Token;
+                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                Console.WriteLine($"Authorization Header: {authHeader ?? "NULL"}");
+                Console.WriteLine($"JWT Token Received: {(token?.Length > 20 ? token.Substring(0, 20) + "..." : "null")}");
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();

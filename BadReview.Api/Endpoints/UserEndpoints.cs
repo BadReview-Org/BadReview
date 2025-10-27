@@ -4,6 +4,7 @@ using BadReview.Api.DTOs.Response;
 using Microsoft.EntityFrameworkCore;
 using BadReview.Api.DTOs.Request;
 using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using BadReview.Api.Services;
 
@@ -50,7 +51,7 @@ namespace BadReview.Api.Endpoints
             })
             .WithName("GetUsers");
 
-            app.MapPost("/login", async (LoginUserRequest req, AuthService auth, BadReviewContext db) =>
+            app.MapPost("/api/login", async (LoginUserRequest req, AuthService auth, BadReviewContext db) =>
             {
                 var hashedPass = await db.Users
                     .Where(u => u.Username == req.Username)
@@ -69,7 +70,7 @@ namespace BadReview.Api.Endpoints
                 return Results.Ok(new { token });
             });
                 
-            app.MapGet("/profile", [Authorize] (ClaimsPrincipal user) =>
+            app.MapGet("/api/profile", [Authorize] (ClaimsPrincipal user) =>
             {
                 var username = user.Identity?.Name ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
                 return Results.Ok(new { message = $"Hola {username}" });
@@ -110,7 +111,7 @@ namespace BadReview.Api.Endpoints
             })
             .WithName("GetUser");
 
-            app.MapPost("/register", async (BadReviewContext db, RegisterUserRequest req, AuthService auth) =>
+            app.MapPost("/api/register", async (BadReviewContext db, RegisterUserRequest req, AuthService auth) =>
             {
                 // Validar que Username sea único
                 if (await db.Users.AnyAsync(u => u.Username == req.Username))
@@ -178,18 +179,23 @@ namespace BadReview.Api.Endpoints
             .WithName("UpdateUser");
 
             // DELETE: /api/users/{id} - Eliminar un usuario
-            app.MapDelete("/api/users/{id}", async (int id, BadReviewContext db) =>
+            app.MapDelete("/api/profile", async (ClaimsPrincipal user, BadReviewContext db) =>
             {
-                var user = await db.Users.FindAsync(id);
-                if (user is null)
+                var username = user.FindFirstValue(ClaimTypes.NameIdentifier) 
+                    ?? user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                var existingUser = await db.Users
+                    .Where(u => u.Username == username)
+                    .FirstOrDefaultAsync();
+                if (existingUser is null)
                 {
                     return Results.NotFound();
                 }
 
-                db.Users.Remove(user);
+                db.Users.Remove(existingUser);
                 await db.SaveChangesAsync();
                 return Results.NoContent();
             })
+            .RequireAuthorization()
             .WithName("DeleteUser");
         }
     }
