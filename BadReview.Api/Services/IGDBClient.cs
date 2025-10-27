@@ -7,16 +7,9 @@ using System.Text.Json.Serialization;
 
 using BadReview.Api.DTOs.External;
 using System.Reflection;
+using BadReview.Api.DTOs.Request;
 
 namespace BadReview.Api.Services;
-
-public record IGDBQueryOptions
-{
-    public int? Id { get; init; } = null;
-    public int Limit { get; init; } = 10;
-
-    //public string[] Fields { get; init; } = [];
-}
 
 public class IGDBClient
 {
@@ -45,7 +38,7 @@ public class IGDBClient
     }*/
 
     // devolver json formateado con todos los campos incluidos en fields, mapeados a la clase Game
-    public async Task<List<T>?> GetGamesAsync<T>(IGDBQueryOptions options)
+    public async Task<List<T>?> GetGamesAsync<T>(SelectGamesRequest query)
     {
         /*if (_clientId is null || _bearerToken is null) {
             await GetCredentials();
@@ -59,15 +52,14 @@ public class IGDBClient
         string fields = attr.Fields;
 
         string bodyString =
-            options.Id is null
-                ? $"fields {string.Join(", ", fields)}; limit {options.Limit};"
-                : $"fields {string.Join(", ", fields)}; where id = {options.Id};";
+            query. is null
+                ? $"fields {string.Join(", ", fields)}; limit {query.Limit};"
+                : $"fields {string.Join(", ", fields)}; where id = {query.Id};";
         // Ejemplo de cuerpo de consulta IGDB
         var body = new StringContent(bodyString, Encoding.UTF8, "text/plain");
-        Console.WriteLine(bodyString);
-
+        
         HttpResponseMessage response = await _httpClient.PostAsync("games", body);
-
+        
         var jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,

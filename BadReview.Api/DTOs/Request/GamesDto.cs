@@ -11,6 +11,8 @@ public record SelectGamesRequest
     public SortOrder? Order { get; set; }
     public int? Page { get; set; }
     public int? PageSize { get; set; }
+    public IGDBFieldsEnum? Detail { get; set; }
+    public int? Limit { get; set; }
 
     // Must call SetDefaults after initialization
     public void SetDefaults()
@@ -18,5 +20,6 @@ public record SelectGamesRequest
         this.Order = this.Order ?? CONSTANTS.DEF_SORTORDER;
         this.Page = this.Page ?? CONSTANTS.DEF_PAGE;
         this.PageSize = this.PageSize ?? CONSTANTS.DEF_PAGESIZE;
+        this.Detail = this.Detail ?? CONSTANTS.DEF_DETAIL;
     }
 }

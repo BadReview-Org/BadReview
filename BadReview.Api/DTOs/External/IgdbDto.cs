@@ -13,5 +13,5 @@ public record VideoDto(string? Video_Id);
 [IgdbFields("id, name, cover.url")]
 public record BasicGameIgdbDto(int Id, string Name, CoverDto? Cover);
 
-[IgdbFields("id, name, cover.url, video.video_id")]
-public record DetailGameIgdbDto(int Id, string Name, CoverDto? Cover, VideoDto? Video);
+[IgdbFields("id, name, cover.url, videos.video_id")]
+public record DetailGameIgdbDto(int Id, string Name, CoverDto? Cover, List<VideoDto>? Videos);
