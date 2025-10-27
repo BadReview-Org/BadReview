@@ -12,7 +12,6 @@ public record SelectGamesRequest
     public int? Page { get; set; }
     public int? PageSize { get; set; }
     public IGDBFieldsEnum? Detail { get; set; }
-    public int? Limit { get; set; }
 
     // Must call SetDefaults after initialization
     public void SetDefaults()

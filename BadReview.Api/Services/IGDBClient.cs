@@ -51,10 +51,17 @@ public class IGDBClient
         IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception();
         string fields = attr.Fields;
 
-        string bodyString =
+        //query.Filters = ...;
+        string filters = "id = 115";
+
+        /*string bodyString =
             query. is null
                 ? $"fields {string.Join(", ", fields)}; limit {query.Limit};"
-                : $"fields {string.Join(", ", fields)}; where id = {query.Id};";
+                : $"fields {string.Join(", ", fields)}; where id = {query.Id};";*/
+
+        string bodyString =
+            $"fields {fields}; where {filters}; sort {query.OrderBy} {query.Order}; limit {query.PageSize}; offset {query.PageSize * query.Page}";
+
         // Ejemplo de cuerpo de consulta IGDB
         var body = new StringContent(bodyString, Encoding.UTF8, "text/plain");
         
