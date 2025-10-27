@@ -53,8 +53,8 @@ public class IGDBClient
         IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception();
 
         string fields = $"fields {attr.Fields};";
-        string filters = query.Filters.IsNullOrEmpty() ? "" : $"where {query.Filters};";
-        string sort = query.OrderBy.IsNullOrEmpty() ? "" : $"sort {query.OrderBy} {query.Order.SortOrderStr()};";
+        string filters = string.IsNullOrEmpty(query.Filters) ? "" : $"where {query.Filters};";
+        string sort = string.IsNullOrEmpty(query.OrderBy) ? "" : $"sort {query.OrderBy} {query.Order.SortOrderStr()};";
         string limit = $"limit {query.PageSize};";
         string offset = query.Page <= 0 ? "" : $"offset {query.PageSize * query.Page};";
 

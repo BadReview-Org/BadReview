@@ -3,6 +3,8 @@ using BadReview.Api.Models;
 using BadReview.Api.DTOs.Response;
 using Microsoft.EntityFrameworkCore;
 using BadReview.Api.DTOs.Request;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BadReview.Api.Endpoints
 {
@@ -10,6 +12,8 @@ namespace BadReview.Api.Endpoints
     {
         public static void MapUserEndpoints(this IEndpointRouteBuilder app)
         {
+
+
             // GET: /api/users - Obtener todos los usuarios
             app.MapGet("/api/users", async (BadReviewContext db) =>
             {
@@ -44,6 +48,24 @@ namespace BadReview.Api.Endpoints
                 ));
             })
             .WithName("GetUsers");
+
+            app.MapPost("/login", (LoginUserRequest req, AuthService auth) =>
+            {
+                var userDbPassword = auth.HashPassword(req.Username, req.Password);
+                var isValid = auth.VerifyPassword(req.Username, req.Password, userDbPassword);
+
+                if (!isValid)
+                    return Results.Unauthorized();
+
+                var token = auth.GenerateToken(req.Username);
+                return Results.Ok(new { token });
+            });
+                
+            app.MapGet("/profile", [Authorize] (ClaimsPrincipal user) =>
+            {
+                var username = user.Identity?.Name ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+                return Results.Ok(new { message = $"Hola {username}" });
+            });
 
             // GET: /api/users/{id} - Obtener un usuario por ID
             app.MapGet("/api/users/{id}", async (int id, BadReviewContext db) =>
@@ -80,43 +102,39 @@ namespace BadReview.Api.Endpoints
             })
             .WithName("GetUser");
 
-
-            // POST: /api/users - Crear un nuevo usuario
-            app.MapPost("/api/users", async (CreateUserRequest user, BadReviewContext db) =>
+            app.MapPost("/register", async (BadReviewContext db, RegisterUserRequest req, AuthService auth) =>
             {
                 // Validar que Username sea único
-                if (await db.Users.AnyAsync(u => u.Username == user.Username))
+                if (await db.Users.AnyAsync(u => u.Username == req.Username))
                 {
                     return Results.Conflict(new { error = "Already exists: Username" });
                 }
                 // Validar que Email sea único
-                if (await db.Users.AnyAsync(u => u.Email == user.Email))
+                if (await db.Users.AnyAsync(u => u.Email == req.Email))
                 {
                     return Results.Conflict(new { error = "Already exists: Email" });
                 }
-
+                var hashedPassword = auth.HashPassword(req.Username, req.Password);
                 var newUser = new User
                 {
-                    Username = user.Username,
-                    Email = user.Email,
-                    FullName = user.FullName,
-                    Birthday = user.Birthday,
-                    Country = user.Country
+                    Username = req.Username,
+                    Email = req.Email,
+                    Password = hashedPassword,
+                    FullName = req.FullName
                 };
 
                 db.Users.Add(newUser);
                 await db.SaveChangesAsync();
-                var userdto = new UserDto(
+                var userdto = new BasicUserDto(
                     newUser.Id,
                     newUser.Username,
-                    newUser.FullName,
-                    newUser.Birthday,
-                    newUser.Country,
-                    new List<DetailReviewDto>()
+                    newUser.FullName
                 );
-                return Results.Created($"/api/users/{newUser.Id}", userdto);
+                var token = auth.GenerateToken(req.Username);
+
+                return Results.Ok(new { user = userdto, token });
             })
-            .WithName("CreateUser");
+            .WithName("RegisterUser");
 
             // PUT: /api/users/{id} - Actualizar un usuario existente
             app.MapPut("/api/users/{id}", async (int id, CreateUserRequest user, BadReviewContext db) =>
