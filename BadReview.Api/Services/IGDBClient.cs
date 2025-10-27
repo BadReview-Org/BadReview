@@ -30,7 +30,7 @@ public class IGDBClient
         this._bearerToken = config["IGDB:AccessToken"];
 
         if (string.IsNullOrEmpty(_clientId) || string.IsNullOrEmpty(_bearerToken))
-            throw new ArgumentNullException();
+            throw new ArgumentNullException("Can't retrieve IGDB credentials");
     }
 
     /*private static async Task GetCredentials()
@@ -50,7 +50,7 @@ public class IGDBClient
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception();
+        IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception("Can't determine IGDB return fields.");
 
         string fields = $"fields {attr.Fields};";
         string filters = string.IsNullOrEmpty(query.Filters) ? "" : $"where {query.Filters};";

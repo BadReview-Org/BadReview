@@ -10,9 +10,7 @@ public record CreateUserRequest(
 
 public record LoginUserRequest(
     string Username,
-    string Email,
-    string Password,
-    string FullName
+    string Password
 );
 
 public record RegisterUserRequest(

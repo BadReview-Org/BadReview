@@ -4,6 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
+namespace BadReview.Api.Services;
+
 public class AuthService
 {
     private readonly PasswordHasher<string> _hasher = new();
@@ -12,8 +14,8 @@ public class AuthService
 
     public AuthService(IConfiguration config)
     {
-        _key = config["Jwt:Key"]!;
-        _issuer = config["Jwt:Issuer"]!;
+        _key = config["Jwt:Key"] ?? throw new Exception("Private key not set.");
+        _issuer = config["Jwt:Issuer"] ?? throw new Exception("Issuer not set.");
     }
 
     // Verifica la contraseña (usarías esto con una BD real)

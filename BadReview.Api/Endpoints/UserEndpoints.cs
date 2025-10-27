@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using BadReview.Api.DTOs.Request;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using BadReview.Api.Services;
 
 namespace BadReview.Api.Endpoints
 {
@@ -49,10 +50,17 @@ namespace BadReview.Api.Endpoints
             })
             .WithName("GetUsers");
 
-            app.MapPost("/login", (LoginUserRequest req, AuthService auth) =>
+            app.MapPost("/login", async (LoginUserRequest req, AuthService auth, BadReviewContext db) =>
             {
-                var userDbPassword = auth.HashPassword(req.Username, req.Password);
-                var isValid = auth.VerifyPassword(req.Username, req.Password, userDbPassword);
+                var hashedPass = await db.Users
+                    .Where(u => u.Username == req.Username)
+                    .Select(u => u.Password)
+                    .FirstOrDefaultAsync();
+                    
+                if (string.IsNullOrEmpty(hashedPass))
+                    return Results.NotFound();
+
+                var isValid = auth.VerifyPassword(req.Username, req.Password, hashedPass);
 
                 if (!isValid)
                     return Results.Unauthorized();
