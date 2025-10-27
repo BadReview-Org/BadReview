@@ -8,6 +8,8 @@ using BadReview.Api.DTOs.Response;
 using BadReview.Api.DTOs.External;
 using Microsoft.AspNetCore.Mvc;
 using BadReview.Api.Utils;
+using Azure;
+using System.Text.Json;
 
 namespace BadReview.Api.Endpoints;
 
@@ -28,21 +30,24 @@ public static class GameEndpoints
                 .ToListAsync();
 
             return Results.Ok(games);*/
+            
             query.SetDefaults();
-            Console.WriteLine($"----------------------------------\nQUERY:\n{query}\n-------------------------");
-
-            var options = new IGDBQueryOptions { Limit = 10 };
-
-            IGDBFieldsEnum info = IGDBFieldsEnum.BASE;
-
-
-            switch (info)
+            object? response;
+            switch (query.Detail)
             {
                 case IGDBFieldsEnum.BASE:
-                    return await igdb.GetGamesAsync<BasicGameIgdbDto>(options);
+                    response = await igdb.GetGamesAsync<BasicGameIgdbDto>(query);
+                    break;
                 case IGDBFieldsEnum.DETAIL:
-                    return await igdb.GetGamesAsync<DetailGameDto>(options);
+                    response = await igdb.GetGamesAsync<DetailGameIgdbDto>(query);
+                    break;
+                default:
+                    response = null;
+                    break;
             }
+
+            response = response is null ? Results.InternalServerError() : Results.Ok(response);
+            return response;
         });
 
         // GET: /api/games/{id} - Obtener un juego por ID
