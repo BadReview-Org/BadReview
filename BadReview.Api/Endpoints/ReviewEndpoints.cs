@@ -3,6 +3,9 @@ using BadReview.Api.Models;
 using BadReview.Api.DTOs.Request;
 using Microsoft.EntityFrameworkCore;
 using BadReview.Api.DTOs.Response;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BadReview.Api.Endpoints;
 
@@ -68,7 +71,7 @@ public static class ReviewEndpoints
                         review.Game.Cover,
                         review.Game.RatingIGDB,
                         review.Game.RatingBadReview
-                    ) 
+                    )
                 );
 
                 return Results.Ok(reviewdto);
@@ -125,29 +128,30 @@ public static class ReviewEndpoints
 
 
         // POST: /api/reviews - Crear una nueva reseña
-        app.MapPost("/api/reviews", async (CreateReviewRequest review, HttpContext context, BadReviewContext db) =>
+        app.MapPost("/api/reviews", async (CreateReviewRequest review, ClaimsPrincipal user, BadReviewContext db) =>
         {
+            var userId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
 
-            if (!context.Request.Headers.TryGetValue("userId", out var userIdHeader))
+            // Verificar que el usuario existe en la base de datos
+            if(userId == null)
             {
-                return Results.BadRequest(new { error = "userId header is required" });
+                return Results.Unauthorized();
             }
-
-            if (!int.TryParse(userIdHeader.ToString(), out var userId))
+            var userdb = await db.Users.Include(u => u.Reviews)
+                                       .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+            if (userdb == null)
             {
-                return Results.BadRequest(new { error = "userId must be a valid integer" });
+                return Results.NotFound(new { error = $"User with id {userId} not found" });
             }
             var gameId = review.GameId;
-            var gameExists = await db.Games.AnyAsync(g => g.Id == gameId);
-            if (!gameExists)
+            var game = await db.Games.FindAsync(gameId);
+            if (game == null)
             {
                 return Results.NotFound(new { error = $"Game with id {gameId} not found" });
             }
-            // Verificar que el usuario existe en la base de datos
-            var user = await db.Users.FindAsync(userId);
-            if (user == null)
+            if(userdb.Reviews.Select(r => r.GameId).Contains(gameId))
             {
-                return Results.NotFound(new { error = $"User with id {userId} not found" });
+                return Results.Conflict(new { error = $"User has already reviewed game with id {gameId}" });
             }
             var reviewdb = new Review
             {
@@ -157,11 +161,12 @@ public static class ReviewEndpoints
                 ReviewText = review.ReviewText,
                 StateEnum = review.StateEnum,
                 IsFavorite = review.IsFavorite,
-                UserId = userId,
+                UserId = userdb.Id,
                 GameId = gameId
             };
             db.Reviews.Add(reviewdb);
             await db.SaveChangesAsync();
+
             var reviewdto = new DetailReviewDto
             (
                 reviewdb.Id,
@@ -172,13 +177,21 @@ public static class ReviewEndpoints
                 reviewdb.StateEnum,
                 reviewdb.IsFavorite,
                 new BasicUserDto(
-                    userId,
-                    user.Username,
-                    user.FullName
+                    userdb.Id,
+                    userdb.Username,
+                    userdb.FullName
                 ),
-                null!
+                new BasicGameDto(
+                    game.Id,
+                    game.Name,
+                    game.Cover,
+                    game.RatingIGDB,
+                    game.RatingBadReview
+                )
             );
             return Results.Created($"/api/reviews/{reviewdto.Id}", reviewdto);
-        });
+        })
+        .WithName("ReviewEndpoints")
+        .RequireAuthorization();
     }
 }

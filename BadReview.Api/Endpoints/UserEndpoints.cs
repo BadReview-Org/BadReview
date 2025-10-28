@@ -53,20 +53,19 @@ namespace BadReview.Api.Endpoints
 
             app.MapPost("/api/login", async (LoginUserRequest req, AuthService auth, BadReviewContext db) =>
             {
-                var hashedPass = await db.Users
+                var user = await db.Users
                     .Where(u => u.Username == req.Username)
-                    .Select(u => u.Password)
                     .FirstOrDefaultAsync();
-                    
-                if (string.IsNullOrEmpty(hashedPass))
+
+                if (user == null || string.IsNullOrEmpty(user.Password))
                     return Results.NotFound();
 
-                var isValid = auth.VerifyPassword(req.Username, req.Password, hashedPass);
+                var isValid = auth.VerifyPassword(req.Username, req.Password, user.Password);
 
                 if (!isValid)
                     return Results.Unauthorized();
 
-                var token = auth.GenerateToken(req.Username);
+                var token = auth.GenerateToken(req.Username, user.Id);
                 return Results.Ok(new { token });
             });
                 
@@ -139,7 +138,7 @@ namespace BadReview.Api.Endpoints
                     newUser.Username,
                     newUser.FullName
                 );
-                var token = auth.GenerateToken(req.Username);
+                var token = auth.GenerateToken(req.Username, newUser.Id);
 
                 return Results.Ok(new { user = userdto, token });
             })

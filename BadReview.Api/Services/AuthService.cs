@@ -29,7 +29,7 @@ public class AuthService
     public string HashPassword(string username, string password)
         => _hasher.HashPassword(username, password);
 
-    public string GenerateToken(string username)
+    public string GenerateToken(string username, int userId)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -37,7 +37,8 @@ public class AuthService
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("userId", userId.ToString())
         };
 
         var token = new JwtSecurityToken(
