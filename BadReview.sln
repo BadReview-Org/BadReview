@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadReview.Api", "BadReview.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadReview.Client", "BadReview.Client\BadReview.Client.csproj", "{7DB6C232-44FB-4682-A464-0E52E901542F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BadReview.Shared", "BadReview.Shared\BadReview.Shared.csproj", "{91880296-18B8-4FC1-85F4-1886762E9F7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{7DB6C232-44FB-4682-A464-0E52E901542F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DB6C232-44FB-4682-A464-0E52E901542F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7DB6C232-44FB-4682-A464-0E52E901542F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91880296-18B8-4FC1-85F4-1886762E9F7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91880296-18B8-4FC1-85F4-1886762E9F7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91880296-18B8-4FC1-85F4-1886762E9F7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91880296-18B8-4FC1-85F4-1886762E9F7C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

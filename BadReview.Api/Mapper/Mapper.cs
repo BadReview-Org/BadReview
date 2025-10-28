@@ -1,9 +1,10 @@
-using BadReview.Api.DTOs.Request;
-using BadReview.Api.DTOs.Response;
-using BadReview.Api.DTOs.External;
 using BadReview.Api.Models;
 
-namespace BadReview.Api.Utils;
+using BadReview.Shared.DTOs.Request;
+using BadReview.Shared.DTOs.Response;
+using BadReview.Shared.DTOs.External;
+
+namespace BadReview.Api.Mapper;
 
 public static class Mapper
 {

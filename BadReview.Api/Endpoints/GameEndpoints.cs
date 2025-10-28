@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
-
-using BadReview.Api.Data;
-using BadReview.Api.Models;
-using BadReview.Api.Services;
-using BadReview.Api.DTOs.Request;
-using BadReview.Api.DTOs.Response;
-using BadReview.Api.DTOs.External;
-using Microsoft.AspNetCore.Mvc;
-using BadReview.Api.Utils;
-using Azure;
 using System.Text.Json;
+
+using BadReview.Api.Models;
+using BadReview.Api.Data;
+using BadReview.Api.Services;
+
+using BadReview.Shared.DTOs.Request;
+using BadReview.Shared.DTOs.Response;
+using BadReview.Shared.DTOs.External;
+using BadReview.Shared.Utils;
 
 namespace BadReview.Api.Endpoints;
 
@@ -30,7 +29,7 @@ public static class GameEndpoints
                 .ToListAsync();
 
             return Results.Ok(games);*/
-            
+
             query.SetDefaults();
             object? response;
             switch (query.Detail)

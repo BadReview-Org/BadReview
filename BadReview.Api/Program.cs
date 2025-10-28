@@ -1,10 +1,11 @@
-using BadReview.Api.Data;
-using BadReview.Api.Endpoints;
-using BadReview.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+
+using BadReview.Api.Data;
+using BadReview.Api.Endpoints;
+using BadReview.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var key = builder.Configuration["Jwt:Key"] ?? "";

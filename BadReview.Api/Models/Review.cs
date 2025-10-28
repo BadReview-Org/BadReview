@@ -1,6 +1,7 @@
-using BadReview.Api.Utils;
+using BadReview.Shared.Utils;
 
 namespace BadReview.Api.Models;
+
 public class Review
 {
     public int Id { get; set; }

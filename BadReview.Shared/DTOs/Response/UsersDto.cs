@@ -1,4 +1,4 @@
-namespace BadReview.Api.DTOs.Response;
+namespace BadReview.Shared.DTOs.Response;
 
 public record UserDto(
     int Id,

@@ -1,11 +1,13 @@
-using BadReview.Api.Data;
-using BadReview.Api.Models;
-using BadReview.Api.DTOs.Request;
 using Microsoft.EntityFrameworkCore;
-using BadReview.Api.DTOs.Response;
-using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+
+using BadReview.Api.Data;
+using BadReview.Api.Models;
+
+using BadReview.Shared.DTOs.Request;
+using BadReview.Shared.DTOs.Response;
 
 namespace BadReview.Api.Endpoints;
 

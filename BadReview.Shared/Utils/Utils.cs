@@ -1,7 +1,4 @@
-using BadReview.Api.DTOs.External;
-using BadReview.Api.Services;
-
-namespace BadReview.Api.Utils;
+namespace BadReview.Shared.Utils;
 
 public enum ReviewState { PLAYED, PLAYING, WISHLIST, NONE };
 public enum SortOrder { ASC, DSC };

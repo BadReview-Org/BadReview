@@ -1,5 +1,7 @@
-using BadReview.Api.Utils;
-namespace BadReview.Api.DTOs.Request;
+using BadReview.Shared.Utils;
+
+namespace BadReview.Shared.DTOs.Request;
+
 public record CreateUserRequest(
     string Username,
     string Email,

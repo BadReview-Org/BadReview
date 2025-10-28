@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
-using BadReview.Api.DTOs.External;
 using System.Reflection;
-using BadReview.Api.DTOs.Request;
 using Microsoft.IdentityModel.Tokens;
-using BadReview.Api.Utils;
+
+using BadReview.Shared.DTOs.External;
+using BadReview.Shared.DTOs.Request;
+using BadReview.Shared.Utils;
 
 namespace BadReview.Api.Services;
 

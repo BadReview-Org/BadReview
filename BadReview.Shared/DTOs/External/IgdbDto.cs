@@ -1,4 +1,4 @@
-namespace BadReview.Api.DTOs.External;
+namespace BadReview.Shared.DTOs.External;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class IgdbFieldsAttribute : Attribute

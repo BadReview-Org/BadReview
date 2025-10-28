@@ -1,7 +1,8 @@
 using System.Text.Json.Serialization;
-using BadReview.Api.Utils;
 
-namespace BadReview.Api.DTOs.Response;
+using BadReview.Shared.Utils;
+
+namespace BadReview.Shared.DTOs.Response;
 
 
 public record DetailReviewDto(

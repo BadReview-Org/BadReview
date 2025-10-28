@@ -17,4 +17,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BadReview.Shared\BadReview.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

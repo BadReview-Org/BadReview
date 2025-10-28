@@ -1,7 +1,6 @@
-using BadReview.Api.Utils;
-using Microsoft.AspNetCore.Mvc;
+using BadReview.Shared.Utils;
 
-namespace BadReview.Api.DTOs.Request;
+namespace BadReview.Shared.DTOs.Request;
 
 public record SelectGamesRequest
 {
