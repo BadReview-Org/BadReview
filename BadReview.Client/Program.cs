@@ -22,12 +22,5 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUri) 
 
 await builder.Build().RunAsync();
 
-public class AppSettings
-{
-    public ApiConfig? Api { get; set; }
-}
-
-public class ApiConfig
-{
-    public string? URI { get; set; }
-}
+public record AppSettings(ApiConfig? Api);
+public record ApiConfig(string? URI);
