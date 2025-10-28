@@ -1,17 +1,33 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using BadReview.Client;
+using System.Net.Http.Json;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-using var response = await new HttpClient().GetAsync("appsettings.json");
-using var stream = await response.Content.ReadAsStreamAsync();
-builder.Configuration.AddJsonStream(stream);
+// Crear un HttpClient temporal para leer el appsettings.json
+using var httpClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
 
-string api = builder.Configuration["Api:URI"] ?? throw new Exception("Can't determine APIs address");
+var apiSettings = await httpClient.GetFromJsonAsync<AppSettings>("appsettings.json")
+    ?? throw new Exception("No se pudo cargar appsettings.json");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(api) });
+string apiUri = apiSettings.Api?.URI 
+    ?? throw new Exception("No se encontró Api:URI en appsettings.json");
+
+
+// Configurar el HttpClient para la aplicación con la URI de la API
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUri) });
 
 await builder.Build().RunAsync();
+
+public class AppSettings
+{
+    public ApiConfig? Api { get; set; }
+}
+
+public class ApiConfig
+{
+    public string? URI { get; set; }
+}

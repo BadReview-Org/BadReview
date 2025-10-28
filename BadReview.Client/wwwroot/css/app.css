@@ -1,5 +1,10 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
 }
 
 h1:focus {
@@ -7,7 +12,11 @@ h1:focus {
 }
 
 a, .btn-link {
-    color: #0071c1;
+    color: #5dade2;
+}
+
+a:hover, .btn-link:hover {
+    color: #85c1e9;
 }
 
 .btn-primary {
@@ -101,7 +110,41 @@ a, .btn-link {
     }
 
 code {
-    color: #c02d76;
+    color: #ff6b9d;
+    background-color: #2a2a2a;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* Estilos para tablas en tema oscuro */
+table {
+    color: #e0e0e0;
+}
+
+thead {
+    background-color: #2a2a2a;
+    border-bottom: 2px solid #3a3a3a;
+}
+
+tbody tr {
+    border-bottom: 1px solid #2a2a2a;
+}
+
+tbody tr:hover {
+    background-color: #2a2a2a;
+}
+
+/* Inputs y forms */
+.form-control, .form-select {
+    background-color: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #e0e0e0;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: #2a2a2a;
+    border-color: #5dade2;
+    color: #e0e0e0;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {

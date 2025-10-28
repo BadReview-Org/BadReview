@@ -20,7 +20,7 @@ Welcome to your new app.
         string log = $"URI: {client.BaseAddress}";
         await JS.InvokeVoidAsync("console.log", log);
 
-        UserDto userDto = await client.GetFromJsonAsync<UserDto>("/api/users/1002");
+        UserDto userDto = await client.GetFromJsonAsync<UserDto>("/api/users/1");
 
         myName = userDto.FullName;
     }
