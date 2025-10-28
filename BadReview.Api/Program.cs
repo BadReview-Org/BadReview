@@ -13,6 +13,17 @@ var key = builder.Configuration["Jwt:Key"] ?? "";
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorClient", policy =>
+    {
+        policy.WithOrigins("https://localhost:5193", "http://localhost:5193")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
 // Add DbContext
 builder.Services.AddDbContext<BadReviewContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -76,6 +87,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseCors("AllowBlazorClient");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpsRedirection();

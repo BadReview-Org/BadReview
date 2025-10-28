@@ -1,7 +1,27 @@
 ﻿@page "/"
+@using BadReview.Shared.DTOs.Response
+@inject HttpClient client
+
+@inject IJSRuntime JS
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Hello, @myName!</h1>
 
 Welcome to your new app.
+
+
+@code {
+
+    string myName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        string log = $"URI: {client.BaseAddress}";
+        await JS.InvokeVoidAsync("console.log", log);
+
+        UserDto userDto = await client.GetFromJsonAsync<UserDto>("/api/users/1002");
+
+        myName = userDto.FullName;
+    }
+}
