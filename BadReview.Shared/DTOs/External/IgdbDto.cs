@@ -15,3 +15,5 @@ public record BasicGameIgdbDto(int Id, string Name, CoverDto? Cover);
 
 [IgdbFields("id, name, cover.url, videos.video_id")]
 public record DetailGameIgdbDto(int Id, string Name, CoverDto? Cover, List<VideoDto>? Videos);
+
+public record GetCredentialsDto(string access_token, int expires_in, string token_type);

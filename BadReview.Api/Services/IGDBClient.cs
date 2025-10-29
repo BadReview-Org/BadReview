@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
@@ -15,41 +16,74 @@ namespace BadReview.Api.Services;
 
 public class IGDBClient
 {
+    private static readonly SemaphoreSlim _tokenSemaphore = new(1, 1);
     private readonly HttpClient _httpClient;
-    private string? _clientId;
-    private string? _bearerToken;
 
-    //private static string? _clientId;
-    //private static string? _bearerToken;
+    private string? _clientId;
+    private string? _clientSecret;
+
+    private static string? _accessTokenURI = null;
+    private static string? _accessToken = null;
 
     public IGDBClient(HttpClient client, IConfiguration config)
     {
         _httpClient = client;
+        _clientId = config["IGDB:ClientId"];
+        _clientSecret = config["IGDB:ClientSecret"];
 
-        this._clientId = config["IGDB:ClientId"];
-        this._bearerToken = config["IGDB:AccessToken"];
-
-        if (string.IsNullOrEmpty(_clientId) || string.IsNullOrEmpty(_bearerToken))
-            throw new ArgumentNullException("Can't retrieve IGDB credentials");
+        _accessTokenURI = config["IGDB:TokenURI"];
+        
+        if (string.IsNullOrWhiteSpace(_clientId) || string.IsNullOrWhiteSpace(_clientSecret)
+            || string.IsNullOrWhiteSpace(_accessTokenURI))
+            throw new Exception("Can't retrieve IGDB credentials");
     }
 
-    /*private static async Task GetCredentials()
+    private async Task GetAccessToken()
     {
-        _clientId = "k0z2r0lhjxj77ztbr5z45cg9iba8b2";
-        _bearerToken = "6ilx1kgnyqnvc4vsfl9lsr3yq9b7n0";
-    }*/
+        // because _accessToken is shared between instances, we use a semaphore to access it safely
+        await _tokenSemaphore.WaitAsync();
 
-    // devolver json formateado con todos los campos incluidos en fields, mapeados a la clase Game
+        // we check again if it's null, in case another instance already updated it
+        if (_accessToken is null)
+        {
+            // we try to get a new access token
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            string query = $"{_accessTokenURI}?client_id={_clientId}&client_secret={_clientSecret}&grant_type=client_credentials";
+
+            HttpResponseMessage response = await _httpClient.PostAsync(query, null);
+
+            _httpClient.DefaultRequestHeaders.Accept.Remove(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+
+            var token = await response.Content.ReadFromJsonAsync<GetCredentialsDto>(jsonOptions)
+                ?? throw new Exception("Didn't receive a valid IGDB access token");
+
+            Console.WriteLine($"Get new access token for IGDB:\n{token}");
+
+            _accessToken = token.access_token;
+        }
+
+        // release the semaphore
+        _tokenSemaphore.Release();
+    }
+
     public async Task<List<T>?> GetGamesAsync<T>(SelectGamesRequest query)
     {
-        /*if (_clientId is null || _bearerToken is null) {
-            await GetCredentials();
-        }*/
+        // we first check if access token is not set (the server didn't send any queries to igdb yet)
+        if (_accessToken is null) await GetAccessToken();
 
+        // set headers, including the access token
         _httpClient.DefaultRequestHeaders.Add("Client-ID", _clientId);
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_bearerToken}");
+        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+        // parse igdb query body
         IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception("Can't determine IGDB return fields.");
 
         string fields = $"fields {attr.Fields};";
@@ -60,13 +94,31 @@ public class IGDBClient
 
         string bodyString = $"{fields}{filters}{sort}{limit}{offset}";
 
-        Console.WriteLine(bodyString);
+        //Console.WriteLine(bodyString);
 
-        // Ejemplo de cuerpo de consulta IGDB
         var body = new StringContent(bodyString, Encoding.UTF8, "text/plain");
-        
+
+        // send POST method to igdb
         HttpResponseMessage response = await _httpClient.PostAsync("games", body);
-        
+
+        // if the access token is invalid, we refresh the token and try again (could have expired)
+        if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+        {
+            await GetAccessToken();
+
+            _httpClient.DefaultRequestHeaders.Remove("Authorization");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
+
+            response = await _httpClient.PostAsync("games", body);
+        }
+
+        // if it's still invalid or there's another error, we throw exceptions
+        if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            throw new Exception("Authorization error while fetching games from IGDB");
+        else if (!response.IsSuccessStatusCode)
+            throw new Exception("Unexpected error while fetching games from IGDB");
+
+        // if the response is successful, we get the games data as a List of DTO
         var jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
@@ -75,7 +127,7 @@ public class IGDBClient
 
         var igdbGames = await response.Content.ReadFromJsonAsync<List<T>>(jsonOptions);
 
-        Console.WriteLine(await response.Content.ReadAsStringAsync());
+        //Console.WriteLine(await response.Content.ReadAsStringAsync());
 
         return igdbGames;
     }

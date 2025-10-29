@@ -92,7 +92,7 @@ app.UseCors("AllowBlazorClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 // Map endpoints
 app.MapUserEndpoints();
