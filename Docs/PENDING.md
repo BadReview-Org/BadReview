@@ -1,5 +1,7 @@
 # BACKEND
 
+### Verificar token invalido (concurrencia)
+
 ### Terminar endpoints obligatorios
 
 ### Cachear juegos accedidos por ID

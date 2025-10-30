@@ -5,7 +5,7 @@ public class Game
     public int Id { get; set; }
     public string Name { get; set; } = null!;
     public string? Cover { get; set; }
-    public DateTime? Date { get; set; }
+    public long? Date { get; set; }
     public string? Summary { get; set; }
     public double RatingIGDB { get; set; } = 0d;
     public long Total_RatingBadReview { get; set; } = 0;

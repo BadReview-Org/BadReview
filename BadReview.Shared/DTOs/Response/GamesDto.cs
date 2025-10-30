@@ -4,7 +4,7 @@ public record DetailGameDto(
     int Id,
     string Name,
     string? Cover,
-    DateTime? Date,
+    long? Date,
     string? Summary,
     double RatingIGDB,
     long Total_RatingBadReview,

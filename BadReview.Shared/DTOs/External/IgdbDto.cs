@@ -7,13 +7,25 @@ public class IgdbFieldsAttribute : Attribute
     public IgdbFieldsAttribute(string fields) => Fields = fields;
 }
 
-public record CoverDto(string? Url);
-public record VideoDto(string? Video_Id);
+public record GetCredentialsDto(string access_token, int expires_in, string token_type);
+
+public record ImageUrlIgdbDto(string? Url);
+public record VideoIgdbDto(string? Video_Id);
+
+public record GenreIgdbDto(int Id, string Name);
+public record PlatformIgdbDto(int Id, string Name, string? Abbreviation, int? Generation, ImageUrlIgdbDto? Platform_logo);
+public record InvCompIgdbDto(int Id, CompanyIgdbDto Company, bool Developer);
+public record CompanyIgdbDto(int Id, string Name, int? Country, ImageUrlIgdbDto? Logo);
 
 [IgdbFields("id, name, cover.url")]
-public record BasicGameIgdbDto(int Id, string Name, CoverDto? Cover);
+public record BasicGameIgdbDto(int Id, string Name, ImageUrlIgdbDto? Cover);
 
-[IgdbFields("id, name, cover.url, videos.video_id")]
-public record DetailGameIgdbDto(int Id, string Name, CoverDto? Cover, List<VideoDto>? Videos);
-
-public record GetCredentialsDto(string access_token, int expires_in, string token_type);
+[IgdbFields(
+    @"name, cover.url, first_release_date, summary, rating, videos.video_id,
+    genres.name,
+    platforms.abbreviation, platforms.name, platforms.generation, platforms.platform_logo.url,
+    involved_companies.developer,
+    involved_companies.company.name, involved_companies.company.country, involved_companies.company.logo.url")]
+public record DetailGameIgdbDto(
+    int Id, string Name, ImageUrlIgdbDto? Cover, long? First_release_date, string? Summary, double? Rating, List<VideoIgdbDto>? Videos,
+    List<GenreIgdbDto>? Genres, List<PlatformIgdbDto>? Platforms, List<InvCompIgdbDto>? Involved_Companies);
