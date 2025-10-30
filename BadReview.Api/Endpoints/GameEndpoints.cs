@@ -52,8 +52,52 @@ public static class GameEndpoints
         // GET: /api/games/{id} - Obtener un juego por ID
         app.MapGet("/api/games/{id}", async (int id, BadReviewContext db, IGDBClient igdb) =>
         {
+
+            DetailGameDto? gameDB = await db.Games
+                .Where(g => g.Id == id)
+                .Select(g => new DetailGameDto(
+                    g.Id,
+                    g.Name,
+                    null, null, null, 0, 0, null,
+                    new List<DetailReviewDto>(),
+                    g.GameGenres.Select(gg => new GenreDto(gg.GenreId, gg.Genre.Name)).ToList(),
+                    new List<DeveloperDto>(),
+                    new List<PlatformDto>()))
+                .FirstOrDefaultAsync();
+
+            /*IResult res =
+                game is null ?
+                    Results.NotFound("Game's not registered") :
+                    Results.Ok(game);
+
+            return res;*/
+
+            if (gameDB is null)
+            {
+                var query = new SelectGamesRequest { Filters = $"id = {id}", Detail = IGDBFieldsEnum.BASE };
+                query.SetDefaults();
+                List<BasicGameIgdbDto>? l = await igdb.GetGamesAsync<BasicGameIgdbDto>(query);
+
+                if (l is not null)
+                {
+                    BasicGameIgdbDto g = l.First();
+                    Game game = new Game { Id = g.Id, Name = g.Name, Cover = g.Cover?.Url };
+                    await db.Games.AddAsync(game);
+                    await db.SaveChangesAsync();
+
+                    return Results.Ok();
+                }
+
+            }
+            else
+            {
+                return Results.Ok(gameDB);
+            }
+
+            return Results.InternalServerError();
+
             // Primero buscar en la base de datos local
-            var game = await db.Games
+            /*var game = await db.Games
                 .Include(g => g.GameGenres)
                     .ThenInclude(gg => gg.Genre)
                 .Include(g => g.GameDevelopers)
@@ -106,7 +150,7 @@ public static class GameEndpoints
 
                 return Results.Ok(gameDto);
             }
-            return Results.NotFound();
+            return Results.NotFound();*/
             /*
             // Si no está en la BD, buscar en IGDB
             try
