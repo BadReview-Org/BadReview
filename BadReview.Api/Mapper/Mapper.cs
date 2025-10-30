@@ -63,7 +63,8 @@ public static class Mapper
             Date = g.First_release_date,
             Summary = g.Summary,
             RatingIGDB = g.Rating ?? 0d,
-            RatingBadReview = 0d,
+            Total_RatingBadReview = 0,
+            Count_RatingBadReview = 0,
             Video = g.Videos?.FirstOrDefault()?.Video_Id,
             Reviews = new List<Review>(),
             GameGenres = g.Genres?.Select(gen => new GameGenre { GameId = g.Id, GenreId = gen.Id }).ToList()
@@ -89,7 +90,8 @@ public static class Mapper
             g.First_release_date,
             g.Summary,
             g.Rating ?? 0d,
-            0d,
+            0,
+            0,
             g.Videos?.FirstOrDefault()?.Video_Id,
             new List<DetailReviewDto>(),
             g.Genres is null ?
@@ -113,7 +115,8 @@ public static class Mapper
             g.Date,
             g.Summary,
             g.RatingIGDB,
-            g.RatingBadReview,
+            g.Total_RatingBadReview,
+            g.Count_RatingBadReview,
             g.Video,
             g.Reviews.Select(r => new DetailReviewDto(
                 r.Id,
