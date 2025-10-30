@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BadReview.Api.Migrations
 {
     [DbContext(typeof(BadReviewContext))]
-    [Migration("20251027170711_PasswordUsers")]
-    partial class PasswordUsers
+    [Migration("20251030214347_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,24 +53,27 @@ namespace BadReview.Api.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("int");
 
+                    b.Property<long>("Count_RatingBadReview")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Cover")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("datetime2");
+                    b.Property<long?>("Date")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("RatingBadReview")
-                        .HasColumnType("float");
 
                     b.Property<double>("RatingIGDB")
                         .HasColumnType("float");
 
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("Total_RatingBadReview")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Video")
                         .HasColumnType("nvarchar(max)");

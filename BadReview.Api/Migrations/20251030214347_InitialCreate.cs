@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BadReview.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,10 +33,11 @@ namespace BadReview.Api.Migrations
                     Id = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Cover = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Date = table.Column<long>(type: "bigint", nullable: true),
                     Summary = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RatingIGDB = table.Column<double>(type: "float", nullable: false),
-                    RatingBadReview = table.Column<double>(type: "float", nullable: false),
+                    Total_RatingBadReview = table.Column<long>(type: "bigint", nullable: false),
+                    Count_RatingBadReview = table.Column<long>(type: "bigint", nullable: false),
                     Video = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -81,6 +82,7 @@ namespace BadReview.Api.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Birthday = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Country = table.Column<string>(type: "nvarchar(max)", nullable: true)
