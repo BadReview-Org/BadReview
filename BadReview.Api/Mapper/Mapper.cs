@@ -43,4 +43,99 @@ public static class Mapper
     {
         return new BasicUserDto(id, name, email);
     }
+
+    public static GenreDto CreateGenreDto(GenreIgdbDto gen) => new GenreDto(gen.Id, gen.Name);
+    public static GenreDto CreateGenreDto(Genre gen) => new GenreDto(gen.Id, gen.Name);
+
+    public static DeveloperDto CreateDeveloperDto(CompanyIgdbDto dev) => new DeveloperDto(dev.Id, dev.Name);
+    public static DeveloperDto CreateDeveloperDto(Developer dev) => new DeveloperDto(dev.Id, dev.Name);
+
+    public static PlatformDto CreatePlatformDto(PlatformIgdbDto p) => new PlatformDto(p.Id, p.Name);
+    public static PlatformDto CreatePlatformDto(Platform p) => new PlatformDto(p.Id, p.Name);
+
+
+    public static Game CreateGameEntity(DetailGameIgdbDto g)
+    {
+        return new Game {
+            Id = g.Id,
+            Name = g.Name,
+            Cover = g.Cover?.Url,
+            Date = g.First_release_date,
+            Summary = g.Summary,
+            RatingIGDB = g.Rating ?? 0d,
+            RatingBadReview = 0d,
+            Video = g.Videos?.FirstOrDefault()?.Video_Id,
+            Reviews = new List<Review>(),
+            GameGenres = g.Genres?.Select(gen => new GameGenre { GameId = g.Id, GenreId = gen.Id }).ToList()
+                ?? new List<GameGenre>(),
+            GameDevelopers = g.Involved_Companies?
+                .Where(c => c.Developer)
+                .Select(dev => new GameDeveloper { GameId = g.Id, DeveloperId = dev.Id })
+                .ToList()
+                ?? new List<GameDeveloper>(),
+            GamePlatforms = g.Platforms?
+                .Select(p => new GamePlatform { GameId = g.Id, PlatformId = p.Id })
+                .ToList()
+                ?? new List<GamePlatform>()
+        };
+    }
+    
+    public static DetailGameDto CreateDetailGameDto(DetailGameIgdbDto g)
+    {
+        return new DetailGameDto(
+            g.Id,
+            g.Name,
+            g.Cover?.Url,
+            g.First_release_date,
+            g.Summary,
+            g.Rating ?? 0d,
+            0d,
+            g.Videos?.FirstOrDefault()?.Video_Id,
+            new List<DetailReviewDto>(),
+            g.Genres is null ?
+                new List<GenreDto>() :
+                g.Genres.Select(gen => CreateGenreDto(gen)).ToList(),
+            g.Involved_Companies is null ?
+                new List<DeveloperDto>() :
+                g.Involved_Companies.Where(c => c.Developer).Select(dev => CreateDeveloperDto(dev.Company)).ToList(),
+            g.Platforms is null ?
+                new List<PlatformDto>() :
+                g.Platforms.Select(p => CreatePlatformDto(p)).ToList()
+        );
+    }
+
+    public static IQueryable<DetailGameDto> GameToDetailDto(this IQueryable<Game> query)
+    {
+        return query.Select(g => new DetailGameDto(
+            g.Id,
+            g.Name,
+            g.Cover,
+            g.Date,
+            g.Summary,
+            g.RatingIGDB,
+            g.RatingBadReview,
+            g.Video,
+            g.Reviews.Select(r => new DetailReviewDto(
+                r.Id,
+                r.Rating,
+                r.StartDate,
+                r.EndDate,
+                r.ReviewText,
+                r.StateEnum,
+                r.IsFavorite,
+                new BasicUserDto(
+                    r.User.Id,
+                    r.User.Username,
+                    r.User.FullName
+                ),
+                null
+            )).ToList(),
+            g.GameGenres.Select(gg => CreateGenreDto(gg.Genre)
+            ).ToList(),
+            g.GameDevelopers.Select(gd => CreateDeveloperDto(gd.Developer)
+            ).ToList(),
+            g.GamePlatforms.Select(gp => CreatePlatformDto(gp.Platform)
+            ).ToList()
+        ));
+    }
 }
