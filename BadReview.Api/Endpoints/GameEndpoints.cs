@@ -52,13 +52,12 @@ public static class GameEndpoints
         // GET: /api/games/{id} - Obtener un juego por ID
         app.MapGet("/api/games/{id}", async (int id, BadReviewContext db, IGDBClient igdb) =>
         {
-
             DetailGameDto? gameDB = await db.Games
                 .Where(g => g.Id == id)
                 .Select(g => new DetailGameDto(
                     g.Id,
                     g.Name,
-                    null, null, null, 0, 0, null,
+                    null, null, null, 0, 0, 0, null,
                     new List<DetailReviewDto>(),
                     g.GameGenres.Select(gg => new GenreDto(gg.GenreId, gg.Genre.Name)).ToList(),
                     new List<DeveloperDto>(),

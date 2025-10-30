@@ -46,7 +46,8 @@ public static class UserEndpoints
                         r.Game.Name,
                         r.Game.Cover,
                         r.Game.RatingIGDB,
-                        r.Game.RatingBadReview
+                        r.Game.Total_RatingBadReview,
+                        r.Game.Count_RatingBadReview
                     )
                 )).ToList()
             ));
@@ -104,7 +105,8 @@ public static class UserEndpoints
                         r.Game.Name,
                         r.Game.Cover,
                         r.Game.RatingIGDB,
-                        r.Game.RatingBadReview
+                        r.Game.Total_RatingBadReview,
+                        r.Game.Count_RatingBadReview
                     )
                 )).ToList()
             ) : null;

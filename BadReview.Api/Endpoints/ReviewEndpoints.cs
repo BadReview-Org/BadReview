@@ -72,7 +72,8 @@ public static class ReviewEndpoints
                         review.Game.Name,
                         review.Game.Cover,
                         review.Game.RatingIGDB,
-                        review.Game.RatingBadReview
+                        review.Game.Total_RatingBadReview,
+                        review.Game.Count_RatingBadReview
                     )
                 );
 
@@ -81,8 +82,12 @@ public static class ReviewEndpoints
             return Results.NotFound();
         });
 
+
+
+
+
         //PUT: /api/reviews/{id} - Actualizar una reseña por ID
-        app.MapPut("/api/reviews/{id}", async (int id, CreateReviewRequest updatedReview, BadReviewContext db) =>
+        app.MapPut("/api/reviews/{id}", async (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview, BadReviewContext db) =>
         {
             var review = await db.Reviews.Include(r => r.User)
                                          .Include(r => r.Game)
@@ -91,6 +96,12 @@ public static class ReviewEndpoints
             {
                 return Results.NotFound(new { error = $"Review with id {id} not found" });
             }
+            if (user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value != review.UserId.ToString())
+            {
+                return Results.Forbid();
+            }
+            review.Game.Total_RatingBadReview -= review.Rating ?? 0;
+            review.Game.Total_RatingBadReview += updatedReview.Rating ?? 0;
 
             review.Rating = updatedReview.Rating;
             review.StartDate = updatedReview.StartDate;
@@ -120,16 +131,39 @@ public static class ReviewEndpoints
                     review.Game.Name,
                     review.Game.Cover,
                     review.Game.RatingIGDB,
-                    review.Game.RatingBadReview
+                    review.Game.Total_RatingBadReview,
+                    review.Game.Count_RatingBadReview
                 )
             );
 
             return Results.Ok(reviewdto);
-        });
+        })
+        .RequireAuthorization();
 
 
+        app.MapDelete("/api/reviews/{id}", async (int id, ClaimsPrincipal user, BadReviewContext db) =>
+        {
+            var review = await db.Reviews.Include(r => r.Game)
+                                         .FirstOrDefaultAsync(r => r.Id == id);
+            if (review == null)
+            {
+                return Results.NotFound(new { error = $"Review with id {id} not found" });
+            }
+            if (user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value != review.UserId.ToString())
+            {
+                return Results.Forbid();
+            }
+            review.Game.Total_RatingBadReview -= review.Rating ?? 0;
+            review.Game.Count_RatingBadReview--;
+            
+            db.Reviews.Remove(review);
+            await db.SaveChangesAsync();
 
+            return Results.NoContent();
+        }).RequireAuthorization();
+        
         // POST: /api/reviews - Crear una nueva reseña
+
         app.MapPost("/api/reviews", async (CreateReviewRequest review, ClaimsPrincipal user, BadReviewContext db) =>
         {
             var userId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
@@ -151,10 +185,14 @@ public static class ReviewEndpoints
             {
                 return Results.NotFound(new { error = $"Game with id {gameId} not found" });
             }
-            if(userdb.Reviews.Select(r => r.GameId).Contains(gameId))
+            if (userdb.Reviews.Select(r => r.GameId).Contains(gameId))
             {
                 return Results.Conflict(new { error = $"User has already reviewed game with id {gameId}" });
             }
+            
+            game.Total_RatingBadReview += review.Rating ?? 0;
+            game.Count_RatingBadReview++;
+
             var reviewdb = new Review
             {
                 Rating = review.Rating,
@@ -187,8 +225,9 @@ public static class ReviewEndpoints
                     game.Id,
                     game.Name,
                     game.Cover,
-                    game.RatingIGDB,
-                    game.RatingBadReview
+                    game.RatingIGDB++,
+                    game.Total_RatingBadReview,
+                    game.Count_RatingBadReview
                 )
             );
             return Results.Created($"/api/reviews/{reviewdto.Id}", reviewdto);

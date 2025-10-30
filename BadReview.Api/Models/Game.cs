@@ -8,7 +8,8 @@ public class Game
     public DateTime? Date { get; set; }
     public string? Summary { get; set; }
     public double RatingIGDB { get; set; } = 0d;
-    public double RatingBadReview { get; set; } = 0d;
+    public long Total_RatingBadReview { get; set; } = 0;
+    public long Count_RatingBadReview { get; set; } = 0;
     public string? Video { get; set; }
 
     public ICollection<Review> Reviews { get; set; } = new List<Review>();

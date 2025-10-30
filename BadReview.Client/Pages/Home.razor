@@ -21,7 +21,7 @@ Welcome to your new app.
         string log = $"URI: {Client.BaseAddress}";
         Logger.LogInformation(log);
 
-        UserDto userDto = await client.GetFromJsonAsync<UserDto>("/api/users/1");
+        UserDto userDto = await Client.GetFromJsonAsync<UserDto>("/api/users/1");
 
         myName = userDto.FullName;
     }
