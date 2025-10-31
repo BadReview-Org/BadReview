@@ -1,13 +1,17 @@
 # BACKEND
 
-### Verificar token invalido (concurrencia)
+### Covers
 
-### Terminar endpoints obligatorios
+## Concurrencia
 
-### Cachear juegos accedidos por ID
+### Verificar token invalido 
+### Al añadir un juego nuevo a la BD desde IGDB
 
-### Refactorizar, mapper, error handling, documentar
+## Terminar endpoints obligatorios
 
-### Opcional: Fluent Validation
+## Refactorizar, mapper, error handling, documentar
 
-### Opcional: endpoints platforms y developer, expandir igdbclient
+## Opcionales
+
+### Fluent Validation
+### Endpoints platforms y developer, expandir igdbclient

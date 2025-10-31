@@ -28,4 +28,4 @@ public record BasicGameIgdbDto(int Id, string Name, ImageUrlIgdbDto? Cover);
     involved_companies.company.name, involved_companies.company.country, involved_companies.company.logo.url")]
 public record DetailGameIgdbDto(
     int Id, string Name, ImageUrlIgdbDto? Cover, long? First_release_date, string? Summary, double? Rating, List<VideoIgdbDto>? Videos,
-    List<GenreIgdbDto>? Genres, List<PlatformIgdbDto>? Platforms, List<InvCompIgdbDto>? Involved_Companies);
+    HashSet<GenreIgdbDto>? Genres, HashSet<PlatformIgdbDto>? Platforms, HashSet<InvCompIgdbDto>? Involved_Companies);

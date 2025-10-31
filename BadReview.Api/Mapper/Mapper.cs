@@ -46,13 +46,23 @@ public static class Mapper
 
     public static GenreDto CreateGenreDto(GenreIgdbDto gen) => new GenreDto(gen.Id, gen.Name);
     public static GenreDto CreateGenreDto(Genre gen) => new GenreDto(gen.Id, gen.Name);
+    public static Genre CreateGenreEntity(GenreIgdbDto gen) => new Genre { Id = gen.Id, Name = gen.Name };
 
     public static DeveloperDto CreateDeveloperDto(CompanyIgdbDto dev) => new DeveloperDto(dev.Id, dev.Name);
     public static DeveloperDto CreateDeveloperDto(Developer dev) => new DeveloperDto(dev.Id, dev.Name);
+    public static Developer CreateDeveloperEntity(CompanyIgdbDto c) =>
+        new Developer { Id = c.Id, Name = c.Name, Country = c.Country, Logo = c.Logo?.Url };
 
     public static PlatformDto CreatePlatformDto(PlatformIgdbDto p) => new PlatformDto(p.Id, p.Name);
     public static PlatformDto CreatePlatformDto(Platform p) => new PlatformDto(p.Id, p.Name);
-
+    public static Platform CreatePlatformEntity(PlatformIgdbDto p) =>
+        new Platform {
+            Id = p.Id,
+            Name = p.Name,
+            Abbreviation = p.Abbreviation,
+            Generation = p.Generation,
+            Logo = p.Platform_logo?.Url
+        };
 
     public static Game CreateGameEntity(DetailGameIgdbDto g)
     {
@@ -71,7 +81,7 @@ public static class Mapper
                 ?? new List<GameGenre>(),
             GameDevelopers = g.Involved_Companies?
                 .Where(c => c.Developer)
-                .Select(dev => new GameDeveloper { GameId = g.Id, DeveloperId = dev.Id })
+                .Select(dev => new GameDeveloper { GameId = g.Id, DeveloperId = dev.Company.Id })
                 .ToList()
                 ?? new List<GameDeveloper>(),
             GamePlatforms = g.Platforms?

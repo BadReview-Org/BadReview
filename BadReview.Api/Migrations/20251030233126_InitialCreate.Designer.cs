@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BadReview.Api.Migrations
 {
     [DbContext(typeof(BadReviewContext))]
-    [Migration("20251030214347_InitialCreate")]
+    [Migration("20251030233126_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -28,13 +28,10 @@ namespace BadReview.Api.Migrations
             modelBuilder.Entity("BadReview.Api.Models.Developer", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Country")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("Country")
+                        .HasColumnType("int");
 
                     b.Property<string>("Logo")
                         .HasColumnType("nvarchar(max)");
@@ -131,10 +128,7 @@ namespace BadReview.Api.Migrations
             modelBuilder.Entity("BadReview.Api.Models.Genre", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -148,16 +142,13 @@ namespace BadReview.Api.Migrations
             modelBuilder.Entity("BadReview.Api.Models.Platform", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Abbreviation")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Generation")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("Generation")
+                        .HasColumnType("int");
 
                     b.Property<string>("Logo")
                         .HasColumnType("nvarchar(max)");

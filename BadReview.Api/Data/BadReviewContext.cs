@@ -36,6 +36,21 @@ public class BadReviewContext : DbContext
             entity.Property(e => e.Id).ValueGeneratedNever();
         });
 
+        modelBuilder.Entity<Genre>(entity =>
+        {
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<Platform>(entity =>
+        {
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+        
+        modelBuilder.Entity<Developer>(entity =>
+        {
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
         modelBuilder.Entity<Review>(entity =>
         {
             //entity.HasKey(e => e.Id);
