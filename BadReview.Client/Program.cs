@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using BadReview.Client;
 using System.Net.Http.Json;
+using MudBlazor.Services;
+
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -16,9 +18,9 @@ var apiSettings = await httpClient.GetFromJsonAsync<AppSettings>("appsettings.js
 string apiUri = apiSettings.Api?.URI 
     ?? throw new Exception("No se encontró Api:URI en appsettings.json");
 
-
 // Configurar el HttpClient para la aplicación con la URI de la API
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUri) });
+builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();
 
