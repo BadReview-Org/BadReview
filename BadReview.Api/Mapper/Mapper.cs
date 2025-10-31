@@ -51,7 +51,7 @@ public static class Mapper
     public static DeveloperDto CreateDeveloperDto(CompanyIgdbDto dev) => new DeveloperDto(dev.Id, dev.Name);
     public static DeveloperDto CreateDeveloperDto(Developer dev) => new DeveloperDto(dev.Id, dev.Name);
     public static Developer CreateDeveloperEntity(CompanyIgdbDto c) =>
-        new Developer { Id = c.Id, Name = c.Name, Country = c.Country, Logo = c.Logo?.Url };
+        new Developer { Id = c.Id, Name = c.Name, Country = c.Country, Logo = c.Logo?.Image_Id };
 
     public static PlatformDto CreatePlatformDto(PlatformIgdbDto p) => new PlatformDto(p.Id, p.Name);
     public static PlatformDto CreatePlatformDto(Platform p) => new PlatformDto(p.Id, p.Name);
@@ -61,7 +61,7 @@ public static class Mapper
             Name = p.Name,
             Abbreviation = p.Abbreviation,
             Generation = p.Generation,
-            Logo = p.Platform_logo?.Url
+            Logo = p.Platform_logo?.Image_Id
         };
 
     public static Game CreateGameEntity(DetailGameIgdbDto g)
@@ -69,7 +69,7 @@ public static class Mapper
         return new Game {
             Id = g.Id,
             Name = g.Name,
-            Cover = g.Cover?.Url,
+            Cover = g.Cover?.Image_Id,
             Date = g.First_release_date,
             Summary = g.Summary,
             RatingIGDB = g.Rating ?? 0d,
@@ -96,7 +96,7 @@ public static class Mapper
         return new DetailGameDto(
             g.Id,
             g.Name,
-            g.Cover?.Url,
+            g.Cover?.Image_Id,
             g.First_release_date,
             g.Summary,
             g.Rating ?? 0d,
