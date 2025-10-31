@@ -90,7 +90,17 @@ public static class Mapper
                 ?? new List<GamePlatform>()
         };
     }
-    
+    public static BasicGameDto CreateBasicGameDto(BasicGameIgdbDto g)
+    {
+        return new BasicGameDto(
+            g.Id,
+            g.Name,
+            g.Cover?.Image_Id,
+            0d,
+            0,
+            0
+        );
+    }
     public static DetailGameDto CreateDetailGameDto(DetailGameIgdbDto g)
     {
         return new DetailGameDto(

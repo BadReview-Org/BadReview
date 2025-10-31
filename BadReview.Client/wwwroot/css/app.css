@@ -141,11 +141,22 @@ tbody tr:hover {
     color: #e0e0e0;
 }
 
+.mud-elevation-hover {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+.mud-elevation-hover:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
+    transform: translateY(-4px);
+}
+
 .form-control:focus, .form-select:focus {
     background-color: #2a2a2a;
     border-color: #5dade2;
     color: #e0e0e0;
 }
+
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
     color: var(--bs-secondary-color);

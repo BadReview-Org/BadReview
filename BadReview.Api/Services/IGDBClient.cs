@@ -72,8 +72,7 @@ public class IGDBClient
         // release the semaphore
         _tokenSemaphore.Release();
     }
-
-    public async Task<List<T>?> GetGamesAsync<T>(SelectGamesRequest query)
+    public async Task<List<T>?> GetTrendingGamesAsync<T>()
     {
         // we first check if access token is not set (the server didn't send any queries to igdb yet)
         if (_accessToken is null) await GetAccessToken();
@@ -81,6 +80,55 @@ public class IGDBClient
         // set headers, including the access token
         _httpClient.DefaultRequestHeaders.Add("Client-ID", _clientId);
         _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
+        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        // parse igdb query body
+        //IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception("Can't determine IGDB return fields.");
+        // send POST method to igdb
+        string bodyString = "fields game_id; limit 10; where popularity_type = 3;";
+        var body = new StringContent(bodyString, Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await _httpClient.PostAsync("popularity_primitives", body);
+        // if the access token is invalid, we refresh the token and try again (could have expired)
+        if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+        {
+            await GetAccessToken();
+
+            _httpClient.DefaultRequestHeaders.Remove("Authorization");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
+
+            response = await _httpClient.PostAsync("popularity_primitives", body);
+        }
+        
+        // if it's still invalid or there's another error, we throw exceptions
+        if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            throw new Exception("Authorization error while fetching games from IGDB");
+        else if (!response.IsSuccessStatusCode)
+            throw new Exception("Unexpected error while fetching games from IGDB");
+
+        // if the response is successful, we get the games data as a List of DTO
+        var jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
+
+        var igdbGames = await response.Content.ReadFromJsonAsync<List<T>>(jsonOptions);
+
+        return igdbGames;
+    }
+    public async Task<List<T>?> GetGamesAsync<T>(SelectGamesRequest query)
+    {
+        // we first check if access token is not set (the server didn't send any queries to igdb yet)
+        if (_accessToken is null) await GetAccessToken();
+
+        // set headers, including the access token
+        if (!_httpClient.DefaultRequestHeaders.Contains("Client-ID"))
+            _httpClient.DefaultRequestHeaders.Add("Client-ID", _clientId);
+
+        if (!_httpClient.DefaultRequestHeaders.Contains("Authorization"))
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
+
+
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         // parse igdb query body

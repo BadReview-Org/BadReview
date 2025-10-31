@@ -1,0 +1,68 @@
+@page "/trending-games"
+@using BadReview.Shared.DTOs.Response
+@inject HttpClient Client
+@inject NavigationManager Navigation
+
+<PageTitle>Trending Games</PageTitle>
+<MudText Typo="Typo.h3" Class="mb-4">
+    Trending Games
+</MudText>
+
+@if (games == null)
+{
+    <MudGrid>
+        @for (int i = 0; i < 10; i++)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+            </MudItem>
+        }
+    </MudGrid>
+}
+else if (games.Length == 0)
+{
+    <MudText>No games found.</MudText>
+}
+else
+{
+    <MudGrid>
+        @foreach (var game in games)
+        {
+            var currentGame = game; 
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudLink Href="@($"/game/{currentGame.Id}")" Style="text-decoration: none; color: inherit;">
+                    <MudCard Class="mud-elevation-hover" Style="height: 100%;">
+                        <MudCardMedia Image="@GetCoverUrl(currentGame.Cover)" Height="300" Style="object-fit: cover;" />
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Align="Align.Center">@currentGame.Name</MudText>
+                    </MudCardContent>
+                    <!-- 
+                    <MudCardActions Class="d-flex justify-center">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">
+                            View Details
+                        </MudButton>
+                    </MudCardActions>
+                    -->
+                </MudCard>
+                </MudLink>
+            </MudItem>
+        }
+    </MudGrid>
+}
+@code {
+    private BasicGameDto[]? games;
+
+    protected override async Task OnInitializedAsync()
+    {
+        games = await Client.GetFromJsonAsync<BasicGameDto[]>("api/games/trending");
+    }
+
+    private string GetCoverUrl(string? cover)
+    {
+        if (string.IsNullOrEmpty(cover))
+            //Setear placeholder si no hay cover
+            return "";
+        
+        return $"https://images.igdb.com/igdb/image/upload/t_cover_big_2x/{cover}.png";
+    }
+}

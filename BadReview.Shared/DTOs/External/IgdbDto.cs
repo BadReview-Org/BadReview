@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace BadReview.Shared.DTOs.External;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -19,6 +21,8 @@ public record CompanyIgdbDto(int Id, string Name, int? Country, ImageIgdbDto? Lo
 
 [IgdbFields("id, name, cover.image_id")]
 public record BasicGameIgdbDto(int Id, string Name, ImageIgdbDto? Cover);
+
+public record PopularIgdbDto(int Id, int game_id);
 
 [IgdbFields(
     @"name, cover.image_id, first_release_date, summary, rating, videos.video_id,

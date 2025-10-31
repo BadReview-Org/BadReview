@@ -6,15 +6,34 @@
 @inject HttpClient Client
 
 <PageTitle>Home</PageTitle>
+<MudText Typo="Typo.h4">
+    Welcome to BadReview!
+</MudText>
+<MudText Typo="Typo.body1" Class="mt-4">
+    Hello, @myName
+</MudText>
 
-<h1>Hello, @myName!</h1>
+<MudPaper Class="pa-4 mud-elevation-hover" Elevation="@currentElevation" 
+          @onmouseenter="() => currentElevation = 5" 
+          @onmouseleave="() => currentElevation = 1">
+    <MudText>Este componente se eleva con hover!</MudText>
+</MudPaper>
+<MudLink Href="https://www.google.com" Style="text-decoration: none;">
 
-Welcome to your new app.
-
-
+    <MudCard>
+        <MudCardContent>
+            <MudText>Story of the day</MudText>
+            <MudText Typo="Typo.body2">The quick, brown fox jumps over a lazy dog.</MudText>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Variant="Variant.Text" Color="Color.Primary" Href="https://www.google.com">Learn more</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudLink>
 @code {
 
     string myName = "";
+    int currentElevation = 1;
 
     protected override async Task OnInitializedAsync()
     {

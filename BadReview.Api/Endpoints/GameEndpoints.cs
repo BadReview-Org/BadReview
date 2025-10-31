@@ -38,17 +38,64 @@ public static class GameEndpoints
             {
                 case IGDBFieldsEnum.BASE:
                     response = await igdb.GetGamesAsync<BasicGameIgdbDto>(query);
+                    var basicDtoList = new List<BasicGameDto>();
+                    if (response is not null)
+                    {
+                        foreach (var game in (List<BasicGameIgdbDto>)response)
+                        {
+                            basicDtoList.Add(CreateBasicGameDto(game));
+                        }
+                    }
+                    response = basicDtoList;
                     break;
                 case IGDBFieldsEnum.DETAIL:
                     response = await igdb.GetGamesAsync<DetailGameIgdbDto>(query);
+                    var detailDtoList = new List<DetailGameDto>();
+                    if (response is not null)
+                    {
+                        foreach (var game in (List<DetailGameIgdbDto>)response)
+                        {
+                            detailDtoList.Add(CreateDetailGameDto(game));
+                        }
+                    }
+                    response = detailDtoList;
                     break;
                 default:
                     response = null;
                     break;
             }
-
             response = response is null ? Results.InternalServerError() : Results.Ok(response);
             return response;
+        });
+        // GET: /api/games - Obtener todos los juegos populares
+        app.MapGet("/api/games/trending", async (BadReviewContext db, IGDBClient igdb) =>
+        {
+            var responseTrending = await igdb.GetTrendingGamesAsync<PopularIgdbDto>();
+            
+            if (responseTrending is null || responseTrending.Count == 0)
+                return Results.NotFound();
+
+
+            var gameIds = responseTrending.Select(g => g.game_id);
+            string idsFilter = $"({string.Join(",", gameIds)})";
+            
+            Console.WriteLine($"Trending game IDs: {idsFilter}");
+
+            var query = new SelectGamesRequest 
+            { 
+                Filters = $"id = {idsFilter}", 
+                Detail = IGDBFieldsEnum.BASE 
+            };
+            query.SetDefaults();
+
+            var games = await igdb.GetGamesAsync<BasicGameIgdbDto>(query);
+            
+            if (games is null || games.Count == 0)
+                return Results.NotFound();
+
+            var detailDtoList = games.Select(g => CreateBasicGameDto(g)).ToList();
+
+            return Results.Ok(detailDtoList);
         });
 
         // GET: /api/games/{id} - Obtener un juego por ID

@@ -12,7 +12,11 @@
 <MudLayout>
     <MudAppBar>
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        BadReview
+        <MudSpacer />
+        <MudText Typo="Typo.h5" Style="font-family: 'Montserrat', 'Helvetica', sans-serif; font-weight: 700; letter-spacing: 1px;">
+            BadReview
+        </MudText>
+        <MudSpacer />
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen">
         <NavMenu/>

@@ -1,0 +1,23 @@
+@page "/game/{id:int}"
+@using BadReview.Shared.DTOs.Response
+@inject HttpClient Client
+@inject NavigationManager Navigation
+<PageTitle>Game Details</PageTitle>
+<MudText Typo="Typo.h3" Class="mb-4">
+    @gameDetails?.Name
+</MudText>
+
+
+@code {
+    [Parameter]
+    public int id { get; set; }
+    private DetailGameDto? gameDetails;
+    protected override async Task OnInitializedAsync()
+    {
+        gameDetails = await Client.GetFromJsonAsync<DetailGameDto>($"api/games/{id}");
+        if (gameDetails == null)
+        {
+            Navigation.NavigateTo("/games");
+        }
+    }
+}
