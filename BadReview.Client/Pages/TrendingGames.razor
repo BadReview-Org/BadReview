@@ -1,5 +1,6 @@
 @page "/trending-games"
 @using BadReview.Shared.DTOs.Response
+@using BadReview.Client.Utils
 @inject HttpClient Client
 @inject NavigationManager Navigation
 
@@ -32,7 +33,7 @@ else
             <MudItem xs="12" sm="6" md="4" lg="3">
                 <MudLink Href="@($"/game/{currentGame.Id}")" Style="text-decoration: none; color: inherit;">
                     <MudCard Class="mud-elevation-hover" Style="height: 100%;">
-                        <MudCardMedia Image="@GetCoverUrl(currentGame.Cover)" Height="300" Style="object-fit: cover;" />
+                        <MudCardMedia Image="@ImageHelper.GetCoverUrl(currentGame.Cover)" Height="300" Style="object-fit: cover;" />
                         <MudCardContent>
                             <MudText Typo="Typo.h6" Align="Align.Center">@currentGame.Name</MudText>
                     </MudCardContent>
@@ -55,14 +56,5 @@ else
     protected override async Task OnInitializedAsync()
     {
         games = await Client.GetFromJsonAsync<BasicGameDto[]>("api/games/trending");
-    }
-
-    private string GetCoverUrl(string? cover)
-    {
-        if (string.IsNullOrEmpty(cover))
-            //Setear placeholder si no hay cover
-            return "";
-        
-        return $"https://images.igdb.com/igdb/image/upload/t_cover_big_2x/{cover}.png";
     }
 }

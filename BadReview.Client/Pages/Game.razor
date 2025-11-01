@@ -1,11 +1,34 @@
 @page "/game/{id:int}"
 @using BadReview.Shared.DTOs.Response
+@using BadReview.Client.Utils
 @inject HttpClient Client
 @inject NavigationManager Navigation
-<PageTitle>Game Details</PageTitle>
-<MudText Typo="Typo.h3" Class="mb-4">
-    @gameDetails?.Name
-</MudText>
+<PageTitle>@gameDetails?.Name</PageTitle>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudGrid>
+        <MudItem xs="12" md="4">
+            <MudImage Src="@ImageHelper.GetCoverUrl(gameDetails?.Cover)" Alt="@gameDetails?.Name" Elevation="25" Class="rounded-lg" Style="width: 100%; height: auto;" />
+        </MudItem>
+        
+        <MudItem xs="12" md="8">
+            <MudStack Spacing="4">
+                <MudPaper Class="pa-3" Elevation="6">
+                    <MudText Typo="Typo.h3" Class="mb-4">
+                        @gameDetails?.Name
+                    </MudText>
+                </MudPaper>
+                <MudPaper Class="pa-3" Elevation="6">
+                    <MudText Typo="Typo.h5" Class="mb-2">
+                        Description
+                    </MudText>
+                    <MudText Typo="Typo.body1">
+                        @gameDetails?.Summary
+                    </MudText>
+                </MudPaper>
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
 
 
 @code {
@@ -17,7 +40,7 @@
         gameDetails = await Client.GetFromJsonAsync<DetailGameDto>($"api/games/{id}");
         if (gameDetails == null)
         {
-            Navigation.NavigateTo("/games");
+            Navigation.NavigateTo("/trending-games");
         }
     }
 }
