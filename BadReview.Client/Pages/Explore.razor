@@ -1,10 +1,9 @@
-@page "/trending-games"
+@page "/explore"
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Client.Utils
 @inject HttpClient Client
 @inject NavigationManager Navigation
-
-<PageTitle>Trending Games</PageTitle>
+<PageTitle>Explore Games</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <!-- Header con Gradient -->
@@ -12,12 +11,24 @@
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
             <MudIcon Icon="@Icons.Material.Filled.Whatshot" Size="Size.Large" Style="color: white;" />
             <MudText Typo="Typo.h3" Style="font-weight: 700; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                Trending Games
+                Explore Games
             </MudText>
         </MudStack>
         <MudText Typo="Typo.body1" Class="mt-2" Style="color: rgba(255,255,255,0.9);">
-            Discover the hottest games right now
+            Search for your favorite games and discover new ones!
         </MudText>
+    </MudPaper>
+    <MudPaper Class="pa-4 mb-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+        <MudTextField @bind-Value="_searchText" 
+                      Placeholder="Search for games..." 
+                      Adornment="Adornment.Start" 
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      Variant="Variant.Outlined"
+                      Immediate="true"
+                      DebounceInterval="500"
+                      OnDebounceIntervalElapsed="OnSearchAsync"
+                      FullWidth="true"
+                      Style="background: rgba(255,255,255,0.05); border-radius: 8px;" />
     </MudPaper>
 
     @if (games == null)
@@ -42,7 +53,7 @@
             <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Default" />
             <MudText Typo="Typo.h5" Class="mt-3">No games found.</MudText>
             <MudText Typo="Typo.body1" Class="mt-2" Color="Color.Default">
-                Check back later for trending games!
+                Check back later for games!
             </MudText>
         </MudPaper>
     }
@@ -102,9 +113,29 @@
 </style>
 @code {
     private BasicGameDto[]? games;
+    private string _searchText = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        games = await Client.GetFromJsonAsync<BasicGameDto[]>("api/games/trending");
+        await LoadGamesAsync();
+    }
+
+    private async Task LoadGamesAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_searchText))
+        {
+            games = await Client.GetFromJsonAsync<BasicGameDto[]>("api/games");
+        }
+        else
+        {
+            games = await Client.GetFromJsonAsync<BasicGameDto[]>($"api/games?filter=name:{Uri.EscapeDataString(_searchText)}");
+        }
+    }
+
+    private async Task OnSearchAsync(string searchText)
+    {
+        games = null; // Mostrar skeletons mientras carga
+        StateHasChanged();
+        await LoadGamesAsync();
     }
 }
