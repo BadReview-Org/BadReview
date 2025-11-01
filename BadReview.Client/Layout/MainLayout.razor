@@ -17,10 +17,16 @@
             BadReview
         </MudText>
         <MudSpacer />
+        
+
+        <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme"/>
+        <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode"/>
+
+
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen">
         <NavMenu/>
-
+    
     </MudDrawer>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Medium">
@@ -30,6 +36,8 @@
 </MudLayout>
 
 @code {
+    private MudTheme _theme = new MudTheme();
+    private bool _isDarkMode;
     bool _drawerOpen = true;
 
     void DrawerToggle()
