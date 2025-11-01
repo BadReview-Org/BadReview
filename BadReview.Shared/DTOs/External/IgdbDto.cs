@@ -19,10 +19,8 @@ public record PlatformIgdbDto(int Id, string Name, string? Abbreviation, int? Ge
 public record InvCompIgdbDto(int Id, CompanyIgdbDto Company, bool Developer);
 public record CompanyIgdbDto(int Id, string Name, int? Country, ImageIgdbDto? Logo);
 
-[IgdbFields("id, name, cover.image_id")]
-public record BasicGameIgdbDto(int Id, string Name, ImageIgdbDto? Cover);
-
-public record PopularIgdbDto(int Id, int game_id);
+[IgdbFields("id, name, cover.image_id, rating")]
+public record BasicGameIgdbDto(int Id, string Name, ImageIgdbDto? Cover, double? Rating);
 
 [IgdbFields(
     @"name, cover.image_id, first_release_date, summary, rating, videos.video_id,
@@ -33,3 +31,6 @@ public record PopularIgdbDto(int Id, int game_id);
 public record DetailGameIgdbDto(
     int Id, string Name, ImageIgdbDto? Cover, long? First_release_date, string? Summary, double? Rating, List<VideoIgdbDto>? Videos,
     HashSet<GenreIgdbDto>? Genres, HashSet<PlatformIgdbDto>? Platforms, HashSet<InvCompIgdbDto>? Involved_Companies);
+
+[IgdbFields("game_id")]
+public record PopularIgdbDto(int Game_id);

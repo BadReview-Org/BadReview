@@ -6,7 +6,7 @@ public record DetailGameDto(
     string? Cover,
     long? Date,
     string? Summary,
-    double RatingIGDB,
+    double? RatingIGDB,
     long Total_RatingBadReview,
     long Count_RatingBadReview,
     string? Video,
@@ -20,8 +20,7 @@ public record BasicGameDto(
     int Id,
     string Name,
     string? Cover,
-    double RatingIGDB,
+    double? RatingIGDB,
     long Total_RatingBadReview,
     long Count_RatingBadReview
 );
-
