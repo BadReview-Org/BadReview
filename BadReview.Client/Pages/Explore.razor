@@ -122,20 +122,21 @@
 
     private async Task LoadGamesAsync()
     {
-        if (string.IsNullOrWhiteSpace(_searchText))
-        {
-            games = await Client.GetFromJsonAsync<BasicGameDto[]>("api/games");
-        }
-        else
-        {
-            games = await Client.GetFromJsonAsync<BasicGameDto[]>($"api/games?filter=name:{Uri.EscapeDataString(_searchText)}");
-        }
+        string uri = "api/games";
+        string orderby = Uri.EscapeDataString("total_rating_count");
+        string filters = (string.IsNullOrWhiteSpace(_searchText)) ?
+            "" : Uri.EscapeDataString($"name ~ *\"{_searchText}\"*");
+
+
+        string queryString = $"?filters={filters}&orderby={orderby}";
+        Console.WriteLine($"Query: {queryString}");
+        games = await Client.GetFromJsonAsync<BasicGameDto[]>($"{uri}{queryString}");
     }
 
     private async Task OnSearchAsync(string searchText)
     {
         games = null; // Mostrar skeletons mientras carga
-        StateHasChanged();
+        //StateHasChanged();
         await LoadGamesAsync();
     }
 }

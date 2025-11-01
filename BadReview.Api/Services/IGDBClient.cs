@@ -85,7 +85,7 @@ public class IGDBClient
         // parse igdb query body
         //IgdbFieldsAttribute attr = typeof(T).GetCustomAttribute<IgdbFieldsAttribute>() ?? throw new Exception("Can't determine IGDB return fields.");
         // send POST method to igdb
-        string bodyString = "fields game_id; limit 10; where popularity_type = 3;";
+        string bodyString = "fields game_id; sort value desc; limit 10; where popularity_type = 3;";
         var body = new StringContent(bodyString, Encoding.UTF8, "application/json");
         HttpResponseMessage response = await _httpClient.PostAsync("popularity_primitives", body);
         // if the access token is invalid, we refresh the token and try again (could have expired)
@@ -141,6 +141,7 @@ public class IGDBClient
         string offset = query.Page <= 0 ? "" : $"offset {query.PageSize * query.Page};";
 
         string bodyString = $"{fields}{filters}{sort}{limit}{offset}";
+        Console.WriteLine($"BodyString: {bodyString}");
 
         //Console.WriteLine(bodyString);
 
@@ -164,7 +165,7 @@ public class IGDBClient
         if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             throw new Exception("Authorization error while fetching games from IGDB");
         else if (!response.IsSuccessStatusCode)
-            throw new Exception("Unexpected error while fetching games from IGDB");
+            throw new Exception($"Unexpected error while fetching games from IGDB. Query: {bodyString}");
 
         // if the response is successful, we get the games data as a List of DTO
         var jsonOptions = new JsonSerializerOptions
