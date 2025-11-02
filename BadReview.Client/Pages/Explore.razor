@@ -3,7 +3,17 @@
 @using BadReview.Client.Utils
 @inject HttpClient Client
 @inject NavigationManager Navigation
+
 <PageTitle>Explore Games</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <p>See any interesting games? You should add it to your pending list!</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>Create an account or log in to register your activity!</p>
+    </NotAuthorized>
+</AuthorizeView>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <!-- Header con Gradient -->

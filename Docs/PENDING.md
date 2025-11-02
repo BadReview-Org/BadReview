@@ -15,3 +15,4 @@
 
 ### Fluent Validation
 ### Endpoints platforms y developer, expandir igdbclient
+### Investigar: Antiforgery

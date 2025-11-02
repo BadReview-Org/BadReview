@@ -54,29 +54,29 @@ public static class UserEndpoints
         })
         .WithName("GetUsers");
 
-            app.MapPost("/api/login", async (LoginUserRequest req, AuthService auth, BadReviewContext db) =>
-            {
-                var user = await db.Users
-                    .Where(u => u.Username == req.Username)
-                    .FirstOrDefaultAsync();
+        app.MapPost("/api/login", async (LoginUserRequest req, AuthService auth, BadReviewContext db) =>
+        {
+            var user = await db.Users
+                .Where(u => u.Username == req.Username)
+                .FirstOrDefaultAsync();
 
-                if (user == null || string.IsNullOrEmpty(user.Password))
-                    return Results.NotFound();
+            if (user == null || string.IsNullOrEmpty(user.Password))
+                return Results.NotFound("Username not found");
 
-                var isValid = auth.VerifyPassword(req.Username, req.Password, user.Password);
+            var isValid = auth.VerifyPassword(req.Username, req.Password, user.Password);
 
             if (!isValid)
                 return Results.Unauthorized();
 
-                var token = auth.GenerateToken(req.Username, user.Id);
-                return Results.Ok(new { token });
-            });
-                
-            app.MapGet("/api/profile", [Authorize] (ClaimsPrincipal user) =>
-            {
-                var username = user.Identity?.Name ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
-                return Results.Ok(new { message = $"Hola {username}" });
-            });
+            var token = auth.GenerateToken(req.Username, user.Id);
+            return Results.Ok(new LoginUserDto { Token = token });
+        });
+            
+        app.MapGet("/api/profile", [Authorize] (ClaimsPrincipal user) =>
+        {
+            var username = user.Identity?.Name ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+            return Results.Ok(new { message = $"Hola {username}" });
+        });
 
         // GET: /api/users/{id} - Obtener un usuario por ID
         app.MapGet("/api/users/{id}", async (int id, BadReviewContext db) =>

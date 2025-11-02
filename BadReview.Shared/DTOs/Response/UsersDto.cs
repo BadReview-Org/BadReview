@@ -14,3 +14,8 @@ public record BasicUserDto(
     string Username,
     string FullName
 );
+
+public class LoginUserDto
+{
+    public string? Token { get; set; }
+}
