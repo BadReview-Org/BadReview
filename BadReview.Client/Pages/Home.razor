@@ -38,10 +38,7 @@
     string myName = "";
     int currentElevation = 1;
 
-    [CascadingParameter]
-    Task<AuthenticationState>? authState { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    /*protected override async Task OnInitializedAsync()
     {
         //string log = $"URI: {Client.BaseAddress}";
         //Logger.LogInformation(log);
@@ -49,8 +46,5 @@
         //UserDto? userDto = await Client.GetFromJsonAsync<UserDto>("/api/users/1");
 
         //myName = userDto?.FullName ?? "" ;
-
-        AuthenticationState state = await authState!;
-        authS.LogJWToken(state, Logger);
-    }
+    }*/
 }

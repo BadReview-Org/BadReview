@@ -1,4 +1,5 @@
 ﻿@using System.Threading.Tasks
+@using BadReview.Shared.DTOs.Request
 @inherits LayoutComponentBase
 @* Required *@
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme"/>
@@ -10,9 +11,14 @@
 @* Needed for snackbars *@
 <MudSnackbarProvider />
 
+@inject HttpClient Client
+@inject ILogger<MainLayout> Logger
+@inject AuthService AuthService
+@inject AuthenticationStateProvider _provider
+
 <MudLayout>
     <MudAppBar>
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle" />
         <MudSpacer />
         <MudText Typo="Typo.h5" Style="font-family: 'Montserrat', 'Helvetica', sans-serif; font-weight: 700; letter-spacing: 1px;">
             BadReview
@@ -21,17 +27,28 @@
 
 
         <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Open user menu" Dense="true">
-            <MudMenuItem Label="Profile"/>
-            <MudMenuItem Label="My account" />
-            <MudMenuItem Label="Logout" />
+            <AuthorizeView>
+                <Authorized>
+                    <MudMenuItem OnClick="LogToken" Label="Profile"/>
+                    <MudMenuItem Label="My account"/>
+                    <MudMenuItem OnClick="LogoutAsync" Label="Log out"/>
+                </Authorized>
+                <NotAuthorized>
+                    <MudMenuItem OnClick="LoginAsync" Label="Log in" />
+                </NotAuthorized>
+            </AuthorizeView>
+
 
             <MudDivider></MudDivider>
 
-            <MudMenuItem OnClick="@((e) => DarkModeToogle())" AutoClose="false">
-                <MudSwitch @bind-Value="_isDarkMode" ReadOnly="true" Color="Color.Primary"
-                    T="bool" Label="Dark Mode" Size="Size.Medium" LabelPlacement="Placement.Left"
-                    ThumbIcon="@(_isDarkMode==true ? Icons.Material.Outlined.DarkMode : Icons.Material.Outlined.WbSunny)"
-                    ThumbIconColor="@(_isDarkMode==true ? Color.Info : Color.Error)"/>
+            <MudMenuItem OnClick="DarkModeToogle" AutoClose="false">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                    <MudText Typo=Typo.body2>Dark Mode</MudText>
+                    <MudSwitch @bind-Value="_isDarkMode" ReadOnly="true" Color="Color.Primary"
+                        T="bool" Size="Size.Medium"
+                        ThumbIcon="@(_isDarkMode==true ? Icons.Material.Outlined.DarkMode : Icons.Material.Outlined.WbSunny)"
+                        ThumbIconColor="@(_isDarkMode==true ? Color.Info : Color.Error)"/>
+                </MudStack>
             </MudMenuItem>
         </MudMenu>
 
@@ -47,6 +64,12 @@
 </MudLayout>
 
 @code {
+
+    [CascadingParameter]
+    Task<AuthenticationState>? authStateTask { get; set; }
+    AuthenticationState authState = null!;
+    JWTAuthStateProvider stateProvider = null!;
+
     private MudTheme _theme = new MudTheme();
     private bool _isDarkMode;
     bool _drawerOpen = true;
@@ -64,4 +87,16 @@
     }
 
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
+
+    private async void LoginAsync() => await AuthService.LoginAsync(stateProvider,"lauti", "hola123"); 
+
+    private async void LogoutAsync() => await AuthService.LogoutAsync(stateProvider); 
+
+    private void LogToken() => AuthService.LogJWToken(authState, Logger); 
+
+    protected override async Task OnInitializedAsync()
+    {
+        authState = await authStateTask!;
+        stateProvider = (JWTAuthStateProvider)_provider;
+    }
 }
