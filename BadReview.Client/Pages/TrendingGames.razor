@@ -25,7 +25,7 @@
         <MudGrid Spacing="4">
             @for (int i = 0; i < 12; i++)
             {
-                <MudItem xs="12" sm="6" md="4" lg="3" xl="2">
+                <MudItem xs="12" sm="6" md="4" lg="2" xl="2">
                     <MudPaper Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px; overflow: hidden;">
                         <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="240px" />
                         <div class="pa-3">
@@ -78,8 +78,17 @@
                                                 align-items: center;
                                                 justify-content: center;
                                                 font-size: 0.95rem;">
-                                    @($"{currentGame.Name}, r: {currentGame.RatingIGDB}")
+                                    @currentGame.Name
                                 </MudText>
+                                @if (currentGame.RatingIGDB.HasValue)
+                                {
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
+                                        <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
+                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
+                                            @((currentGame.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
+                                        </MudText>
+                                    </MudStack>
+                                }
                             </MudCardContent>
                         </MudCard>
                     </MudLink>

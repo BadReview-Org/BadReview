@@ -23,9 +23,8 @@
 
 
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen">
+    <MudDrawer @bind-Open="@_drawerOpen" Fixed="true" Variant="@DrawerVariant.Mini" OpenMiniOnHover="true">
         <NavMenu/>
-    
     </MudDrawer>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large">

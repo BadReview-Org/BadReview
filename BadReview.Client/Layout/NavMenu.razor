@@ -1,12 +1,13 @@
 ﻿
 <MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
-    <MudNavLink Href="/trending-games" Match="NavLinkMatch.Prefix">Trending games</MudNavLink>
-    <MudNavLink Href="/explore"  Match="NavLinkMatch.Prefix">Explore</MudNavLink>
-    <MudNavGroup Title="Settings" Expanded="true">
-        <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix">Profile</MudNavLink>
-        <MudNavLink Href="/logout"  Match="NavLinkMatch.Prefix">Log out</MudNavLink>
-    </MudNavGroup>
-    <MudNavLink Href="/about"  Match="NavLinkMatch.Prefix">About</MudNavLink>
-    
+    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Store">Home</MudNavLink>
+    <MudNavLink Href="/trending-games" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.TrendingUp">Trending games</MudNavLink>
+    <MudNavLink Href="/explore"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Explore">Explore</MudNavLink>
+    <!--<MudNavGroup Title="Settings" Expanded="true">
+        <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+        <MudNavLink Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
+</MudNavGroup> -->
+    <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+    <MudNavLink Href="/about"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
+    <MudNavLink Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
 </MudNavMenu>
