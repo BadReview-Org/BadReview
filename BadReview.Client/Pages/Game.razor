@@ -1,8 +1,10 @@
 @page "/game/{id:int}"
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Client.Utils
+@using Microsoft.JSInterop
 @inject HttpClient Client
 @inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <PageTitle>@gameDetails?.Name</PageTitle>
 
@@ -23,10 +25,18 @@
 }
 else
 {
-    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-6">
         <MudGrid Spacing="4">
-            <!-- Cover y Info Lateral -->
-            <MudItem xs="12" md="4" lg="3">
+            <MudItem xs="12" md="12" lg="12">
+            <!-- Título con Gradient dinámico basado en la cover -->
+                <MudPaper Class="pa-4" Elevation="8" Style="@($"background: linear-gradient(135deg, {primaryColor} 0%, {secondaryColor} 100%); border-radius: 12px; transition: background 0.5s ease;")">
+                    <MudText Align="Align.Center" Typo="Typo.h2" Style="font-weight: 700; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                        @gameDetails.Name
+                    </MudText>
+                </MudPaper>
+            </MudItem>
+            <!-- Cover y Info Lateral - Primera Columna -->
+            <MudItem xs="12" md="6" lg="3">
                 <MudStack Spacing="3">
                     <!-- Cover Image -->
                     <MudPaper Elevation="10" Class="pa-3 mud-elevation-hover" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); transition: all 0.3s ease;">
@@ -40,8 +50,49 @@ else
                             Released <br />
                              @(gameDetails.Date.HasValue ? DateTimeOffset.FromUnixTimeSeconds(gameDetails.Date.Value).DateTime.ToString("d 'de' MMMM, yyyy") : "TBA")
                         </MudText>
+                        <MudRating SelectedValue="2" />
                     </MudPaper>
 
+                    <!-- Developers -->
+                    @if (gameDetails.Developers?.Any() == true)
+                    {
+                        <MudPaper Class="pa-3" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                            <MudText Typo="Typo.h6" Class="mb-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" Class="mr-2" />
+                                Developers
+                            </MudText>
+                            @foreach (var developer in gameDetails.Developers)
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Default">
+                                    @developer.Name
+                                </MudText>
+                            }
+                        </MudPaper>
+                    }
+                </MudStack>
+            </MudItem>
+            
+            <!-- Contenido Principal - Segunda Columna -->
+            <MudItem xs="12" md="6" lg="6">
+                <MudStack Spacing="4">
+
+                    <!-- Description -->
+                    <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                        <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
+                            <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Medium" Class="mr-2" />
+                            About This Game
+                        </MudText>
+                        <MudText Typo="Typo.body1" Style="line-height: 1.8; color: #e0e0e0;">
+                            @gameDetails.Summary
+                        </MudText>
+                    </MudPaper>
+
+                </MudStack>
+            </MudItem>
+            
+            <!-- Tercera Columna - Genres y Platforms -->
+            <MudItem xs="12" md="12" lg="3">
+                <MudStack Spacing="3">
                     <!-- Genres -->
                     @if (gameDetails.Genres?.Any() == true)
                     {
@@ -79,67 +130,28 @@ else
                             </MudStack>
                         </MudPaper>
                     }
-
-                    <!-- Developers -->
-                    @if (gameDetails.Developers?.Any() == true)
-                    {
-                        <MudPaper Class="pa-3" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                            <MudText Typo="Typo.h6" Class="mb-2">
-                                <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" Class="mr-2" />
-                                Developers
-                            </MudText>
-                            @foreach (var developer in gameDetails.Developers)
-                            {
-                                <MudText Typo="Typo.body2" Color="Color.Default">
-                                    @developer.Name
-                                </MudText>
-                            }
-                        </MudPaper>
-                    }
                 </MudStack>
             </MudItem>
-            
-            <!-- Contenido Principal -->
-            <MudItem xs="12" md="8" lg="9">
-                <MudStack Spacing="4">
-                    <!-- Título con Gradient -->
-                    <MudPaper Class="pa-4" Elevation="8" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
-                        <MudText Typo="Typo.h2" Style="font-weight: 700; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                            @gameDetails.Name
-                        </MudText>
-                    </MudPaper>
-
-                    <!-- Description -->
-                    <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                        <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
-                            <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Medium" Class="mr-2" />
-                            About This Game
-                        </MudText>
-                        <MudText Typo="Typo.body1" Style="line-height: 1.8; color: #e0e0e0;">
-                            @gameDetails.Summary
-                        </MudText>
-                    </MudPaper>
-
-                    <!-- Video Trailer -->
-                    @if (!string.IsNullOrEmpty(gameDetails.Video))
-                    {
-                        <MudPaper Class="pa-4" Elevation="8" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                            <MudText Typo="Typo.h5" Class="mb-3" Style="color: #764ba2;">
-                                <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Size="Size.Medium" Class="mr-2" />
-                                Game Trailer
-                            </MudText>
-                            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
-                                <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-                                        src="https://www.youtube.com/embed/@(gameDetails.Video)?autoplay=0&mute=0"
-                                        title="YouTube video player"
-                                        frameborder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowfullscreen>
-                                </iframe>
-                            </div>
-                        </MudPaper>
-                    }
-                </MudStack>
+            <MudItem xs="12">
+                                <!-- Video Trailer -->
+        @if (!string.IsNullOrEmpty(gameDetails.Video))
+        {
+            <MudPaper Class="pa-4" Elevation="8" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                <MudText Typo="Typo.h5" Class="mb-3" Style="color: #764ba2;">
+                    <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Size="Size.Medium" Class="mr-2" />
+                    Game Trailer
+                </MudText>
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+                    <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                            src="https://www.youtube.com/embed/@(gameDetails.Video)?autoplay=0&mute=0"
+                            title="YouTube video player"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                    </iframe>
+                </div>
+            </MudPaper>
+        }
             </MudItem>
         </MudGrid>
     </MudContainer>
@@ -150,12 +162,48 @@ else
     [Parameter]
     public int id { get; set; }
     private DetailGameDto? gameDetails;
+    private string primaryColor = "#667eea";
+    private string secondaryColor = "#764ba2";
+
     protected override async Task OnInitializedAsync()
     {
         gameDetails = await Client.GetFromJsonAsync<DetailGameDto>($"api/games/{id}");
         if (gameDetails == null)
         {
             Navigation.NavigateTo("/trending-games");
+            return;
         }
+
+        // Extract colors from cover image
+        await ExtractColorsFromCover();
+    }
+
+    private async Task ExtractColorsFromCover()
+    {
+        try
+        {
+            var coverUrl = ImageHelper.GetCoverUrl(gameDetails?.Cover);
+            if (!string.IsNullOrEmpty(coverUrl))
+            {
+                var colors = await JS.InvokeAsync<ColorPalette>("colorExtractor.extractColors", coverUrl);
+                if (colors != null)
+                {
+                    primaryColor = colors.Primary ?? "#667eea";
+                    secondaryColor = colors.Secondary ?? "#764ba2";
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error extracting colors: {ex.Message}");
+            // Keep default colors
+        }
+    }
+
+    private class ColorPalette
+    {
+        public string? Primary { get; set; }
+        public string? Secondary { get; set; }
     }
 }
