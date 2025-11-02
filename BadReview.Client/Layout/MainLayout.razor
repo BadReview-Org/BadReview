@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿@using System.Threading.Tasks
+@inherits LayoutComponentBase
 @* Required *@
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme"/>
 <MudPopoverProvider />
@@ -18,9 +19,21 @@
         </MudText>
         <MudSpacer />
 
-        
-        <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode"/>
 
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Open user menu" Dense="true">
+            <MudMenuItem Label="Profile"/>
+            <MudMenuItem Label="My account" />
+            <MudMenuItem Label="Logout" />
+
+            <MudDivider></MudDivider>
+
+            <MudMenuItem OnClick="@((e) => DarkModeToogle())" AutoClose="false">
+                <MudSwitch @bind-Value="_isDarkMode" ReadOnly="true" Color="Color.Primary"
+                    T="bool" Label="Dark Mode" Size="Size.Medium" LabelPlacement="Placement.Left"
+                    ThumbIcon="@(_isDarkMode==true ? Icons.Material.Outlined.DarkMode : Icons.Material.Outlined.WbSunny)"
+                    ThumbIconColor="@(_isDarkMode==true ? Color.Info : Color.Error)"/>
+            </MudMenuItem>
+        </MudMenu>
 
     </MudAppBar>
     <MudDrawer @bind-Open="@_drawerOpen" Fixed="true" Variant="@DrawerVariant.Mini" OpenMiniOnHover="true">
@@ -37,9 +50,18 @@
     private MudTheme _theme = new MudTheme();
     private bool _isDarkMode;
     bool _drawerOpen = true;
+    bool disableDarkModeToggle = false;
 
-    void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
+    async Task DarkModeToogle() {
+        if (!disableDarkModeToggle)
+        {
+            _isDarkMode = !_isDarkMode;
+            Console.WriteLine("DarkModeToogle");
+            disableDarkModeToggle = true;
+            await Task.Delay(500);
+            disableDarkModeToggle = false;
+        }
     }
+
+    void DrawerToggle() => _drawerOpen = !_drawerOpen;
 }
