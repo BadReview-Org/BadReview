@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @* Required *@
-<MudThemeProvider />
+<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme"/>
 <MudPopoverProvider />
 
 @* Needed for dialogs *@
@@ -17,9 +17,8 @@
             BadReview
         </MudText>
         <MudSpacer />
-        
 
-        <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme"/>
+        
         <MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode"/>
 
 

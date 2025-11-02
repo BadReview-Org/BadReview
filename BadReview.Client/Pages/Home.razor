@@ -1,9 +1,11 @@
 ﻿@page "/"
+@attribute [Authorize]
 
 @using BadReview.Shared.DTOs.Response
 
 @inject ILogger<Home> Logger
 @inject HttpClient Client
+@inject AuthService authS
 
 <PageTitle>Home</PageTitle>
 <MudText Typo="Typo.h4">
@@ -30,18 +32,25 @@
         </MudCardActions>
     </MudCard>
 </MudLink>
+
 @code {
 
     string myName = "";
     int currentElevation = 1;
 
+    [CascadingParameter]
+    Task<AuthenticationState>? authState { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        string log = $"URI: {Client.BaseAddress}";
-        Logger.LogInformation(log);
+        //string log = $"URI: {Client.BaseAddress}";
+        //Logger.LogInformation(log);
 
-        UserDto? userDto = await Client.GetFromJsonAsync<UserDto>("/api/users/1");
+        //UserDto? userDto = await Client.GetFromJsonAsync<UserDto>("/api/users/1");
 
-        myName = userDto?.FullName ?? "" ;
+        //myName = userDto?.FullName ?? "" ;
+
+        AuthenticationState state = await authState!;
+        authS.LogJWToken(state, Logger);
     }
 }

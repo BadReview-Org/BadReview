@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Components.Authorization;
 using BadReview.Client;
 using System.Net.Http.Json;
 using MudBlazor.Services;
@@ -21,6 +22,10 @@ string apiUri = apiSettings.Api?.URI
 // Configurar el HttpClient para la aplicación con la URI de la API
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUri) });
 builder.Services.AddMudServices();
+
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<AuthenticationStateProvider, JWTAuthStateProvider>();
+builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();
 

@@ -13,3 +13,7 @@ https://www.jwt.io/
 ## Single and Split Queries in EF
 
 https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
+
+## Security in Blazor WebAssembly
+
+https://learn.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/?view=aspnetcore-9.0

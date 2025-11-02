@@ -37,7 +37,7 @@ public static class GameEndpoints
             switch (query.Detail)
             {
                 case IGDBFieldsEnum.BASE:
-                    response = await igdb.GetGamesAsync<BasicGameIgdbDto>(query);
+                    response = await igdb.GetGamesAsync<BasicGameIgdbDto>(query, "games");
                     var basicDtoList = new List<BasicGameDto>();
                     if (response is not null)
                     {
@@ -49,7 +49,7 @@ public static class GameEndpoints
                     response = basicDtoList;
                     break;
                 case IGDBFieldsEnum.DETAIL:
-                    response = await igdb.GetGamesAsync<DetailGameIgdbDto>(query);
+                    response = await igdb.GetGamesAsync<DetailGameIgdbDto>(query, "games");
                     var detailDtoList = new List<DetailGameDto>();
                     if (response is not null)
                     {
@@ -68,27 +68,28 @@ public static class GameEndpoints
             return response;
         });
         // GET: /api/games - Obtener todos los juegos populares
-        app.MapGet("/api/games/trending", async (BadReviewContext db, IGDBClient igdb) =>
+        app.MapGet("/api/games/trending", async ([AsParameters] SelectGamesRequest query, BadReviewContext db, IGDBClient igdb) =>
         {
-            var responseTrending = await igdb.GetTrendingGamesAsync<PopularIgdbDto>();
+            var responseTrending = await igdb.GetTrendingGamesAsync(query);
             
             if (responseTrending is null || responseTrending.Count == 0)
                 return Results.NotFound();
 
 
-            var gameIds = responseTrending.Select(g => g.game_id);
+            var gameIds = responseTrending.Select(g => g.Game_id);
             string idsFilter = $"({string.Join(",", gameIds)})";
             
             Console.WriteLine($"Trending game IDs: {idsFilter}");
 
-            var query = new SelectGamesRequest 
-            { 
-                Filters = $"id = {idsFilter}", 
-                Detail = IGDBFieldsEnum.BASE 
+            var queryGames = new SelectGamesRequest
+            {
+                Filters = $"id = {idsFilter}",
+                Detail = IGDBFieldsEnum.BASE,
+                PageSize = query.PageSize
             };
-            query.SetDefaults();
+            queryGames.SetDefaults();
 
-            var games = await igdb.GetGamesAsync<BasicGameIgdbDto>(query);
+            var games = await igdb.GetGamesAsync<BasicGameIgdbDto>(queryGames, "games");
             
             if (games is null || games.Count == 0)
                 return Results.NotFound();
@@ -113,7 +114,7 @@ public static class GameEndpoints
                 var query = new SelectGamesRequest { Filters = $"id = {id}", Detail = IGDBFieldsEnum.DETAIL };
                 query.SetDefaults();
 
-                DetailGameIgdbDto? gameIGDB = (await igdb.GetGamesAsync<DetailGameIgdbDto>(query))?.FirstOrDefault();
+                DetailGameIgdbDto? gameIGDB = (await igdb.GetGamesAsync<DetailGameIgdbDto>(query, "games"))?.FirstOrDefault();
 
                 if (gameIGDB is null) return Results.NotFound(id);
                 else

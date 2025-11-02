@@ -96,7 +96,7 @@ public static class Mapper
             g.Id,
             g.Name,
             g.Cover?.Image_Id,
-            0d,
+            g.Rating,
             0,
             0
         );

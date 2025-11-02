@@ -78,7 +78,7 @@
                                                 align-items: center;
                                                 justify-content: center;
                                                 font-size: 0.95rem;">
-                                    @currentGame.Name
+                                    @($"{currentGame.Name}, r: {currentGame.RatingIGDB}")
                                 </MudText>
                             </MudCardContent>
                         </MudCard>
@@ -100,11 +100,19 @@
         border-color: rgba(102, 126, 234, 0.5) !important;
     }
 </style>
+
 @code {
     private BasicGameDto[]? games;
 
     protected override async Task OnInitializedAsync()
     {
-        games = await Client.GetFromJsonAsync<BasicGameDto[]>("api/games/trending");
+        string uri = "api/games/trending";
+        string pagesize = "10";
+
+
+        string queryString = $"?pagesize={pagesize}";
+        Console.WriteLine($"Query: {queryString}");
+
+        games = await Client.GetFromJsonAsync<BasicGameDto[]>($"{uri}{queryString}");
     }
 }
