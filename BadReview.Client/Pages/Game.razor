@@ -47,13 +47,27 @@ else
                                   Alt="@gameDetails.Name" 
                                   Class="rounded-lg" 
                                   Style="width: 100%; height: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
+                        @if (gameDetails.RatingIGDB.HasValue)
+                                {
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
+                                        <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
+                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
+                                            @((gameDetails.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
+                                        </MudText>
+                                    </MudStack>
+                                }
                     </MudPaper>
                     <MudPaper Elevation ="6" Class="pa-3" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                        <MudText Typo="Typo.h6" Align="Align.Center" Style="color: #e0e0e0;">
-                            Released <br />
-                             @(gameDetails.Date.HasValue ? DateTimeOffset.FromUnixTimeSeconds(gameDetails.Date.Value).DateTime.ToString("d 'de' MMMM, yyyy") : "TBA")
-                        </MudText>
-                        <MudRating SelectedValue="2" />
+                        <div class="d-flex">
+                        <MudButton OnClick="OpenDialog" Variant="Variant.Filled" Color="Color.Primary">
+                            Edit rating
+                        </MudButton>
+                        <MudRating SelectedValue="@currentRating" Disabled="true" Class="mt-1 ml-3" />
+                    </div>
+
+                    <CustomDialog @ref="popupReview" OnRatingChanged="OnRatingChanged">
+                        <MudRating @bind-SelectedValue="currentRating" MaxValue="5" ReadOnly="false" />    
+                    </CustomDialog>
                     </MudPaper>
 
                     <!-- Developers -->
@@ -168,6 +182,9 @@ else
     private string primaryColor = "#667eea";
     private string secondaryColor = "#764ba2";
 
+    private CustomDialog? popupReview;
+    private void OpenDialog() => popupReview?.Open();
+
     protected override async Task OnInitializedAsync()
     {
         gameDetails = await Client.GetFromJsonAsync<DetailGameDto>($"api/games/{id}");
@@ -203,8 +220,9 @@ else
             // Keep default colors
         }
     }
+    int currentRating = 0;
 
-    private class ColorPalette
+        private class ColorPalette
     {
         public string? Primary { get; set; }
         public string? Secondary { get; set; }

@@ -19,109 +19,21 @@
             Discover the hottest games right now
         </MudText>
     </MudPaper>
-
-    @if (games == null)
-    {
-        <MudGrid Spacing="4">
-            @for (int i = 0; i < 12; i++)
-            {
-                <MudItem xs="12" sm="6" md="4" lg="2" xl="2">
-                    <MudPaper Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px; overflow: hidden;">
-                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="240px" />
-                        <div class="pa-3">
-                            <MudSkeleton SkeletonType="SkeletonType.Text" Height="25px" />
-                        </div>
-                    </MudPaper>
-                </MudItem>
-            }
-        </MudGrid>
-    }
-    else if (games.Length == 0)
-    {
-        <MudPaper Class="pa-8 text-center" Elevation="4" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Default" />
-            <MudText Typo="Typo.h5" Class="mt-3">No games found.</MudText>
-            <MudText Typo="Typo.body1" Class="mt-2" Color="Color.Default">
-                Check back later for trending games!
-            </MudText>
-        </MudPaper>
-    }
-    else
-    {
-        <MudGrid Spacing="4">
-            @foreach (var game in games)
-            {
-                var currentGame = game;
-                <MudItem xs="12" sm="6" md="4" lg="2" xl="2">
-                    <MudLink Href="@($"/game/{currentGame.Id}")" Style="text-decoration: none; color: inherit;">
-                        <MudCard Class="mud-elevation-hover" 
-                                 Style="height: 100%; 
-                                        background: linear-gradient(145deg, #2a2a2a, #1a1a1a); 
-                                        border-radius: 12px; 
-                                        overflow: hidden;
-                                        transition: transform 0.3s ease, box-shadow 0.3s ease;
-                                        border: 1px solid rgba(102, 126, 234, 0.1);">
-                            <div style="position: relative; overflow: hidden; height: 240px; display: flex; align-items: center; justify-content: center; background: #1a1a1a;">
-                                <img src="@ImageHelper.GetCoverUrl(currentGame.Cover)" 
-                                     alt="@currentGame.Name"
-                                     style="max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s ease;"
-                                     class="game-cover" />
-                            </div>
-                            <MudCardContent Style="padding: 12px;">
-                                <MudText Typo="Typo.body1" 
-                                         Align="Align.Center" 
-                                         Style="font-weight: 600; 
-                                                color: #e0e0e0; 
-                                                line-height: 1.2;
-                                                min-height: 40px;
-                                                display: flex;
-                                                align-items: center;
-                                                justify-content: center;
-                                                font-size: 0.95rem;">
-                                    @currentGame.Name
-                                </MudText>
-                                @if (currentGame.RatingIGDB.HasValue)
-                                {
-                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
-                                        <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
-                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
-                                            @((currentGame.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
-                                        </MudText>
-                                    </MudStack>
-                                }
-                            </MudCardContent>
-                        </MudCard>
-                    </MudLink>
-                </MudItem>
-            }
-        </MudGrid>
-    }
+    <CustomGridCard arrayElement="games" elementName="games" />
+    
 </MudContainer>
 
-<style>
-    .mud-elevation-hover:hover .game-cover {
-        transform: scale(1.05);
-    }
-    
-    .mud-elevation-hover:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4) !important;
-        border-color: rgba(102, 126, 234, 0.5) !important;
-    }
-</style>
 
 @code {
     private BasicGameDto[]? games;
 
     protected override async Task OnInitializedAsync()
     {
-        string uri = "api/games/trending";
         string pagesize = "10";
-
 
         string queryString = $"?pagesize={pagesize}";
         Console.WriteLine($"Query: {queryString}");
 
-        games = await Client.GetFromJsonAsync<BasicGameDto[]>($"{uri}{queryString}");
+        games = await Client.GetFromJsonAsync<BasicGameDto[]>($"{Uris.trending}{queryString}");
     }
 }

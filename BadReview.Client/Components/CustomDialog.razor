@@ -1,0 +1,81 @@
+<MudDialog @bind-Visible="_visible" Options="_dialogOptions">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @if (!string.IsNullOrWhiteSpace(Icon))
+            {
+                <MudIcon Icon="@Icon" Class="mr-3" />
+            }
+            @Title
+        </MudText>
+    </TitleContent>
+
+    <DialogContent>
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+        else
+        {
+            <p>@Message</p>
+        }
+    </DialogContent>
+
+    <DialogActions>
+        @if (ShowCancelButton)
+        {
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
+                @CancelText
+            </MudButton>
+        }
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm">
+            @ConfirmText
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    // --- Estado interno ---
+    private bool _visible { get; set; }
+
+
+    // --- Parámetros personalizables ---
+    [Parameter] public string? Title { get; set; } = "Confirmar acción";
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string? Icon { get; set; } = Icons.Material.Filled.Info;
+
+    [Parameter] public string ConfirmText { get; set; } = "Aceptar";
+    [Parameter] public string CancelText { get; set; } = "Cancelar";
+    [Parameter] public bool ShowCancelButton { get; set; } = true;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // --- Eventos hacia el padre ---
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    // --- Opciones del diálogo ---
+    private DialogOptions _dialogOptions = new()
+    {
+        CloseButton = true,
+        MaxWidth = MaxWidth.Small,
+        FullWidth = true
+    };
+
+    // --- Métodos públicos ---
+    public void Open() => _visible = true;
+    public void Close() => _visible = false;
+
+    private async Task Confirm()
+    {
+        _visible = false;
+        await OnConfirm.InvokeAsync();
+    }
+
+    private async Task Cancel()
+    {
+        _visible = false;
+        await OnCancel.InvokeAsync();
+    }
+    // --- Variables públicas ---
+
+}

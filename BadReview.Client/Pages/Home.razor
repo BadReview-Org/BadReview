@@ -32,14 +32,37 @@
         </MudCardActions>
     </MudCard>
 </MudLink>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenDialog">
+    Mostrar Popup
+</MudButton>
+
+<CustomDialog @ref="dialog"
+              Title="Eliminar registro"
+              Message="¿Estás seguro que querés eliminar este elemento?"
+              Icon="@Icons.Material.Filled.Delete"
+              OnConfirm="OnConfirm"
+              OnCancel="OnCancel" >
+<MudRating @bind-SelectedValue="currentRating" MaxValue="5" ReadOnly="false" />
+</CustomDialog>
+
+<p>@status @currentRating</p>
+
 
 @code {
+    private CustomDialog? dialog;
+    private string status = "";
 
+    private int currentRating = 0;
+    private void OpenDialog() => dialog?.Open();
+
+    private void OnConfirm() => status = "Acción confirmada";
+    private void OnCancel() => status = "Acción cancelada";
     string myName = "";
     int currentElevation = 1;
 
     [CascadingParameter]
     Task<AuthenticationState>? authState { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {

@@ -1,0 +1,58 @@
+@inject HttpClient Client
+
+<!-- Skeleton definition -->
+@if (arrayElement == null)
+{
+    <MudGrid Spacing="4">
+        @for (int i = 0; i < 12; i++)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="2" xl="2">
+                <MudPaper Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px; overflow: hidden;">
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="240px" />
+                    <div class="pa-3">
+                        <MudSkeleton SkeletonType="SkeletonType.Text" Height="25px" />
+                    </div>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+}
+else if (arrayElement.Length == 0)
+{
+    <MudPaper Class="pa-8 text-center" Elevation="4" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+        <MudIcon Icon="@Icons.Material.Filled.SearchOff" Size="Size.Large" Color="Color.Default" />
+        <MudText Typo="Typo.h5" Class="mt-3">No @elementName found.</MudText>
+        <MudText Typo="Typo.body1" Class="mt-2" Color="Color.Default">
+            Check back later for @elementName!
+        </MudText>
+    </MudPaper>
+}
+else
+{
+    <MudGrid Spacing="4">
+        @foreach (var element in arrayElement!)
+        {
+            object currentElement = element;
+            <MudItem xs="12" sm="6" md="4" lg="2" xl="2">
+            @switch (Element)
+            {
+                case CardsEnum.BASICGAME:
+                    <BasicGameCard game="@((BasicGameDto)currentElement)" />
+                    break;
+            }
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code{
+    // --- Parámetros personalizables --
+    [Parameter] public object[]? arrayElement {get; set;}
+
+    [Parameter] public CardsEnum Element {get; set;}
+
+    [Parameter] public string? elementName {get; set;}
+
+
+
+}

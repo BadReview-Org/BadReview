@@ -122,7 +122,6 @@ public static class GameEndpoints
                     if (gameIGDB.Genres is not null)
                     {
                         var genreIds = gameIGDB.Genres.Select(g => g.Id).ToHashSet();
-
                         var existingIds = await db.Genres
                             .Where(g => genreIds.Contains(g.Id))
                             .Select(g => g.Id)
