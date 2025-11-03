@@ -18,10 +18,9 @@ public class AuthService
         this.http = http;
     }
 
-    public async Task<bool> LoginAsync(string userName, string password)
+    public async Task<bool> LoginAsync(JWTAuthStateProvider prov, LoginUserRequest request)
     {
-        var body = new LoginUserRequest(userName, password);
-        var response = await http.PostAsJsonAsync("/api/login", body);
+        var response = await http.PostAsJsonAsync("api/login", request);
         if (!response.IsSuccessStatusCode)
             return false;
 
@@ -29,11 +28,20 @@ public class AuthService
         if (content?.Token is null || content.Token is null)
             return false;
 
+        Console.WriteLine($"Received token:\n{content.Token}");
+
         await js.InvokeVoidAsync("localStorage.setItem", TokenKey, content.Token);
+
+        prov.NotifyAuthStateChanged();
         return true;
     }
 
-    public async Task LogoutAsync() => await js.InvokeVoidAsync("localStorage.removeItem", TokenKey);
+    public async Task LogoutAsync(JWTAuthStateProvider prov)
+    {
+        await js.InvokeVoidAsync("localStorage.removeItem", TokenKey);
+        prov.NotifyAuthStateChanged();
+    }
+
     public async Task<string?> GetTokenAsync() => await js.InvokeAsync<string?>("localStorage.getItem", TokenKey);
 
     public void LogJWToken(AuthenticationState state, ILogger logger)

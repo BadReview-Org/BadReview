@@ -15,7 +15,11 @@ public class JWTAuthStateProvider : AuthenticationStateProvider
     {
         var token = await authService.GetTokenAsync();
         if (string.IsNullOrEmpty(token))
+        {
+            Console.WriteLine("Token is not set.");
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        }
+            
 
         var handler = new JwtSecurityTokenHandler();
         JwtSecurityToken jwt;
@@ -26,14 +30,19 @@ public class JWTAuthStateProvider : AuthenticationStateProvider
         }
         catch
         {
+            Console.WriteLine("Token is malformed.");
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
 
         var identity = new ClaimsIdentity(jwt.Claims, "JWT");
         var user = new ClaimsPrincipal(identity);
-        
+        Console.WriteLine("Token is correctly set. Retrieving information.");
         return new AuthenticationState(user);
     }
 
-    public void NotifyAuthStateChanged() => NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+    public void NotifyAuthStateChanged()
+    {
+        Console.WriteLine(">>> NotifyUserChanged() called!");
+        NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+    }
 }

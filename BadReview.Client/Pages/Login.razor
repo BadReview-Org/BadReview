@@ -1,0 +1,65 @@
+﻿@page "/login"
+
+@inject ILogger<Login> Logger
+@inject HttpClient Client
+@inject NavigationManager Navigation
+
+<PageTitle>Log in</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudCard Elevation=8 Class="pa-6 mt-12">
+        <MudCardHeader>
+        <MudText Typo="Typo.h3"> Log in </MudText>
+        </MudCardHeader>
+
+        <MudCardContent>
+            <MudForm Spacing="4">
+                <MudTextField @bind-Value="form.Username" Label="Username" />
+
+                <MudTextField @bind-Value="form.Password" Label="Password" />
+
+                <MudPaper MaxWidth="25%" Elevation=0>
+                    <MudButton Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await LoginAsync())"> Log in </MudButton>
+                </MudPaper>
+                <MudLink Href="/register">Don't have an account yet? Register.</MudLink>
+            </MudForm>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+
+    [CascadingParameter]
+    public AuthenticationStateProvider _provider { get; set; } = null!;
+    JWTAuthStateProvider provider = null!;
+
+    [CascadingParameter]
+    public AuthService authS { get; set;} = null!;
+
+    LoginForm form = new ();
+
+    async Task LoginAsync() {
+        if (string.IsNullOrWhiteSpace(form.Username) || string.IsNullOrWhiteSpace(form.Password))
+        {
+            Console.WriteLine("Can't login, username or password are nulls");
+            return;
+        }
+        
+        Console.WriteLine("Now login...");
+
+        LoginUserRequest request = new (form.Username, form.Password);
+
+        bool login = await authS.LoginAsync(provider, request);
+
+        var msg = login ? "Logged in successfully" : "Couldn't log in";
+
+        Console.WriteLine(msg);
+
+        if (login) Navigation.NavigateTo("/");
+    }
+
+    protected override void OnInitialized()
+    {
+        provider = (JWTAuthStateProvider)_provider;
+    }
+}
