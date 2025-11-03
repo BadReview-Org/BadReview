@@ -18,10 +18,9 @@ public class AuthService
         this.http = http;
     }
 
-    public async Task<bool> LoginAsync(JWTAuthStateProvider prov, string userName, string password)
+    public async Task<bool> LoginAsync(JWTAuthStateProvider prov, LoginUserRequest request)
     {
-        var body = new LoginUserRequest(userName, password);
-        var response = await http.PostAsJsonAsync("api/login", body);
+        var response = await http.PostAsJsonAsync("api/login", request);
         if (!response.IsSuccessStatusCode)
             return false;
 

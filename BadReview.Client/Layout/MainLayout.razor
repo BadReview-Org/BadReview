@@ -34,7 +34,7 @@
                     <MudMenuItem OnClick="LogoutAsync" Label="Log out"/>
                 </Authorized>
                 <NotAuthorized>
-                    <MudMenuItem OnClick="LoginAsync" Label="Log in" />
+                    <MudMenuItem Href="/login" Label="Log in" />
                 </NotAuthorized>
             </AuthorizeView>
 
@@ -58,7 +58,11 @@
     </MudDrawer>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large">
-            @Body
+            <CascadingValue Value="_provider">
+                <CascadingValue Value="AuthService">
+                    @Body
+                </CascadingValue>
+            </CascadingValue>
         </MudContainer>
     </MudMainContent>
 </MudLayout>
@@ -88,7 +92,7 @@
 
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
-    private async void LoginAsync() => await AuthService.LoginAsync(stateProvider,"lauti", "hola123"); 
+    //private async void LoginAsync() => await AuthService.LoginAsync(stateProvider,"lauti", "hola123"); 
 
     private async void LogoutAsync() => await AuthService.LogoutAsync(stateProvider); 
 
