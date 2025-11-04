@@ -1,0 +1,42 @@
+<MudLink Href="@($"/game/{review?.Id}")" Style="text-decoration: none; color: inherit;">
+    <MudCard Class="mud-elevation-hover" 
+                Style="height: 100%; 
+                    background: linear-gradient(145deg, #2a2a2a, #1a1a1a); 
+                    border-radius: 12px; 
+                    overflow: hidden;
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    border: 1px solid rgba(102, 126, 234, 0.1);">
+        <MudCardContent Style="padding: 12px;">
+            <MudStack AlignItems="AlignItems.Center" Spacing="1">
+                <MudText Typo="Typo.body1" 
+                            Align="Align.Center" 
+                            Style="font-weight: 600; 
+                                color: #e0e0e0; 
+                                line-height: 1.2;
+                                min-height: 40px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 0.95rem;">
+                    <MudRating SelectedValue="@(review?.Rating ?? 0)" MaxValue="5" ReadOnly="true" Size="Size.Small" />
+                    @(review?.User?.Username)
+                </MudText>
+                <MudText Typo="Typo.body2" 
+                            Align="Align.Center" 
+                            Style="color: #b0b0b0; 
+                                font-size: 0.9rem; 
+                                margin-top: 4px; 
+                                max-height: 60px; 
+                                overflow: hidden; 
+                                text-overflow: ellipsis;">
+                    @(review?.ReviewText) 
+                </MudText>
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+</MudLink>
+
+@code{
+    // --- Parámetros personalizables --
+    [Parameter] public DetailReviewDto? review {get; set;}
+}

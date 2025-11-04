@@ -1,6 +1,7 @@
 @page "/game/{id:int}"
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Client.Utils
+@using BadReview.Shared.Utils
 @using Microsoft.JSInterop
 @inject HttpClient Client
 @inject NavigationManager Navigation
@@ -57,35 +58,55 @@ else
                                     </MudStack>
                                 }
                     </MudPaper>
+                    <!-- User Review Section -->
                     <MudPaper Elevation ="6" Class="pa-3" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                        <div class="d-flex">
-                        <MudButton OnClick="OpenDialog" Variant="Variant.Filled" Color="Color.Primary">
-                            Edit rating
-                        </MudButton>
-                        <MudRating SelectedValue="@currentRating" Disabled="true" Class="mt-1 ml-3" />
-                    </div>
-
-                    <CustomDialog @ref="popupReview" OnRatingChanged="OnRatingChanged">
-                        <MudRating @bind-SelectedValue="currentRating" MaxValue="5" ReadOnly="false" />    
-                    </CustomDialog>
+                    <AuthorizeView>
+                        <Authorized>
+                                <div class="d-flex">
+                                <MudButton OnClick="OpenDialog" Variant="Variant.Filled" Color="Color.Primary">
+                                    Edit rating
+                                </MudButton>
+                                <MudRating SelectedValue="@currentRating" Disabled="true" Class="mt-1 ml-3" />
+                            </div>
+                            
+                        </Authorized>
+                        <NotAuthorized>
+                            <p>Create an account or log in to register your activity!</p>
+                        </NotAuthorized>
+                    </AuthorizeView>
                     </MudPaper>
 
-                    <!-- Developers -->
-                    @if (gameDetails.Developers?.Any() == true)
-                    {
-                        <MudPaper Class="pa-3" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                            <MudText Typo="Typo.h6" Class="mb-2">
-                                <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" Class="mr-2" />
-                                Developers
-                            </MudText>
-                            @foreach (var developer in gameDetails.Developers)
-                            {
-                                <MudText Typo="Typo.body2" Color="Color.Default">
-                                    @developer.Name
-                                </MudText>
-                            }
-                        </MudPaper>
-                    }
+                    <CustomDialog @ref="popupReview"
+                                            Title="Create a review"
+                                            Icon="@Icons.Material.Filled.Star"
+                                            OnConfirm = "PostReview">
+                        <MudStack Spacing="3">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudText Typo="Typo.body1">Rating:</MudText>
+                                <MudRating @bind-SelectedValue="currentRating" MaxValue="5" ReadOnly="false" />
+                            </MudStack>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudText Typo="Typo.body1">Status:</MudText>
+                                <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+                                    <MudButton>@_buttonText</MudButton>
+                                    <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                                        <MudMenuItem OnClick="() => SetButtonText(ReviewState.NONE)">None</MudMenuItem>
+                                        <MudMenuItem OnClick="() => SetButtonText(ReviewState.PLAYED)">Played</MudMenuItem>
+                                        <MudMenuItem OnClick="() => SetButtonText(ReviewState.PLAYING)">Playing</MudMenuItem>
+                                        <MudMenuItem OnClick="() => SetButtonText(ReviewState.WISHLIST)">Wishlist</MudMenuItem>
+                                    </MudMenu>
+                                </MudButtonGroup>
+                            </MudStack>
+                            <MudTextField @bind-Value="reviewText" 
+                                          Label="Comment" 
+                                          Variant="Variant.Outlined" 
+                                          Lines="5" 
+                                          Placeholder="Write your review here..." />
+                        </MudStack>
+                    </CustomDialog>
+                    
+
+                    
                 </MudStack>
             </MudItem>
             
@@ -167,24 +188,124 @@ else
                             </MudStack>
                         </MudPaper>
                     }
+
+                    <!-- Developers -->
+                    @if (gameDetails.Developers?.Any() == true)
+                    {
+                        <MudPaper Class="pa-3" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                            <MudText Typo="Typo.h6" Class="mb-2">
+                                <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" Class="mr-2" />
+                                Developers
+                            </MudText>
+                            @foreach (var developer in gameDetails.Developers)
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Default">
+                                <MudImage Src="@ImageHelper.GetCoverUrl(developer.Logo)" Alt="@developer.Name" Width="32" Height="32" Class="ml-2" Style="vertical-align: middle; border-radius: 4px;" />
+                                    @developer.Name                     
+                                </MudText>
+                            }
+                        </MudPaper>
+                    }
                 </MudStack>
             </MudItem>
-
+            <MudItem xs="12" md="12" lg="12">
+            <!-- Reviews -->
+                <CustomGridCard lg = "12" xs = "12" md = "12" arrayElement="gameReviews" elementName="reviews" Element = "CardsEnum.DETAILREVIEW" />
+            </MudItem>
         </MudGrid>
     </MudContainer>
 }
+
 
 
 @code {
     [Parameter]
     public int id { get; set; }
     private DetailGameDto? gameDetails;
+
+    private DetailReviewDto[] gameReviews = Array.Empty<DetailReviewDto>();
     private string primaryColor = "#667eea";
     private string secondaryColor = "#764ba2";
 
+    private string _buttonText = "Select Action";
+
+
+    private void SetButtonText(ReviewState option)
+    {
+        switch (option)
+        {
+            case ReviewState.NONE:
+                reviewState = ReviewState.NONE;
+                _buttonText = "None";
+                break;
+            case ReviewState.PLAYED:
+                reviewState = ReviewState.PLAYED;
+                _buttonText = "Played";
+                break;
+            case ReviewState.PLAYING:
+                reviewState = ReviewState.PLAYING;
+                _buttonText = "Playing";
+                break;
+            case ReviewState.WISHLIST:
+                reviewState = ReviewState.WISHLIST;
+                _buttonText = "Wishlist";
+                break;
+            default:
+                _buttonText = "Select Action";
+                break;
+        }
+    }
+
+    private string reviewText = "";
     private CustomDialog? popupReview;
     private void OpenDialog() => popupReview?.Open();
 
+    
+    protected async Task PostReview()
+    {
+        // Obtener el token JWT del localStorage
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "JWT");
+        
+        Console.WriteLine($"Review Data:");
+        Console.WriteLine($"Token: {token}");
+        Console.WriteLine($"Rating: {currentRating}");
+        Console.WriteLine($"State: {reviewState} ({_buttonText})");
+        Console.WriteLine($"Text: {reviewText}");
+        Console.WriteLine($"GameId: {id}");
+        
+        // Crear el request con el header de autorización
+        var request = new HttpRequestMessage(HttpMethod.Post, "api/reviews");
+        
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+        
+        var reviewData = new CreateReviewRequest(
+            Rating: currentRating,
+            StartDate: DateTime.UtcNow,
+            EndDate: DateTime.UtcNow,
+            ReviewText: reviewText,
+            StateEnum: reviewState,
+            IsFavorite: false,
+            GameId: id
+        );
+        
+        request.Content = JsonContent.Create(reviewData);
+        
+        var response = await Client.SendAsync(request);
+        
+        if (response.IsSuccessStatusCode)
+        {
+            var newReview = await response.Content.ReadFromJsonAsync<DetailReviewDto>();
+            popupReview?.Close();
+        }
+        else
+        {
+            Console.WriteLine($"Error creating review: {response.StatusCode}");
+        }
+    }
+    private ReviewState reviewState = ReviewState.NONE;
     protected override async Task OnInitializedAsync()
     {
         gameDetails = await Client.GetFromJsonAsync<DetailGameDto>($"api/games/{id}");
@@ -192,8 +313,9 @@ else
         {
             Navigation.NavigateTo("/trending-games");
             return;
-        }
+        }  
 
+        gameReviews = gameDetails.Reviews.ToArray();
         // Extract colors from cover image
         await ExtractColorsFromCover();
     }

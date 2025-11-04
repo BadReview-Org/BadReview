@@ -48,8 +48,8 @@ public static class Mapper
     public static GenreDto CreateGenreDto(Genre gen) => new GenreDto(gen.Id, gen.Name);
     public static Genre CreateGenreEntity(GenreIgdbDto gen) => new Genre { Id = gen.Id, Name = gen.Name };
 
-    public static DeveloperDto CreateDeveloperDto(CompanyIgdbDto dev) => new DeveloperDto(dev.Id, dev.Name);
-    public static DeveloperDto CreateDeveloperDto(Developer dev) => new DeveloperDto(dev.Id, dev.Name);
+    public static DeveloperDto CreateDeveloperDto(CompanyIgdbDto dev) => new DeveloperDto(dev.Id, dev.Name, dev.Logo?.Image_Id);
+    public static DeveloperDto CreateDeveloperDto(Developer dev) => new DeveloperDto(dev.Id, dev.Name, dev.Logo);
     public static Developer CreateDeveloperEntity(CompanyIgdbDto c) =>
         new Developer { Id = c.Id, Name = c.Name, Country = c.Country, Logo = c.Logo?.Image_Id };
 

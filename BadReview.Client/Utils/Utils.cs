@@ -16,4 +16,4 @@ public static class ImageHelper
     }
 }
 
-public enum CardsEnum {BASICGAME, DETAILSGAME, BASICREVIEW};
+public enum CardsEnum {BASICGAME, DETAILSGAME, BASICREVIEW, DETAILREVIEW};
