@@ -1,8 +1,12 @@
+using System.Linq.Expressions;
+
+using BadReview.Client.Components;
+
 namespace BadReview.Client.Utils;
 
 public static class Uris
 {
-    public static string trending = "api/games/trending";
+    public const string Trending = "api/games/trending";
 }
 
 public static class ImageHelper
@@ -16,4 +20,32 @@ public static class ImageHelper
     }
 }
 
-public enum CardsEnum {BASICGAME, DETAILSGAME, BASICREVIEW, DETAILREVIEW};
+public interface ICardStrategy
+{
+    Type GetComponentType();
+    Dictionary<string, object> GetParameters(object element);
+}
+
+public class CardContainer
+{
+    public ICardStrategy strat;
+    public object dto;
+
+    public CardContainer(ICardStrategy strat, object dto)
+    {
+        this.strat = strat;
+        this.dto = dto;
+    }
+}
+
+public class BasicGameCardStrat : ICardStrategy
+{
+    public Type GetComponentType() => typeof(BasicGameCard);
+    public Dictionary<string, object> GetParameters(object element) => new() { ["game"] = element };
+}
+
+public class DetailReviewCardStrat : ICardStrategy
+{
+    public Type GetComponentType() => typeof(DetailReviewCard);
+    public Dictionary<string, object> GetParameters(object element) => new() { ["review"] = element };
+}

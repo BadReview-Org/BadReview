@@ -19,13 +19,13 @@
             Discover the hottest games right now
         </MudText>
     </MudPaper>
-    <CustomGridCard arrayElement="games" elementName="games" />
+    <CustomGridCard arrayElement="gameCards" placeholderTitle="No games found." placeholderBody="Check back later for trending games!"/>
     
 </MudContainer>
 
 
 @code {
-    private BasicGameDto[]? games;
+    private CardContainer[]? gameCards;
 
     protected override async Task OnInitializedAsync()
     {
@@ -34,6 +34,9 @@
         string queryString = $"?pagesize={pagesize}";
         Console.WriteLine($"Query: {queryString}");
 
-        games = await Client.GetFromJsonAsync<BasicGameDto[]>($"{Uris.trending}{queryString}");
+        BasicGameDto[]? gamesDto = await Client.GetFromJsonAsync<BasicGameDto[]>($"{Uris.Trending}{queryString}");
+
+        gameCards = gamesDto is null ? null :
+            gameCards = gamesDto.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
     }
 }

@@ -210,25 +210,31 @@ else
             </MudItem>
             <MudItem xs="12" md="12" lg="12">
             <!-- Reviews -->
-                <CustomGridCard lg = "12" xs = "12" md = "12" arrayElement="gameReviews" elementName="reviews" Element = "CardsEnum.DETAILREVIEW" />
+                <CustomGridCard lg = "12" xs = "12" md = "12" arrayElement="reviewCards"
+                    placeholderTitle="There aren't any reviews for this game yet." placeholderBody="Wanna try to write the first one?" />
             </MudItem>
         </MudGrid>
     </MudContainer>
 }
-
-
 
 @code {
     [Parameter]
     public int id { get; set; }
     private DetailGameDto? gameDetails;
 
-    private DetailReviewDto[] gameReviews = Array.Empty<DetailReviewDto>();
+    private CardContainer[]? reviewCards;
     private string primaryColor = "#667eea";
     private string secondaryColor = "#764ba2";
 
     private string _buttonText = "Select Action";
 
+    int currentRating = 0;
+
+    private ReviewState reviewState = ReviewState.NONE;
+
+    private string reviewText = "";
+    private CustomDialog? popupReview;
+    private void OpenDialog() => popupReview?.Open();
 
     private void SetButtonText(ReviewState option)
     {
@@ -255,11 +261,6 @@ else
                 break;
         }
     }
-
-    private string reviewText = "";
-    private CustomDialog? popupReview;
-    private void OpenDialog() => popupReview?.Open();
-
     
     protected async Task PostReview()
     {
@@ -305,7 +306,7 @@ else
             Console.WriteLine($"Error creating review: {response.StatusCode}");
         }
     }
-    private ReviewState reviewState = ReviewState.NONE;
+
     protected override async Task OnInitializedAsync()
     {
         gameDetails = await Client.GetFromJsonAsync<DetailGameDto>($"api/games/{id}");
@@ -315,7 +316,10 @@ else
             return;
         }  
 
-        gameReviews = gameDetails.Reviews.ToArray();
+        reviewCards =
+            gameDetails.Reviews
+                .Select(r => new CardContainer(new DetailReviewCardStrat(), r)).ToArray();
+
         // Extract colors from cover image
         await ExtractColorsFromCover();
     }
@@ -342,9 +346,8 @@ else
             // Keep default colors
         }
     }
-    int currentRating = 0;
 
-        private class ColorPalette
+    private class ColorPalette
     {
         public string? Primary { get; set; }
         public string? Secondary { get; set; }
