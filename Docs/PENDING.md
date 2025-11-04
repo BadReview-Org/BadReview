@@ -13,6 +13,7 @@
 
 ## Opcionales
 
+### Similar Games y Screenshot/Video random
 ### Fluent Validation
 ### Endpoints platforms y developer, expandir igdbclient
 ### Investigar: Antiforgery

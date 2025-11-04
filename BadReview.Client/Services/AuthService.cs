@@ -18,6 +18,24 @@ public class AuthService
         this.http = http;
     }
 
+    public async Task<bool> RegisterAsync(JWTAuthStateProvider prov, RegisterUserRequest request)
+    {
+        var response = await http.PostAsJsonAsync("api/register", request);
+        if (!response.IsSuccessStatusCode)
+            return false;
+
+        var content = await response.Content.ReadFromJsonAsync<RegisterUserDto>();
+        if (content is null || content.UserDto is null || content.Token is null)
+            return false;
+
+        Console.WriteLine($"User registered successfully:\n{content.UserDto}\nReceived token:\n{content.Token}");
+
+        await js.InvokeVoidAsync("localStorage.setItem", TokenKey, content.Token);
+
+        prov.NotifyAuthStateChanged();
+        return true;
+    }
+
     public async Task<bool> LoginAsync(JWTAuthStateProvider prov, LoginUserRequest request)
     {
         var response = await http.PostAsJsonAsync("api/login", request);
@@ -25,7 +43,7 @@ public class AuthService
             return false;
 
         var content = await response.Content.ReadFromJsonAsync<LoginUserDto>();
-        if (content?.Token is null || content.Token is null)
+        if (content is null || content.Token is null)
             return false;
 
         Console.WriteLine($"Received token:\n{content.Token}");

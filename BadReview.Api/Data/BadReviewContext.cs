@@ -28,6 +28,9 @@ public class BadReviewContext : DbContext
         {
             entity.HasIndex(e => e.Username).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("getdate()").ValueGeneratedOnAdd();
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("getdate()").ValueGeneratedOnAddOrUpdate();
         });
 
         // Configure Game entity - NO usar IDENTITY para mantener IDs de IGDB
@@ -66,6 +69,9 @@ public class BadReviewContext : DbContext
                 .WithMany(g => g.Reviews)
                 .HasForeignKey(e => e.GameId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("getdate()").ValueGeneratedOnAdd();
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("getdate()").ValueGeneratedOnAddOrUpdate();
         });
 
         modelBuilder.Entity<GameGenre>(entity =>

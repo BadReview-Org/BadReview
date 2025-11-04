@@ -69,7 +69,7 @@ public static class UserEndpoints
                 return Results.Unauthorized();
 
             var token = auth.GenerateToken(req.Username, user.Id);
-            return Results.Ok(new LoginUserDto { Token = token });
+            return Results.Ok(new LoginUserDto(token));
         });
             
         app.MapGet("/api/profile", [Authorize] (ClaimsPrincipal user) =>
@@ -135,16 +135,17 @@ public static class UserEndpoints
                 FullName = req.FullName
             };
 
-                db.Users.Add(newUser);
-                await db.SaveChangesAsync();
-                var userdto = new BasicUserDto(
-                    newUser.Id,
-                    newUser.Username,
-                    newUser.FullName
-                );
-                var token = auth.GenerateToken(req.Username, newUser.Id);
+            db.Users.Add(newUser);
+            await db.SaveChangesAsync();
+            var userDto = new BasicUserDto(
+                newUser.Id,
+                newUser.Username,
+                newUser.FullName
+            );
+            
+            var token = auth.GenerateToken(req.Username, newUser.Id);
 
-            return Results.Ok(new { user = userdto, token });
+            return Results.Ok(new RegisterUserDto(userDto, token));
         })
         .WithName("RegisterUser");
 

@@ -17,3 +17,7 @@ https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
 ## Security in Blazor WebAssembly
 
 https://learn.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/?view=aspnetcore-9.0
+
+## ISO 3166 JSON
+
+https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes

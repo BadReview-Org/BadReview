@@ -16,4 +16,7 @@ public class Review
 
     public User User { get; set; } = null!;
     public Game Game { get; set; } = null!;
+
+    public DateTime CreatedAt;
+    public DateTime UpdatedAt;
 }
