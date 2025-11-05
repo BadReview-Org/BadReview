@@ -1,4 +1,5 @@
 using BadReview.Api.Models;
+using BadReview.Api.Models.Owned;
 
 using BadReview.Shared.DTOs.Request;
 using BadReview.Shared.DTOs.Response;
@@ -35,7 +36,9 @@ public static class Mapper
             model.StateEnum,
             model.IsFavorite,
             CreateUserDto(userId, userName, userEmail),
-            null
+            null,
+            DateTime.Now,
+            DateTime.Now
         );
     }
 
@@ -48,20 +51,51 @@ public static class Mapper
     public static GenreDto CreateGenreDto(Genre gen) => new GenreDto(gen.Id, gen.Name);
     public static Genre CreateGenreEntity(GenreIgdbDto gen) => new Genre { Id = gen.Id, Name = gen.Name };
 
-    public static DeveloperDto CreateDeveloperDto(CompanyIgdbDto dev) => new DeveloperDto(dev.Id, dev.Name, dev.Logo?.Image_Id);
-    public static DeveloperDto CreateDeveloperDto(Developer dev) => new DeveloperDto(dev.Id, dev.Name, dev.Logo);
-    public static Developer CreateDeveloperEntity(CompanyIgdbDto c) =>
-        new Developer { Id = c.Id, Name = c.Name, Country = c.Country, Logo = c.Logo?.Image_Id };
+    public static BasicDeveloperDto CreateDeveloperDto(BasicCompanyIgdbDto dev) =>
+        new BasicDeveloperDto(dev.Id, dev.Name, dev.Country, dev.Logo?.Image_Id, dev.Logo?.Height, dev.Logo?.Width);
+    public static DetailDeveloperDto CreateDeveloperDto(Developer dev) =>
+        new DetailDeveloperDto(
+            dev.Id, dev.Name, dev.Country, dev.Description, dev.StartDate,
+            dev.Logo?.ImageId, dev.Logo?.ImageHeight, dev.Logo?.ImageWidth, null);
 
-    public static PlatformDto CreatePlatformDto(PlatformIgdbDto p) => new PlatformDto(p.Id, p.Name);
-    public static PlatformDto CreatePlatformDto(Platform p) => new PlatformDto(p.Id, p.Name);
-    public static Platform CreatePlatformEntity(PlatformIgdbDto p) =>
+    public static DetailDeveloperDto CreateDeveloperDto(DetailCompanyIgdbDto dev) =>
+        new DetailDeveloperDto(
+            dev.Id, dev.Name, dev.Country, dev.Description, dev.Start_date,
+            dev.Logo?.Image_Id, dev.Logo?.Height, dev.Logo?.Width, null);
+
+    public static Developer CreateDeveloperEntity(DetailCompanyIgdbDto c) =>
+        new Developer
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Country = c.Country,
+            Description = c.Description,
+            StartDate = c.Start_date,
+            Logo = c.Logo?.Image_Id is not null ?
+                new Image(c.Logo.Image_Id, c.Logo.Height, c.Logo.Width) : null
+        };
+
+    public static BasicPlatformDto CreatePlatformDto(BasicPlatformIgdbDto p) =>
+        new BasicPlatformDto(
+            p.Id, p.Name, p.Abbreviation,
+            p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width);
+    public static DetailPlatformDto CreatePlatformDto(Platform p)
+        => new DetailPlatformDto(p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
+            p.Logo?.ImageId, p.Logo?.ImageHeight, p.Logo?.ImageWidth, null);
+    public static DetailPlatformDto CreatePlatformDto(DetailPlatformIgdbDto p) =>
+        new DetailPlatformDto(
+            p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
+            p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width, null);
+
+    public static Platform CreatePlatformEntity(DetailPlatformIgdbDto p) =>
         new Platform {
             Id = p.Id,
             Name = p.Name,
             Abbreviation = p.Abbreviation,
             Generation = p.Generation,
-            Logo = p.Platform_logo?.Image_Id
+            Summary = p.Summary,
+            Logo = p.Platform_logo?.Image_Id is not null ?
+                new Image(p.Platform_logo.Image_Id, p.Platform_logo.Height, p.Platform_logo.Width) : null
         };
 
     public static Game CreateGameEntity(DetailGameIgdbDto g)
@@ -69,7 +103,8 @@ public static class Mapper
         return new Game {
             Id = g.Id,
             Name = g.Name,
-            Cover = g.Cover?.Image_Id,
+            Cover = g.Cover?.Image_Id is not null ?
+                new Image(g.Cover.Image_Id, g.Cover.Height, g.Cover.Width) : null,
             Date = g.First_release_date,
             Summary = g.Summary,
             RatingIGDB = g.Rating ?? 0d,
@@ -95,7 +130,7 @@ public static class Mapper
         return new BasicGameDto(
             g.Id,
             g.Name,
-            g.Cover?.Image_Id,
+            g.Cover?.Image_Id, g.Cover?.Height, g.Cover?.Width,
             g.Rating,
             0,
             0
@@ -106,7 +141,7 @@ public static class Mapper
         return new DetailGameDto(
             g.Id,
             g.Name,
-            g.Cover?.Image_Id,
+            g.Cover?.Image_Id, g.Cover?.Height, g.Cover?.Width,
             g.First_release_date,
             g.Summary,
             g.Rating ?? 0d,
@@ -118,10 +153,10 @@ public static class Mapper
                 new List<GenreDto>() :
                 g.Genres.Select(gen => CreateGenreDto(gen)).ToList(),
             g.Involved_Companies is null ?
-                new List<DeveloperDto>() :
+                new List<DetailDeveloperDto>() :
                 g.Involved_Companies.Where(c => c.Developer).Select(dev => CreateDeveloperDto(dev.Company)).ToList(),
             g.Platforms is null ?
-                new List<PlatformDto>() :
+                new List<DetailPlatformDto>() :
                 g.Platforms.Select(p => CreatePlatformDto(p)).ToList()
         );
     }
@@ -131,7 +166,9 @@ public static class Mapper
         return query.Select(g => new DetailGameDto(
             g.Id,
             g.Name,
-            g.Cover,
+            g.Cover != null ? g.Cover.ImageId : null,
+            g.Cover != null ? g.Cover.ImageHeight : null,
+            g.Cover != null ? g.Cover.ImageWidth : null,
             g.Date,
             g.Summary,
             g.RatingIGDB,
@@ -151,7 +188,8 @@ public static class Mapper
                     r.User.Username,
                     r.User.FullName
                 ),
-                null
+                null,
+                r.Date.CreatedAt, r.Date.UpdatedAt
             )).ToList(),
             g.GameGenres.Select(gg => CreateGenreDto(gg.Genre)
             ).ToList(),

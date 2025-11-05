@@ -1,21 +1,22 @@
 namespace BadReview.Shared.DTOs.Response;
 
-public record UserDto(
+public record DetailUserDto(
     int Id,
     string Username,
-    string FullName,
+    string? FullName,
     DateTime? Birthday,
-    string? Country,
-    List<DetailReviewDto>? Reviews
+    int? Country,
+    List<DetailReviewDto> Reviews,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
 );
 
 public record BasicUserDto(
     int Id,
     string Username,
-    string FullName
+    string? FullName
 );
 
-public class LoginUserDto
-{
-    public string? Token { get; set; }
-}
+public record RegisterUserDto(BasicUserDto UserDto, string Token);
+
+public record LoginUserDto(string Token);

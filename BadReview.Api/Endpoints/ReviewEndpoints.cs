@@ -37,12 +37,14 @@ public static class ReviewEndpoints
                         r.User.Username,
                         r.User.FullName
                     ),
-                    null!
+                    null,
+                    r.Date.CreatedAt, r.Date.UpdatedAt
                 )).ToList());
 
             }
             return Results.NotFound();
         });
+
         // GET: /api/reviews/{id} - Obtener una reseña por ID
         app.MapGet("/api/reviews/{id}", async (int id, BadReviewContext db) =>
         {
@@ -70,21 +72,20 @@ public static class ReviewEndpoints
                     new BasicGameDto(
                         review.Game.Id,
                         review.Game.Name,
-                        review.Game.Cover,
+                        review.Game.Cover?.ImageId,
+                        review.Game.Cover?.ImageHeight,
+                        review.Game.Cover?.ImageWidth,
                         review.Game.RatingIGDB,
                         review.Game.Total_RatingBadReview,
                         review.Game.Count_RatingBadReview
-                    )
+                    ),
+                    review.Date.CreatedAt, review.Date.UpdatedAt
                 );
 
                 return Results.Ok(reviewdto);
             }
             return Results.NotFound();
         });
-
-
-
-
 
         //PUT: /api/reviews/{id} - Actualizar una reseña por ID
         app.MapPut("/api/reviews/{id}", async (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview, BadReviewContext db) =>
@@ -129,11 +130,14 @@ public static class ReviewEndpoints
                 new BasicGameDto(
                     review.Game.Id,
                     review.Game.Name,
-                    review.Game.Cover,
+                    review.Game.Cover?.ImageId,
+                    review.Game.Cover?.ImageHeight,
+                    review.Game.Cover?.ImageWidth,
                     review.Game.RatingIGDB,
                     review.Game.Total_RatingBadReview,
                     review.Game.Count_RatingBadReview
-                )
+                ),
+                review.Date.CreatedAt, review.Date.UpdatedAt
             );
 
             return Results.Ok(reviewdto);
@@ -204,8 +208,18 @@ public static class ReviewEndpoints
                 UserId = userdb.Id,
                 GameId = gameId
             };
+
             db.Reviews.Add(reviewdb);
             await db.SaveChangesAsync();
+
+            /*reviewdb = await db.Reviews
+                .AsNoTracking()
+                .FirstAsync(r => r.Id == reviewdb.Id);*/
+            reviewdb.Date = await db.Reviews
+                .Where(r => r.Id == reviewdb.Id)
+                .Select(r => r.Date)
+                .AsNoTracking()
+                .FirstAsync();
 
             var reviewdto = new DetailReviewDto
             (
@@ -224,11 +238,14 @@ public static class ReviewEndpoints
                 new BasicGameDto(
                     game.Id,
                     game.Name,
-                    game.Cover,
-                    game.RatingIGDB++,
+                    game.Cover?.ImageId,
+                    game.Cover?.ImageHeight,
+                    game.Cover?.ImageWidth,
+                    game.RatingIGDB++, // ?
                     game.Total_RatingBadReview,
                     game.Count_RatingBadReview
-                )
+                ),
+                reviewdb.Date.CreatedAt, reviewdb.Date.UpdatedAt
             );
             return Results.Created($"/api/reviews/{reviewdto.Id}", reviewdto);
         })

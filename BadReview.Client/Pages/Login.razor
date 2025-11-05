@@ -7,7 +7,7 @@
 <PageTitle>Log in</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small">
-    <MudCard Elevation=8 Class="pa-6 mt-12">
+    <MudCard Elevation=8 Class="pa-6">
         <MudCardHeader>
         <MudText Typo="Typo.h3"> Log in </MudText>
         </MudCardHeader>
@@ -16,10 +16,10 @@
             <MudForm Spacing="4">
                 <MudTextField @bind-Value="form.Username" Label="Username" />
 
-                <MudTextField @bind-Value="form.Password" Label="Password" />
+                <MudTextField @bind-Value="form.Password" InputType="InputType.Password" Label="Password" />
 
                 <MudPaper MaxWidth="25%" Elevation=0>
-                    <MudButton Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await LoginAsync())"> Log in </MudButton>
+                    <MudButton Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="LoginAsync"> Log in </MudButton>
                 </MudPaper>
                 <MudLink Href="/register">Don't have an account yet? Register.</MudLink>
             </MudForm>

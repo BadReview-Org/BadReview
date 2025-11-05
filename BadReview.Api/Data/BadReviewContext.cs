@@ -28,12 +28,20 @@ public class BadReviewContext : DbContext
         {
             entity.HasIndex(e => e.Username).IsUnique();
             entity.HasIndex(e => e.Email).IsUnique();
+
+            entity.OwnsOne(e => e.Date, date =>
+            {
+                date.Property(d => d.CreatedAt).HasDefaultValueSql("getdate()").ValueGeneratedOnAdd();
+                date.Property(d => d.UpdatedAt).HasDefaultValueSql("getdate()").ValueGeneratedOnAddOrUpdate();
+            });
         });
 
         // Configure Game entity - NO usar IDENTITY para mantener IDs de IGDB
         modelBuilder.Entity<Game>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.OwnsOne(e => e.Cover);
         });
 
         modelBuilder.Entity<Genre>(entity =>
@@ -44,11 +52,15 @@ public class BadReviewContext : DbContext
         modelBuilder.Entity<Platform>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.OwnsOne(e => e.Logo);
         });
         
         modelBuilder.Entity<Developer>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.OwnsOne(e => e.Logo);
         });
 
         modelBuilder.Entity<Review>(entity =>
@@ -66,6 +78,12 @@ public class BadReviewContext : DbContext
                 .WithMany(g => g.Reviews)
                 .HasForeignKey(e => e.GameId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.OwnsOne(e => e.Date, date =>
+            {
+                date.Property(d => d.CreatedAt).HasDefaultValueSql("getdate()").ValueGeneratedOnAdd();
+                date.Property(d => d.UpdatedAt).HasDefaultValueSql("getdate()").ValueGeneratedOnAddOrUpdate();
+            });
         });
 
         modelBuilder.Entity<GameGenre>(entity =>

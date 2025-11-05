@@ -16,8 +16,6 @@ public static class UserEndpoints
 {
     public static void MapUserEndpoints(this IEndpointRouteBuilder app)
     {
-
-
         // GET: /api/users - Obtener todos los usuarios
         app.MapGet("/api/users", async (BadReviewContext db) =>
         {
@@ -26,7 +24,7 @@ public static class UserEndpoints
                     .ThenInclude(r => r.Game)
                 .ToListAsync();
 
-            return users.Select(u => new UserDto(
+            return users.Select(u => new DetailUserDto(
                 u.Id,
                 u.Username,
                 u.FullName,
@@ -44,12 +42,17 @@ public static class UserEndpoints
                     new BasicGameDto(
                         r.Game.Id,
                         r.Game.Name,
-                        r.Game.Cover,
+                        r.Game.Cover?.ImageId,
+                        r.Game.Cover?.ImageHeight,
+                        r.Game.Cover?.ImageWidth,
                         r.Game.RatingIGDB,
                         r.Game.Total_RatingBadReview,
                         r.Game.Count_RatingBadReview
-                    )
-                )).ToList()
+                    ),
+                    r.Date.CreatedAt, r.Date.UpdatedAt
+                )
+                ).ToList(),
+                u.Date.CreatedAt, u.Date.UpdatedAt
             ));
         })
         .WithName("GetUsers");
@@ -69,7 +72,7 @@ public static class UserEndpoints
                 return Results.Unauthorized();
 
             var token = auth.GenerateToken(req.Username, user.Id);
-            return Results.Ok(new LoginUserDto { Token = token });
+            return Results.Ok(new LoginUserDto(token));
         });
             
         app.MapGet("/api/profile", [Authorize] (ClaimsPrincipal user) =>
@@ -85,7 +88,7 @@ public static class UserEndpoints
                 .Include(u => u.Reviews)
                     .ThenInclude(r => r.Game)
                 .FirstOrDefaultAsync(u => u.Id == id);
-            var userdto = user is not null ? new UserDto(
+            var userdto = user is not null ? new DetailUserDto(
                 user.Id,
                 user.Username,
                 user.FullName,
@@ -103,12 +106,17 @@ public static class UserEndpoints
                     new BasicGameDto(
                         r.Game.Id,
                         r.Game.Name,
-                        r.Game.Cover,
+                        r.Game.Cover?.ImageId,
+                        r.Game.Cover?.ImageHeight,
+                        r.Game.Cover?.ImageWidth,
                         r.Game.RatingIGDB,
                         r.Game.Total_RatingBadReview,
                         r.Game.Count_RatingBadReview
-                    )
-                )).ToList()
+                    ),
+                    r.Date.CreatedAt, r.Date.UpdatedAt
+                )
+                ).ToList(),
+                user.Date.CreatedAt, user.Date.UpdatedAt
             ) : null;
             return userdto is not null ? Results.Ok(userdto) : Results.NotFound();
         })
@@ -135,16 +143,17 @@ public static class UserEndpoints
                 FullName = req.FullName
             };
 
-                db.Users.Add(newUser);
-                await db.SaveChangesAsync();
-                var userdto = new BasicUserDto(
-                    newUser.Id,
-                    newUser.Username,
-                    newUser.FullName
-                );
-                var token = auth.GenerateToken(req.Username, newUser.Id);
+            db.Users.Add(newUser);
+            await db.SaveChangesAsync();
+            var userDto = new BasicUserDto(
+                newUser.Id,
+                newUser.Username,
+                newUser.FullName
+            );
+            
+            var token = auth.GenerateToken(req.Username, newUser.Id);
 
-            return Results.Ok(new { user = userdto, token });
+            return Results.Ok(new RegisterUserDto(userDto, token));
         })
         .WithName("RegisterUser");
 

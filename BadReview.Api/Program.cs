@@ -98,5 +98,6 @@ app.UseAuthorization();
 app.MapUserEndpoints();
 app.MapGameEndpoints();
 app.MapReviewEndpoints();
+app.MapGenreEndpoints();
 
 app.Run();

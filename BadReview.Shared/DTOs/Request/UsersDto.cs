@@ -7,7 +7,7 @@ public record CreateUserRequest(
     string Email,
     string FullName,
     DateTime? Birthday,
-    string? Country
+    int? Country
 );
 
 public record LoginUserRequest(
@@ -19,5 +19,7 @@ public record RegisterUserRequest(
     string Username,
     string Email,
     string Password,
-    string FullName
+    string? FullName,
+    DateTime? Birthday,
+    int? Country
 );
