@@ -150,7 +150,7 @@ public class IGDBClient
         if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             throw new Exception("Authorization error while fetching games from IGDB");
         else if (!response.IsSuccessStatusCode)
-            throw new Exception($"Unexpected error while fetching games from IGDB. Query: {bodyString}, URI: {uri}");
+            throw new Exception($"Unexpected error while fetching games from IGDB\nQuery: {bodyString}\nURI: {uri}\nCode:{response.StatusCode}");
 
         // if the response is successful, we get the games data as a List of DTO
         var jsonOptions = new JsonSerializerOptions

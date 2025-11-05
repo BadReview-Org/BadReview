@@ -3,7 +3,7 @@ namespace BadReview.Shared.DTOs.Response;
 public record DetailGameDto(
     int Id,
     string Name,
-    string? Cover,
+    string? CoverId, int? CoverHeight, int? CoverWidth,
     long? Date,
     string? Summary,
     double? RatingIGDB,
@@ -12,14 +12,14 @@ public record DetailGameDto(
     string? Video,
     List<DetailReviewDto> Reviews,
     List<GenreDto> Genres,
-    List<DeveloperDto> Developers,
-    List<PlatformDto> Platforms
+    List<DetailDeveloperDto> Developers,
+    List<DetailPlatformDto> Platforms
 );
 
 public record BasicGameDto(
     int Id,
     string Name,
-    string? Cover,
+    string? CoverId, int? CoverHeight, int? CoverWidth,
     double? RatingIGDB,
     long Total_RatingBadReview,
     long Count_RatingBadReview

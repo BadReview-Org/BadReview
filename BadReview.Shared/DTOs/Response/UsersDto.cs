@@ -1,12 +1,14 @@
 namespace BadReview.Shared.DTOs.Response;
 
-public record UserDto(
+public record DetailUserDto(
     int Id,
     string Username,
     string? FullName,
     DateTime? Birthday,
     int? Country,
-    List<DetailReviewDto>? Reviews
+    List<DetailReviewDto> Reviews,
+    DateTime CreatedAt,
+    DateTime UpdatedAt
 );
 
 public record BasicUserDto(

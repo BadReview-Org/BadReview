@@ -4,7 +4,6 @@ using BadReview.Shared.Utils;
 
 namespace BadReview.Shared.DTOs.Response;
 
-
 public record DetailReviewDto(
     int Id,
     int? Rating,
@@ -15,7 +14,10 @@ public record DetailReviewDto(
     bool IsFavorite,
     [property:JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     BasicUserDto? User,
-    BasicGameDto? Game
+    BasicGameDto? Game,
+    // could be replaced by a CUDateDto
+    DateTime CreatedAt,
+    DateTime UpdatedAt
 );
 
 

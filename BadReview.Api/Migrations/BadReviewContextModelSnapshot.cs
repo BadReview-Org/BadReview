@@ -30,12 +30,15 @@ namespace BadReview.Api.Migrations
                     b.Property<int?>("Country")
                         .HasColumnType("int");
 
-                    b.Property<string>("Logo")
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("StartDate")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -49,9 +52,6 @@ namespace BadReview.Api.Migrations
 
                     b.Property<long>("Count_RatingBadReview")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("Cover")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<long?>("Date")
                         .HasColumnType("bigint");
@@ -147,11 +147,11 @@ namespace BadReview.Api.Migrations
                     b.Property<int?>("Generation")
                         .HasColumnType("int");
 
-                    b.Property<string>("Logo")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -166,11 +166,6 @@ namespace BadReview.Api.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("getdate()");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
@@ -192,11 +187,6 @@ namespace BadReview.Api.Migrations
 
                     b.Property<int>("StateEnum")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("getdate()");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -224,11 +214,6 @@ namespace BadReview.Api.Migrations
                     b.Property<int?>("Country")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("getdate()");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -239,11 +224,6 @@ namespace BadReview.Api.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("getdate()");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -258,6 +238,62 @@ namespace BadReview.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("BadReview.Api.Models.Developer", b =>
+                {
+                    b.OwnsOne("BadReview.Api.Models.Owned.Image", "Logo", b1 =>
+                        {
+                            b1.Property<int>("DeveloperId")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("ImageHeight")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("ImageId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int?>("ImageWidth")
+                                .HasColumnType("int");
+
+                            b1.HasKey("DeveloperId");
+
+                            b1.ToTable("Developers");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DeveloperId");
+                        });
+
+                    b.Navigation("Logo");
+                });
+
+            modelBuilder.Entity("BadReview.Api.Models.Game", b =>
+                {
+                    b.OwnsOne("BadReview.Api.Models.Owned.Image", "Cover", b1 =>
+                        {
+                            b1.Property<int>("GameId")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("ImageHeight")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("ImageId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int?>("ImageWidth")
+                                .HasColumnType("int");
+
+                            b1.HasKey("GameId");
+
+                            b1.ToTable("Games");
+
+                            b1.WithOwner()
+                                .HasForeignKey("GameId");
+                        });
+
+                    b.Navigation("Cover");
                 });
 
             modelBuilder.Entity("BadReview.Api.Models.GameDeveloper", b =>
@@ -317,6 +353,34 @@ namespace BadReview.Api.Migrations
                     b.Navigation("Platform");
                 });
 
+            modelBuilder.Entity("BadReview.Api.Models.Platform", b =>
+                {
+                    b.OwnsOne("BadReview.Api.Models.Owned.Image", "Logo", b1 =>
+                        {
+                            b1.Property<int>("PlatformId")
+                                .HasColumnType("int");
+
+                            b1.Property<int?>("ImageHeight")
+                                .HasColumnType("int");
+
+                            b1.Property<string>("ImageId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<int?>("ImageWidth")
+                                .HasColumnType("int");
+
+                            b1.HasKey("PlatformId");
+
+                            b1.ToTable("Platforms");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PlatformId");
+                        });
+
+                    b.Navigation("Logo");
+                });
+
             modelBuilder.Entity("BadReview.Api.Models.Review", b =>
                 {
                     b.HasOne("BadReview.Api.Models.Game", "Game")
@@ -331,9 +395,64 @@ namespace BadReview.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsOne("BadReview.Api.Models.Owned.CUDate", "Date", b1 =>
+                        {
+                            b1.Property<int>("ReviewId")
+                                .HasColumnType("int");
+
+                            b1.Property<DateTime>("CreatedAt")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("datetime2")
+                                .HasDefaultValueSql("getdate()");
+
+                            b1.Property<DateTime>("UpdatedAt")
+                                .ValueGeneratedOnAddOrUpdate()
+                                .HasColumnType("datetime2")
+                                .HasDefaultValueSql("getdate()");
+
+                            b1.HasKey("ReviewId");
+
+                            b1.ToTable("Reviews");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ReviewId");
+                        });
+
+                    b.Navigation("Date")
+                        .IsRequired();
+
                     b.Navigation("Game");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BadReview.Api.Models.User", b =>
+                {
+                    b.OwnsOne("BadReview.Api.Models.Owned.CUDate", "Date", b1 =>
+                        {
+                            b1.Property<int>("UserId")
+                                .HasColumnType("int");
+
+                            b1.Property<DateTime>("CreatedAt")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("datetime2")
+                                .HasDefaultValueSql("getdate()");
+
+                            b1.Property<DateTime>("UpdatedAt")
+                                .ValueGeneratedOnAddOrUpdate()
+                                .HasColumnType("datetime2")
+                                .HasDefaultValueSql("getdate()");
+
+                            b1.HasKey("UserId");
+
+                            b1.ToTable("Users");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId");
+                        });
+
+                    b.Navigation("Date")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("BadReview.Api.Models.Developer", b =>

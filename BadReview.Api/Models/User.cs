@@ -1,3 +1,5 @@
+using BadReview.Api.Models.Owned;
+
 namespace BadReview.Api.Models;
 
 public class User
@@ -10,9 +12,7 @@ public class User
     public string? FullName { get; set; } = null!;
     public DateTime? Birthday { get; set; }
     public int? Country { get; set; }
+    public CUDate Date { get; set; } = null!;
 
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
-
-    public DateTime CreatedAt;
-    public DateTime UpdatedAt;
 }
