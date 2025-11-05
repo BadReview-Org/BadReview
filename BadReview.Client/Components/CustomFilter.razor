@@ -1,0 +1,54 @@
+<MudPaper Class="pa-4 mb-4" Elevation="6" MaxWidth="MaxWidth.Large">
+    <MudTextField @bind-Value="Value" 
+                    Placeholder="@Placeholder" 
+                    Adornment="Adornment.Start" 
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    Variant="Variant.Outlined"
+                    Immediate="true"
+                    DebounceInterval="500"
+                    OnDebounceIntervalElapsed="OnSearchAsyncInternal"
+                    FullWidth="true"
+                    Style="background: rgba(255,255,255,0.05); border-radius: 8px;" />
+    @if (SetChips)
+    {   
+        <MudText Class="mt-3 mb-2" Typo="Typo.body2" Style="color: #b0b0b0;">Filter by:</MudText>
+        <MudChipSet SelectedValue="@SelectedFilter" 
+                    SelectedValueChanged="@OnSelectedFilterChangedInternal"
+                    T="string" 
+                    CheckMark="true" 
+                    SelectionMode="@SelectionMode.SingleSelection">
+            <MudChip Text="Name" Color="Color.Primary" Value="@("name")">Name</MudChip>
+            <MudChip Text="Developer" Color="Color.Primary" Value="@("developer")">Developer</MudChip>
+            <MudChip Text="Platform" Color="Color.Primary" Value="@("platforms.name")">Platform</MudChip>
+            <MudChip Text="Genre" Color="Color.Primary" Value="@("genre")">Genre</MudChip>
+        </MudChipSet>
+    }
+
+</MudPaper>
+@code {
+    [Parameter] public string? SelectedFilter { get; set; } = "name";
+
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string? Placeholder { get; set; } = "Search...";
+
+    [Parameter] public bool SetChips {get; set;} = false;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter] public EventCallback<string> SelectedFilterChanged { get; set; }
+    [Parameter] public EventCallback<string> OnSearchAsync { get; set; }
+    private async Task OnSelectedFilterChangedInternal(string value)
+    {
+        SelectedFilter = value;
+        await SelectedFilterChanged.InvokeAsync(value);
+    }
+
+    private async Task OnSearchAsyncInternal(string value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+        if (OnSearchAsync.HasDelegate)
+        {
+            await OnSearchAsync.InvokeAsync(value);
+        }
+    }
+}

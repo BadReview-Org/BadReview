@@ -15,7 +15,7 @@
     </NotAuthorized>
 </AuthorizeView>
 
-<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+<MudContainer  MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
     <!-- Header con Gradient -->
     <MudPaper Class="pa-4 mb-6" Elevation="8" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
@@ -25,27 +25,18 @@
             </MudText>
         </MudStack>
         <MudText Typo="Typo.body1" Class="mt-2" Style="color: rgba(255,255,255,0.9);">
-            Search for your favorite games and discover new ones!
+            Search for your favorite games and discover new ones! @SelectedFilter
         </MudText>
     </MudPaper>
-    <MudPaper Class="pa-4 mb-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-        <MudTextField @bind-Value="_searchText" 
-                      Placeholder="Search for games..." 
-                      Adornment="Adornment.Start" 
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      Variant="Variant.Outlined"
-                      Immediate="true"
-                      DebounceInterval="500"
-                      OnDebounceIntervalElapsed="OnSearchAsync"
-                      FullWidth="true"
-                      Style="background: rgba(255,255,255,0.05); border-radius: 8px;" />
-    </MudPaper>
-    <CustomGridCard arrayElement="gameCards" placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
+    <CustomFilter @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
+    <CustomGridCard arrayElement="gameCards"  placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
 </MudContainer>
 
 
 @code {
     private CardContainer[]? gameCards;
+
+    private string? SelectedFilter = "name";
     private string _searchText = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -57,8 +48,8 @@
     {
         string uri = "api/games";
         string orderby = Uri.EscapeDataString("total_rating_count");
-        string filters = (string.IsNullOrWhiteSpace(_searchText)) ?
-            "" : Uri.EscapeDataString($"name ~ *\"{_searchText}\"*");
+        string filters = (string.IsNullOrWhiteSpace(_searchText)) ?//game.genre 
+            "" : Uri.EscapeDataString($"@{SelectedFilter} ~ *\"{_searchText}\"*");
 
         string queryString = $"?filters={filters}&orderby={orderby}";
         Console.WriteLine($"Query: {queryString}");

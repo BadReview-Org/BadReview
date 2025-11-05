@@ -17,14 +17,17 @@
 @inject AuthenticationStateProvider _provider
 
 <MudLayout>
-    <MudAppBar>
+    <MudAppBar MaxWidth="MaxWidth.ExtraExtraLarge">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle" />
+
+        <CustomFilter @bind-Value="_searchText" OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
+
         <MudSpacer />
         <MudText Typo="Typo.h5" Style="font-family: 'Montserrat', 'Helvetica', sans-serif; font-weight: 700; letter-spacing: 1px;">
             BadReview
         </MudText>
         <MudSpacer />
-
+        
 
         <MudMenu Icon="@Icons.Material.Filled.MoreVert" AriaLabel="Open user menu" Dense="true">
             <AuthorizeView>
@@ -57,7 +60,7 @@
         <NavMenu/>
     </MudDrawer>
     <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large">
+        <MudContainer Class="pa-8" MaxWidth="MaxWidth.Large">
             <CascadingValue Value="_provider">
                 <CascadingValue Value="AuthService">
                     @Body
@@ -68,6 +71,13 @@
 </MudLayout>
 
 @code {
+    private string _searchText = string.Empty;
+
+    private void OnSearchAsync(string searchText)
+    {
+        Console.WriteLine($"Searching for: {searchText}");
+        // You can implement additional logic here if needed
+    }
 
     [CascadingParameter]
     Task<AuthenticationState>? authStateTask { get; set; }
