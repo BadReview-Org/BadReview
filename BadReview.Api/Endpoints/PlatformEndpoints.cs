@@ -1,5 +1,3 @@
-# if false
-
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -24,11 +22,12 @@ public static class PlatformEndpoints
         // GET: /api/platforms - Obtener todos las plataformas
         app.MapGet("/api/platforms", async ([AsParameters] IgdbRequest query, BadReviewContext db, IGDBClient igdb) =>
         {
-            var platformsIgdb = await igdb.GetPlatformsAsync<>(query);
+            var platformsIgdb = await igdb.GetPlatformsAsync<BasicPlatformIgdbDto>(query);
 
-            List<GenreDto>? genreList = genresIgdb?.Select(gen => CreateGenreDto(gen)).ToList();
+            List<BasicPlatformDto>? platformsList = platformsIgdb?.Select(p => CreatePlatformDto(p)).ToList();
 
-            var response = Results.Ok(genreList);
+            var response = platformsList is null || platformsList.Count == 0
+                ? Results.Ok(platformsList) : Results.NotFound("No platforms matching the query filters");
 
             return response;
         });
@@ -36,74 +35,27 @@ public static class PlatformEndpoints
         // GET: /api/platforms/{id} - Obtener una plataforma por ID
         app.MapGet("/api/platforms/{id}", async (int id, BadReviewContext db, IGDBClient igdb) =>
         {
-            DetailGameDto? gameDB = await db.Games
-                .Where(g => g.Id == id)
-                .GameToDetailDto()
+            DetailPlatformDto? platDB = await db.Platforms
+                .Where(p => p.Id == id)
+                .Select(p => new DetailPlatformDto(
+                    p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
+                    p.Logo?.ImageId, p.Logo?.ImageHeight, p.Logo?.ImageWidth,
+                    p.GamePlatforms.Select(gp => CreateBasicGameDto(gp.Game)).ToList()
+                ))
                 .FirstOrDefaultAsync();
 
-            if (gameDB is not null) Console.WriteLine($"Fetching game: {gameDB.Name}, from DB");
-            if (gameDB is not null) return Results.Ok(gameDB);
+            if (platDB is not null) Console.WriteLine($"Fetching platform: {platDB.Name}, from DB");
+            if (platDB is not null) return Results.Ok(platDB);
             else
             {
-                var query = new SelectGamesRequest { Filters = $"id = {id}", Detail = IGDBFieldsEnum.DETAIL };
+                var query = new IgdbRequest { Filters = $"id = {id}" };
                 query.SetDefaults();
 
-                DetailGameIgdbDto? gameIGDB = (await igdb.GetGamesAsync<DetailGameIgdbDto>(query, "games"))?.FirstOrDefault();
+                DetailPlatformIgdbDto? platIGDB = (await igdb.GetPlatformsAsync<DetailPlatformIgdbDto>(query))?.FirstOrDefault();
 
-                if (gameIGDB is null) return Results.NotFound(id);
+                if (platIGDB is null) return Results.NotFound($"No platform matching the ID: {id}");
                 else
                 {
-                    if (gameIGDB.Genres is not null)
-                    {
-                        var genreIds = gameIGDB.Genres.Select(g => g.Id).ToHashSet();
-                        var existingIds = await db.Genres
-                            .Where(g => genreIds.Contains(g.Id))
-                            .Select(g => g.Id)
-                            .ToHashSetAsync();
-
-                        var newGenres = gameIGDB.Genres
-                            .Where(g => !existingIds.Contains(g.Id))
-                            .Select(g => CreateGenreEntity(g))
-                            .ToList();
-
-                        if (newGenres.Count != 0) db.Genres.AddRange(newGenres);
-                    }
-
-                    if (gameIGDB.Platforms is not null)
-                    {
-                        var platformIds = gameIGDB.Platforms.Select(p => p.Id).ToHashSet();
-
-                        var existingIds = await db.Platforms
-                            .Where(p => platformIds.Contains(p.Id))
-                            .Select(p => p.Id)
-                            .ToHashSetAsync();
-
-                        var newPlatforms = gameIGDB.Platforms
-                            .Where(p => !existingIds.Contains(p.Id))
-                            .Select(p => CreatePlatformEntity(p))
-                            .ToList();
-
-                        if (newPlatforms.Count != 0) db.Platforms.AddRange(newPlatforms);
-                    }
-
-                    if (gameIGDB.Involved_Companies is not null)
-                    {
-                        var devs = gameIGDB.Involved_Companies.Where(c => c.Developer).Select(c => c.Company).ToList();
-                        var devIds = devs.Select(d => d.Id).ToHashSet();
-
-                        var existingIds = await db.Developers
-                            .Where(d => devIds.Contains(d.Id))
-                            .Select(d => d.Id)
-                            .ToHashSetAsync();
-
-                        var newDevs = devs
-                            .Where(d => !existingIds.Contains(d.Id))
-                            .Select(d => CreateDeveloperEntity(d))
-                            .ToList();
-
-                        if (newDevs.Count != 0) db.Developers.AddRange(newDevs);
-                    }
-
                     Console.WriteLine($"Saving game {gameIGDB.Name} from IGDB into database");
                     //mapear a Game y persistir
                     var newGame = CreateGameEntity(gameIGDB);
@@ -116,5 +68,3 @@ public static class PlatformEndpoints
         });
     }
 }
-
-#endif

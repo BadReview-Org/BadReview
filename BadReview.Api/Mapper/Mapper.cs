@@ -75,19 +75,19 @@ public static class Mapper
                 new Image(c.Logo.Image_Id, c.Logo.Height, c.Logo.Width) : null
         };
 
-    public static BasicPlatformDto CreatePlatformDto(BasicPlatformIgdbDto p) =>
+    public static BasicPlatformDto CreatePlatformDto(PlatformIgdbDto p) =>
         new BasicPlatformDto(
             p.Id, p.Name, p.Abbreviation,
             p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width);
     public static DetailPlatformDto CreatePlatformDto(Platform p)
         => new DetailPlatformDto(p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
             p.Logo?.ImageId, p.Logo?.ImageHeight, p.Logo?.ImageWidth, null);
-    public static DetailPlatformDto CreatePlatformDto(DetailPlatformIgdbDto p) =>
+    public static DetailPlatformDto CreatePlatformDto(PlatformIgdbDto p) =>
         new DetailPlatformDto(
             p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
             p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width, null);
 
-    public static Platform CreatePlatformEntity(DetailPlatformIgdbDto p) =>
+    public static Platform CreatePlatformEntity(PlatformIgdbDto p) =>
         new Platform {
             Id = p.Id,
             Name = p.Name,
@@ -98,9 +98,11 @@ public static class Mapper
                 new Image(p.Platform_logo.Image_Id, p.Platform_logo.Height, p.Platform_logo.Width) : null
         };
 
+
     public static Game CreateGameEntity(DetailGameIgdbDto g)
     {
-        return new Game {
+        return new Game
+        {
             Id = g.Id,
             Name = g.Name,
             Cover = g.Cover?.Image_Id is not null ?
@@ -125,6 +127,7 @@ public static class Mapper
                 ?? new List<GamePlatform>()
         };
     }
+    
     public static BasicGameDto CreateBasicGameDto(BasicGameIgdbDto g)
     {
         return new BasicGameDto(
@@ -136,6 +139,19 @@ public static class Mapper
             0
         );
     }
+
+    public static BasicGameDto CreateBasicGameDto(Game g)
+    {
+        return new BasicGameDto(
+            g.Id,
+            g.Name,
+            g.Cover?.ImageId, g.Cover?.ImageHeight, g.Cover?.ImageWidth,
+            g.RatingIGDB,
+            g.Total_RatingBadReview,
+            g.Count_RatingBadReview
+        );
+    }
+
     public static DetailGameDto CreateDetailGameDto(DetailGameIgdbDto g)
     {
         return new DetailGameDto(

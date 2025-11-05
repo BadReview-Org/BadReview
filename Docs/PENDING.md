@@ -1,5 +1,7 @@
 # BACKEND
 
+## Refresh Token
+
 ## Paginacion
 
 ## Concurrencia
@@ -10,6 +12,8 @@
 ## Terminar endpoints obligatorios
 
 ## Refactorizar, mapper, error handling, documentar
+
+## CreateAt, UpdateAt y tiempos, UTC y local
 
 ## Opcionales
 

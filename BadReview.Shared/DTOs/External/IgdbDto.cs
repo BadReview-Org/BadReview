@@ -20,16 +20,11 @@ public record VideoIgdbDto(string? Video_Id);
 [IgdbFields("id, name")]
 public record GenreIgdbDto(int Id, string Name);
 
-
-[IgdbFields("id, name, abbreviation, platform_logo.image_id, platform_logo.height, platform_logo.width")]
-public record BasicPlatformIgdbDto(int Id, string Name, string? Abbreviation, ImageIgdbDto? Platform_logo);
-
 [IgdbFields(
     @"id, name, abbreviation, generation, summary,
     platform_logo.image_id, platform_logo.height, platform_logo.width")]
-public record DetailPlatformIgdbDto(
-    int Id, string Name, string? Abbreviation, int? Generation, ImageIgdbDto? Platform_logo, string? Summary,
-    List<BasicGameDto>? Games
+public record PlatformIgdbDto(
+    int Id, string Name, string? Abbreviation, int? Generation, ImageIgdbDto? Platform_logo, string? Summary
 );
 
 
@@ -57,7 +52,7 @@ public record BasicGameIgdbDto(int Id, string Name, ImageIgdbDto? Cover, double?
     involved_companies.company.logo.image_id, involved_companies.company.logo.height, involved_companies.company.logo.width")]
 public record DetailGameIgdbDto(
     int Id, string Name, ImageIgdbDto? Cover, long? First_release_date, string? Summary, double? Rating, List<VideoIgdbDto>? Videos,
-    HashSet<GenreIgdbDto>? Genres, HashSet<DetailPlatformIgdbDto>? Platforms, HashSet<InvCompIgdbDto>? Involved_Companies);
+    HashSet<GenreIgdbDto>? Genres, HashSet<PlatformIgdbDto>? Platforms, HashSet<InvCompIgdbDto>? Involved_Companies);
 
 [IgdbFields("game_id")]
 public record PopularIgdbDto(int Game_id);

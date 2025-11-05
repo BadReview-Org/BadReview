@@ -101,6 +101,21 @@ public class IGDBClient
         return await GetAsync<GenreIgdbDto>(queryGenres, IGDBCONSTANTS.URIS.GENRES);
     }
 
+    public async Task<List<T>?> GetPlatformsAsync<T>(IgdbRequest query)
+    {
+        IgdbRequest queryGenres = new IgdbRequest
+        {
+            Filters = query.Filters,
+            Page = query.Page,
+            PageSize = query.PageSize,
+            OrderBy = query.OrderBy ?? "name",
+            Order = query.Order ?? SortOrder.ASC
+        };
+        queryGenres.SetDefaults();
+
+        return await GetAsync<T>(queryGenres, IGDBCONSTANTS.URIS.PLATFORMS);
+    }
+
     public async Task<List<T>?> GetAsync<T>(IgdbRequest query, string uri)
     {
         // we first check if access token is not set (the server didn't send any queries to igdb yet)
@@ -112,7 +127,6 @@ public class IGDBClient
 
         if (!_httpClient.DefaultRequestHeaders.Contains("Authorization"))
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
-
 
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
