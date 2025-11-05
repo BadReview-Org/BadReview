@@ -74,16 +74,16 @@ public static class Mapper
             Logo = c.Logo?.Image_Id is not null ?
                 new Image(c.Logo.Image_Id, c.Logo.Height, c.Logo.Width) : null
         };
-
-    public static BasicPlatformDto CreatePlatformDto(PlatformIgdbDto p) =>
+    
+    /*public static BasicPlatformDto CreatePlatformDto(PlatformIgdbDto p) =>
         new BasicPlatformDto(
             p.Id, p.Name, p.Abbreviation,
-            p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width);
-    public static DetailPlatformDto CreatePlatformDto(Platform p)
-        => new DetailPlatformDto(p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
+            p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width);*/
+    public static PlatformDto CreatePlatformDto(Platform p)
+        => new PlatformDto(p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
             p.Logo?.ImageId, p.Logo?.ImageHeight, p.Logo?.ImageWidth, null);
-    public static DetailPlatformDto CreatePlatformDto(PlatformIgdbDto p) =>
-        new DetailPlatformDto(
+    public static PlatformDto CreatePlatformDto(PlatformIgdbDto p) =>
+        new PlatformDto(
             p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
             p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width, null);
 
@@ -172,7 +172,7 @@ public static class Mapper
                 new List<DetailDeveloperDto>() :
                 g.Involved_Companies.Where(c => c.Developer).Select(dev => CreateDeveloperDto(dev.Company)).ToList(),
             g.Platforms is null ?
-                new List<DetailPlatformDto>() :
+                new List<PlatformDto>() :
                 g.Platforms.Select(p => CreatePlatformDto(p)).ToList()
         );
     }

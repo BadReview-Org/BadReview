@@ -1,3 +1,4 @@
+#if false
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -22,9 +23,9 @@ public static class PlatformEndpoints
         // GET: /api/platforms - Obtener todos las plataformas
         app.MapGet("/api/platforms", async ([AsParameters] IgdbRequest query, BadReviewContext db, IGDBClient igdb) =>
         {
-            var platformsIgdb = await igdb.GetPlatformsAsync<BasicPlatformIgdbDto>(query);
+            var platformsIgdb = await igdb.GetPlatformsAsync<PlatformIgdbDto>(query);
 
-            List<BasicPlatformDto>? platformsList = platformsIgdb?.Select(p => CreatePlatformDto(p)).ToList();
+            List<PlatformDto>? platformsList = platformsIgdb?.Select(p => CreatePlatformDto(p)).ToList();
 
             var response = platformsList is null || platformsList.Count == 0
                 ? Results.Ok(platformsList) : Results.NotFound("No platforms matching the query filters");
@@ -35,9 +36,9 @@ public static class PlatformEndpoints
         // GET: /api/platforms/{id} - Obtener una plataforma por ID
         app.MapGet("/api/platforms/{id}", async (int id, BadReviewContext db, IGDBClient igdb) =>
         {
-            DetailPlatformDto? platDB = await db.Platforms
+            PlatformDto? platDB = await db.Platforms
                 .Where(p => p.Id == id)
-                .Select(p => new DetailPlatformDto(
+                .Select(p => new PlatformDto(
                     p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
                     p.Logo?.ImageId, p.Logo?.ImageHeight, p.Logo?.ImageWidth,
                     p.GamePlatforms.Select(gp => CreateBasicGameDto(gp.Game)).ToList()
@@ -51,7 +52,7 @@ public static class PlatformEndpoints
                 var query = new IgdbRequest { Filters = $"id = {id}" };
                 query.SetDefaults();
 
-                DetailPlatformIgdbDto? platIGDB = (await igdb.GetPlatformsAsync<DetailPlatformIgdbDto>(query))?.FirstOrDefault();
+                PlatformIgdbDto? platIGDB = (await igdb.GetPlatformsAsync<PlatformIgdbDto>(query))?.FirstOrDefault();
 
                 if (platIGDB is null) return Results.NotFound($"No platform matching the ID: {id}");
                 else
@@ -68,3 +69,4 @@ public static class PlatformEndpoints
         });
     }
 }
+#endif

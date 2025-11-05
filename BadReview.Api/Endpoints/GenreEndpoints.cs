@@ -26,7 +26,7 @@ public static class GenreEndpoints
             List<GenreDto>? genreList = genresIgdb?.Select(gen => CreateGenreDto(gen)).ToList();
 
             var response = genreList is null || genreList.Count == 0
-                ? Results.Ok(genreList) : Results.NotFound("No genres matching the query filters");
+                ? Results.NotFound("No genres matching the query filters") : Results.Ok(genreList);
 
             return response;
         });

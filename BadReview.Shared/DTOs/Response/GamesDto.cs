@@ -13,7 +13,7 @@ public record DetailGameDto(
     List<DetailReviewDto> Reviews,
     List<GenreDto> Genres,
     List<DetailDeveloperDto> Developers,
-    List<DetailPlatformDto> Platforms
+    List<PlatformDto> Platforms
 );
 
 public record BasicGameDto(

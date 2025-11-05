@@ -1,6 +1,6 @@
 namespace BadReview.Shared.DTOs.Response;
 
-public record DetailPlatformDto(
+public record PlatformDto(
     int Id,
     string Name,
     string? Abbr,
@@ -10,8 +10,8 @@ public record DetailPlatformDto(
     List<BasicGameDto>? Games
 );
 
-public record BasicPlatformDto(
+/*public record BasicPlatformDto(
     int Id,
     string Name,
     string? Abbr,
-    string? LogoId, int? LogoHeight, int? LogoWidth);
+    string? LogoId, int? LogoHeight, int? LogoWidth);*/

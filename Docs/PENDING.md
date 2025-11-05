@@ -11,6 +11,8 @@
 
 ## Terminar endpoints obligatorios
 
+## Modularizar mapper
+
 ## Refactorizar, mapper, error handling, documentar
 
 ## CreateAt, UpdateAt y tiempos, UTC y local
