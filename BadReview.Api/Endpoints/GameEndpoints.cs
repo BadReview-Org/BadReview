@@ -11,6 +11,7 @@ using BadReview.Shared.DTOs.Request;
 using BadReview.Shared.DTOs.Response;
 using BadReview.Shared.DTOs.External;
 using BadReview.Shared.Utils;
+using System.ComponentModel;
 
 namespace BadReview.Api.Endpoints;
 
@@ -19,7 +20,7 @@ public static class GameEndpoints
     public static void MapGameEndpoints(this WebApplication app)
     {
         // GET: /api/games - Obtener todos los juegos
-        app.MapGet("/api/games", async ([AsParameters] SelectGamesRequest query, BadReviewContext db, IGDBClient igdb) =>
+        app.MapGet("/api/games", async ([AsParameters] IgdbRequest query, IGDBGameDetail? detail, BadReviewContext db, IGDBClient igdb) =>
         {
             /*var games = await db.Games
                 .Include(g => g.GameGenres)
@@ -32,43 +33,50 @@ public static class GameEndpoints
 
             return Results.Ok(games);*/
 
+            detail ??= IGDBCONSTANTS.DEF_GAMEDETAIL;
             query.SetDefaults();
-            object? response;
-            switch (query.Detail)
+
+            object? data;
+            bool dataNotEmpty = false;
+            switch (detail)
             {
-                case IGDBFieldsEnum.BASE:
-                    response = await igdb.GetGamesAsync<BasicGameIgdbDto>(query, "games");
+                case IGDBGameDetail.BASE:
+                    data = await igdb.GetAsync<BasicGameIgdbDto>(query, IGDBCONSTANTS.URIS.GAMES);
                     var basicDtoList = new List<BasicGameDto>();
-                    if (response is not null)
+                    if (data is not null)
                     {
-                        foreach (var game in (List<BasicGameIgdbDto>)response)
+                        foreach (var game in (List<BasicGameIgdbDto>)data)
                         {
                             basicDtoList.Add(CreateBasicGameDto(game));
+                            dataNotEmpty = true;
                         }
                     }
-                    response = basicDtoList;
+                    data = basicDtoList;
                     break;
-                case IGDBFieldsEnum.DETAIL:
-                    response = await igdb.GetGamesAsync<DetailGameIgdbDto>(query, "games");
+                case IGDBGameDetail.DETAIL:
+                    data = await igdb.GetAsync<DetailGameIgdbDto>(query, IGDBCONSTANTS.URIS.GAMES);
                     var detailDtoList = new List<DetailGameDto>();
-                    if (response is not null)
+                    if (data is not null)
                     {
-                        foreach (var game in (List<DetailGameIgdbDto>)response)
+                        foreach (var game in (List<DetailGameIgdbDto>)data)
                         {
                             detailDtoList.Add(CreateDetailGameDto(game));
+                            dataNotEmpty = true;
                         }
                     }
-                    response = detailDtoList;
+                    data = detailDtoList;
                     break;
                 default:
-                    response = null;
-                    break;
+                    throw new InvalidEnumArgumentException("Detail enum is not valid.");
             }
-            response = response is null ? Results.InternalServerError() : Results.Ok(response);
+
+            var response = dataNotEmpty ? Results.Ok(data) : Results.NotFound();
+            
             return response;
         });
+
         // GET: /api/games - Obtener todos los juegos populares
-        app.MapGet("/api/games/trending", async ([AsParameters] SelectGamesRequest query, BadReviewContext db, IGDBClient igdb) =>
+        app.MapGet("/api/games/trending", async ([AsParameters] IgdbRequest query, BadReviewContext db, IGDBClient igdb) =>
         {
             var responseTrending = await igdb.GetTrendingGamesAsync(query);
             
@@ -81,15 +89,14 @@ public static class GameEndpoints
             
             Console.WriteLine($"Trending game IDs: {idsFilter}");
 
-            var queryGames = new SelectGamesRequest
+            var queryGames = new IgdbRequest
             {
                 Filters = $"id = {idsFilter}",
-                Detail = IGDBFieldsEnum.BASE,
                 PageSize = query.PageSize
             };
             queryGames.SetDefaults();
 
-            var games = await igdb.GetGamesAsync<BasicGameIgdbDto>(queryGames, "games");
+            var games = await igdb.GetAsync<BasicGameIgdbDto>(queryGames, IGDBCONSTANTS.URIS.GAMES);
             
             if (games is null || games.Count == 0)
                 return Results.NotFound();
@@ -111,10 +118,12 @@ public static class GameEndpoints
             if (gameDB is not null) return Results.Ok(gameDB);
             else
             {
-                var query = new SelectGamesRequest { Filters = $"id = {id}", Detail = IGDBFieldsEnum.DETAIL };
+                var query = new IgdbRequest { Filters = $"id = {id}" };
                 query.SetDefaults();
 
-                DetailGameIgdbDto? gameIGDB = (await igdb.GetGamesAsync<DetailGameIgdbDto>(query, "games"))?.FirstOrDefault();
+                DetailGameIgdbDto? gameIGDB =
+                    (await igdb.GetAsync<DetailGameIgdbDto>(query, IGDBCONSTANTS.URIS.GAMES))?
+                        .FirstOrDefault();
 
                 if (gameIGDB is null) return Results.NotFound(id);
                 else

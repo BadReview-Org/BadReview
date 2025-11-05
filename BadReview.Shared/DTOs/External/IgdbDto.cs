@@ -14,6 +14,7 @@ public record GetCredentialsDto(string access_token, int expires_in, string toke
 public record ImageIgdbDto(string? Image_Id);
 public record VideoIgdbDto(string? Video_Id);
 
+[IgdbFields("id, name")]
 public record GenreIgdbDto(int Id, string Name);
 public record PlatformIgdbDto(int Id, string Name, string? Abbreviation, int? Generation, ImageIgdbDto? Platform_logo);
 public record InvCompIgdbDto(int Id, CompanyIgdbDto Company, bool Developer);

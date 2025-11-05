@@ -2,7 +2,7 @@ using BadReview.Shared.Utils;
 
 namespace BadReview.Shared.DTOs.Request;
 
-public record SelectGamesRequest
+public record IgdbRequest
 {
     //filters=company:ubisoft;name:wolverine
     public string? Filters { get; set; }
@@ -10,14 +10,12 @@ public record SelectGamesRequest
     public SortOrder? Order { get; set; }
     public int? Page { get; set; }
     public int? PageSize { get; set; }
-    public IGDBFieldsEnum? Detail { get; set; }
 
     // Must call SetDefaults after initialization
     public void SetDefaults()
     {
-        this.Order = this.Order ?? CONSTANTS.DEF_SORTORDER;
-        this.Page = this.Page ?? CONSTANTS.DEF_PAGE;
-        this.PageSize = this.PageSize ?? CONSTANTS.DEF_PAGESIZE;
-        this.Detail = this.Detail ?? CONSTANTS.DEF_DETAIL;
+        this.Order ??= IGDBCONSTANTS.DEF_SORTORDER;
+        this.Page ??= IGDBCONSTANTS.DEF_PAGE;
+        this.PageSize ??= IGDBCONSTANTS.DEF_PAGESIZE;
     }
 }
