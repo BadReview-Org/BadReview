@@ -31,11 +31,13 @@ public static class GameEndpoints
 
     // Handlers
 
-    private static async Task<IResult> GetGames([AsParameters] IgdbRequest query, IGameService gameService)
+    private static async Task<IResult> GetGames
+    ([AsParameters] PaginationRequest pag, [AsParameters] IgdbRequest query, IGameService gameService)
     {
         query.SetDefaults();
+        pag.SetDefaults();
 
-        List<BasicGameDto> games = await gameService.GetGamesAsync(query);
+        List<BasicGameDto> games = await gameService.GetGamesAsync(query, pag);
 
         var response = games.Count > 0 ?
             Results.Ok(games) : Results.NotFound("No games matching the query filters.");
@@ -43,11 +45,13 @@ public static class GameEndpoints
         return response;
     }
 
-    private static async Task<IResult> GetTrendingGames([AsParameters] IgdbRequest query, IGameService gameService)
+    private static async Task<IResult> GetTrendingGames
+    ([AsParameters] PaginationRequest pag, [AsParameters] IgdbRequest query, IGameService gameService)
     {
         query.SetDefaults();
+        pag.SetDefaults();
 
-        List<BasicGameDto> trendingGames = await gameService.GetTrendingGamesAsync(query);
+        List<BasicGameDto> trendingGames = await gameService.GetTrendingGamesAsync(query, pag);
 
         var response = trendingGames.Count > 0 ?
             Results.Ok(trendingGames) : Results.NotFound("Unable to find trending games on IGDB");

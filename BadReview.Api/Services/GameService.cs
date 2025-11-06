@@ -16,6 +16,11 @@ public class GameService : IGameService
     private readonly IIGDBService _igdb;
     private readonly BadReviewContext _db;
 
+    public GameService(IIGDBService igdb, BadReviewContext db)
+    {
+        _igdb = igdb;
+        _db = db;
+    }
 
     private async Task<DetailGameDto?> GetGameByIdDB(int id)
     {
@@ -84,15 +89,9 @@ public class GameService : IGameService
     }
 
 
-    public GameService(IIGDBService igdb, BadReviewContext db)
+    public async Task<List<BasicGameDto>> GetGamesAsync(IgdbRequest query, PaginationRequest pag)
     {
-        _igdb = igdb;
-        _db = db;
-    }
-
-    public async Task<List<BasicGameDto>> GetGamesAsync(IgdbRequest query)
-    {
-        var igdbGames = await _igdb.GetAsync<BasicGameIgdbDto>(query, IGDBCONSTANTS.URIS.GAMES);
+        var igdbGames = await _igdb.GetAsync<BasicGameIgdbDto>(query, pag, IGDBCONSTANTS.URIS.GAMES);
         var basicGames = new List<BasicGameDto>();
 
         if (igdbGames is not null && igdbGames.Count > 0)
@@ -101,9 +100,9 @@ public class GameService : IGameService
         return basicGames;
     }
 
-    public async Task<List<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query)
+    public async Task<List<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag)
     {
-        var responseTrending = await _igdb.GetTrendingGamesAsync(query);
+        var responseTrending = await _igdb.GetTrendingGamesAsync(query, pag);
 
         if (responseTrending is null || responseTrending.Count == 0)
             return new List<BasicGameDto>();
@@ -111,14 +110,12 @@ public class GameService : IGameService
         var gameIds = responseTrending.Select(g => g.Game_id);
         string idsFilter = $"({string.Join(",", gameIds)})";
 
-        var queryGames = new IgdbRequest
-        {
-            Filters = $"id = {idsFilter}",
-            PageSize = query.PageSize
-        };
+        var queryGames = new IgdbRequest { Filters = $"id = {idsFilter}" };
         queryGames.SetDefaults();
 
-        var igdbGames = await _igdb.GetAsync<BasicGameIgdbDto>(queryGames, IGDBCONSTANTS.URIS.GAMES);
+        var pagGames = new PaginationRequest(null, pag.PageSize);
+
+        var igdbGames = await _igdb.GetAsync<BasicGameIgdbDto>(queryGames, pagGames, IGDBCONSTANTS.URIS.GAMES);
         var basicGames = new List<BasicGameDto>();
 
         if (igdbGames is not null && igdbGames.Count > 0)
@@ -139,17 +136,17 @@ public class GameService : IGameService
         query.SetDefaults();
 
         DetailGameIgdbDto? gameIGDB =
-            (await _igdb.GetAsync<DetailGameIgdbDto>(query, IGDBCONSTANTS.URIS.GAMES))?
+            (await _igdb.GetAsync<DetailGameIgdbDto>(query, new PaginationRequest(), IGDBCONSTANTS.URIS.GAMES))?
                 .FirstOrDefault();
 
         if (gameIGDB is null) return null;
 
 
         //mapear a Game y persistir (si cache == true)
-        var newGame = CreateGameEntity(gameIGDB);
-
         if (cache)
         {
+            var newGame = CreateGameEntity(gameIGDB);
+            
             // Investigar: es EF thread-safe para juntar los 3 primeros awaits?
             await AddRelatedGenres(gameIGDB.Genres);
             await AddRelatedPlatforms(gameIGDB.Platforms);

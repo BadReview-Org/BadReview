@@ -19,16 +19,35 @@ public static class GenreEndpoints
     public static void MapGenreEndpoints(this WebApplication app)
     {
         // GET: /api/genres - Obtener todos los generos
-        app.MapGet("/api/genres", async ([AsParameters] IgdbRequest query, BadReviewContext db, IIGDBService igdb) =>
-        {
-            var genresIgdb = await igdb.GetGenresAsync(query);
+        app.MapGet("/api/genres", GetGenres);
 
-            List<GenreDto>? genreList = genresIgdb?.Select(gen => CreateGenreDto(gen)).ToList();
+        app.MapGet("/api/genres/{id}", GetGenreById);
+    }
 
-            var response = genreList is null || genreList.Count == 0
-                ? Results.NotFound("No genres matching the query filters") : Results.Ok(genreList);
+    static async Task<IResult> GetGenres
+    ([AsParameters] PaginationRequest pag, [AsParameters] IgdbRequest query, IGenreService genreService)
+    {
+        query.SetDefaults();
+        pag.SetDefaults();
 
-            return response;
-        });
+        var genreList = await genreService.GetGenresAsync(query, pag);
+
+        var response = genreList.Count == 0 ?
+            Results.NotFound("No genres matching the query filters") : Results.Ok(genreList);
+
+        return response;
+    }
+
+    static async Task<IResult> GetGenreById
+    (int id, IGenreService genreService)
+    {
+        if (id < 0) return Results.BadRequest($"Genre id can't be negative, received id: {id}");
+
+        var genre = await genreService.GetGenreByIdAsync(id, true);
+
+        var response = genre is null ?
+            Results.NotFound($"No genre with id {id}") : Results.Ok(genre);
+
+        return response;
     }
 }

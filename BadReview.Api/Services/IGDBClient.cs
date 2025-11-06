@@ -69,51 +69,45 @@ public class IGDBClient : IIGDBService
         // release the semaphore
         _tokenSemaphore.Release();
     }
-    public async Task<List<PopularIgdbDto>?> GetTrendingGamesAsync(IgdbRequest query)
+    public async Task<List<PopularIgdbDto>?> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag)
     {
         IgdbRequest queryTrending = new IgdbRequest
         {
             Filters = "popularity_type = 3",
-            Page = query.Page,
-            PageSize = query.PageSize,
             OrderBy = "value"
         };
         queryTrending.SetDefaults();
 
-        return await GetAsync<PopularIgdbDto>(queryTrending, IGDBCONSTANTS.URIS.TRENDING);
+        return await GetAsync<PopularIgdbDto>(queryTrending, pag, IGDBCONSTANTS.URIS.TRENDING);
     }
 
-    public async Task<List<GenreIgdbDto>?> GetGenresAsync(IgdbRequest query)
+    public async Task<List<GenreIgdbDto>?> GetGenresAsync(IgdbRequest query, PaginationRequest pag)
     {
         IgdbRequest queryGenres = new IgdbRequest
         {
             Filters = query.Filters,
-            Page = query.Page,
-            PageSize = query.PageSize,
             OrderBy = query.OrderBy ?? "name",
             Order = query.Order ?? SortOrder.ASC
         };
         queryGenres.SetDefaults();
 
-        return await GetAsync<GenreIgdbDto>(queryGenres, IGDBCONSTANTS.URIS.GENRES);
+        return await GetAsync<GenreIgdbDto>(queryGenres, pag, IGDBCONSTANTS.URIS.GENRES);
     }
 
-    public async Task<List<T>?> GetPlatformsAsync<T>(IgdbRequest query)
+    public async Task<List<T>?> GetPlatformsAsync<T>(IgdbRequest query, PaginationRequest pag)
     {
         IgdbRequest queryGenres = new IgdbRequest
         {
             Filters = query.Filters,
-            Page = query.Page,
-            PageSize = query.PageSize,
             OrderBy = query.OrderBy ?? "name",
             Order = query.Order ?? SortOrder.ASC
         };
         queryGenres.SetDefaults();
 
-        return await GetAsync<T>(queryGenres, IGDBCONSTANTS.URIS.PLATFORMS);
+        return await GetAsync<T>(queryGenres, pag, IGDBCONSTANTS.URIS.PLATFORMS);
     }
 
-    public async Task<List<T>?> GetAsync<T>(IgdbRequest query, string uri)
+    public async Task<List<T>?> GetAsync<T>(IgdbRequest query, PaginationRequest pag, string uri)
     {
         // we first check if access token is not set (the server didn't send any queries to igdb yet)
         if (_accessToken is null) await SetAccessToken();
@@ -133,8 +127,8 @@ public class IGDBClient : IIGDBService
         string fields = $"fields {attr.Fields};";
         string filters = string.IsNullOrEmpty(query.Filters) ? "" : $"where {query.Filters};";
         string sort = string.IsNullOrEmpty(query.OrderBy) ? "" : $"sort {query.OrderBy} {query.Order.SortOrderStr()};";
-        string limit = $"limit {query.PageSize};";
-        string offset = query.Page <= 0 ? "" : $"offset {query.PageSize * query.Page};";
+        string limit = $"limit {pag.PageSize};";
+        string offset = pag.Page <= 0 ? "" : $"offset {pag.PageSize * pag.Page};";
 
         string bodyString = $"{fields}{filters}{sort}{limit}{offset}";
         Console.WriteLine($"BodyString: {bodyString}, URI: {uri}");
