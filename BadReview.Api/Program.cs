@@ -9,9 +9,11 @@ using BadReview.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var key = builder.Configuration["Jwt:Key"] ?? "";
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+
+// Services
+
+builder.Services.AddOpenApi(); // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
 builder.Services.AddCors(options =>
 {
@@ -23,17 +25,6 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
-
-// Add DbContext
-builder.Services.AddDbContext<BadReviewContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Add IGDB Client
-builder.Services.AddHttpClient<IGDBClient>(client =>
-    client.BaseAddress = new Uri("https://api.igdb.com/v4/"));
-
-// Add AuthService
-builder.Services.AddScoped<AuthService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -79,6 +70,19 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+
+// DbContext
+builder.Services.AddDbContext<BadReviewContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// IGDB Client
+builder.Services.AddHttpClient<IIGDBService, IGDBClient>(client =>
+    client.BaseAddress = new Uri("https://api.igdb.com/v4/"));
+// AuthService
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Specific endpoints services
+builder.Services.AddScoped<IGameService, GameService>();
 
 var app = builder.Build();
 

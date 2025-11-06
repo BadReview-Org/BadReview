@@ -1,12 +1,9 @@
-using System.Net.Http;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Reflection;
-using Microsoft.IdentityModel.Tokens;
 
 using BadReview.Shared.DTOs.External;
 using BadReview.Shared.DTOs.Request;
@@ -14,7 +11,7 @@ using BadReview.Shared.Utils;
 
 namespace BadReview.Api.Services;
 
-public class IGDBClient
+public class IGDBClient : IIGDBService
 {
     private static readonly SemaphoreSlim _tokenSemaphore = new(1, 1);
     private readonly HttpClient _httpClient;
@@ -32,13 +29,13 @@ public class IGDBClient
         _clientSecret = config["IGDB:ClientSecret"];
 
         _accessTokenURI = config["IGDB:TokenURI"];
-        
+
         if (string.IsNullOrWhiteSpace(_clientId) || string.IsNullOrWhiteSpace(_clientSecret)
             || string.IsNullOrWhiteSpace(_accessTokenURI))
             throw new Exception("Can't retrieve IGDB credentials");
     }
 
-    private async Task GetAccessToken()
+    private async Task SetAccessToken()
     {
         // because _accessToken is shared between instances, we use a semaphore to access it safely
         await _tokenSemaphore.WaitAsync();
@@ -119,7 +116,7 @@ public class IGDBClient
     public async Task<List<T>?> GetAsync<T>(IgdbRequest query, string uri)
     {
         // we first check if access token is not set (the server didn't send any queries to igdb yet)
-        if (_accessToken is null) await GetAccessToken();
+        if (_accessToken is null) await SetAccessToken();
 
         // set headers, including the access token
         if (!_httpClient.DefaultRequestHeaders.Contains("Client-ID"))
@@ -152,7 +149,7 @@ public class IGDBClient
         // if the access token is invalid, we refresh the token and try again (could have expired)
         if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
         {
-            await GetAccessToken();
+            await SetAccessToken();
 
             _httpClient.DefaultRequestHeaders.Remove("Authorization");
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");

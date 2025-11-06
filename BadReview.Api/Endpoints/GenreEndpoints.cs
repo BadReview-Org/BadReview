@@ -19,7 +19,7 @@ public static class GenreEndpoints
     public static void MapGenreEndpoints(this WebApplication app)
     {
         // GET: /api/genres - Obtener todos los generos
-        app.MapGet("/api/genres", async ([AsParameters] IgdbRequest query, BadReviewContext db, IGDBClient igdb) =>
+        app.MapGet("/api/genres", async ([AsParameters] IgdbRequest query, BadReviewContext db, IIGDBService igdb) =>
         {
             var genresIgdb = await igdb.GetGenresAsync(query);
 

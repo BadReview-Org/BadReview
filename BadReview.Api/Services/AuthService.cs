@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BadReview.Api.Services;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly PasswordHasher<string> _hasher = new();
     private readonly string _key;
