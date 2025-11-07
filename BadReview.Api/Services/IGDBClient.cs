@@ -1,20 +1,18 @@
-using System.Net.Http;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Reflection;
-using Microsoft.IdentityModel.Tokens;
 
 using BadReview.Shared.DTOs.External;
 using BadReview.Shared.DTOs.Request;
 using BadReview.Shared.Utils;
+using BadReview.Shared.DTOs.Response;
 
 namespace BadReview.Api.Services;
 
-public class IGDBClient
+public class IGDBClient : IIGDBService
 {
     private static readonly SemaphoreSlim _tokenSemaphore = new(1, 1);
     private readonly HttpClient _httpClient;
@@ -32,13 +30,13 @@ public class IGDBClient
         _clientSecret = config["IGDB:ClientSecret"];
 
         _accessTokenURI = config["IGDB:TokenURI"];
-        
+
         if (string.IsNullOrWhiteSpace(_clientId) || string.IsNullOrWhiteSpace(_clientSecret)
             || string.IsNullOrWhiteSpace(_accessTokenURI))
             throw new Exception("Can't retrieve IGDB credentials");
     }
 
-    private async Task GetAccessToken()
+    private async Task SetAccessToken()
     {
         // because _accessToken is shared between instances, we use a semaphore to access it safely
         await _tokenSemaphore.WaitAsync();
@@ -72,54 +70,48 @@ public class IGDBClient
         // release the semaphore
         _tokenSemaphore.Release();
     }
-    public async Task<List<PopularIgdbDto>?> GetTrendingGamesAsync(IgdbRequest query)
+    public async Task<PagedResult<PopularIgdbDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag)
     {
         IgdbRequest queryTrending = new IgdbRequest
         {
             Filters = "popularity_type = 3",
-            Page = query.Page,
-            PageSize = query.PageSize,
             OrderBy = "value"
         };
         queryTrending.SetDefaults();
 
-        return await GetAsync<PopularIgdbDto>(queryTrending, IGDBCONSTANTS.URIS.TRENDING);
+        return await GetAsync<PopularIgdbDto>(queryTrending, pag, IGDBCONSTANTS.URIS.TRENDING);
     }
 
-    public async Task<List<GenreIgdbDto>?> GetGenresAsync(IgdbRequest query)
+    public async Task<PagedResult<GenreIgdbDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag)
     {
         IgdbRequest queryGenres = new IgdbRequest
         {
             Filters = query.Filters,
-            Page = query.Page,
-            PageSize = query.PageSize,
             OrderBy = query.OrderBy ?? "name",
             Order = query.Order ?? SortOrder.ASC
         };
         queryGenres.SetDefaults();
 
-        return await GetAsync<GenreIgdbDto>(queryGenres, IGDBCONSTANTS.URIS.GENRES);
+        return await GetAsync<GenreIgdbDto>(queryGenres, pag, IGDBCONSTANTS.URIS.GENRES);
     }
 
-    public async Task<List<T>?> GetPlatformsAsync<T>(IgdbRequest query)
+    public async Task<PagedResult<T>> GetPlatformsAsync<T>(IgdbRequest query, PaginationRequest pag)
     {
         IgdbRequest queryGenres = new IgdbRequest
         {
             Filters = query.Filters,
-            Page = query.Page,
-            PageSize = query.PageSize,
             OrderBy = query.OrderBy ?? "name",
             Order = query.Order ?? SortOrder.ASC
         };
         queryGenres.SetDefaults();
 
-        return await GetAsync<T>(queryGenres, IGDBCONSTANTS.URIS.PLATFORMS);
+        return await GetAsync<T>(queryGenres, pag, IGDBCONSTANTS.URIS.PLATFORMS);
     }
 
-    public async Task<List<T>?> GetAsync<T>(IgdbRequest query, string uri)
+    public async Task<PagedResult<T>> GetAsync<T>(IgdbRequest query, PaginationRequest pag, string uri)
     {
         // we first check if access token is not set (the server didn't send any queries to igdb yet)
-        if (_accessToken is null) await GetAccessToken();
+        if (_accessToken is null) await SetAccessToken();
 
         // set headers, including the access token
         if (!_httpClient.DefaultRequestHeaders.Contains("Client-ID"))
@@ -136,35 +128,34 @@ public class IGDBClient
         string fields = $"fields {attr.Fields};";
         string filters = string.IsNullOrEmpty(query.Filters) ? "" : $"where {query.Filters};";
         string sort = string.IsNullOrEmpty(query.OrderBy) ? "" : $"sort {query.OrderBy} {query.Order.SortOrderStr()};";
-        string limit = $"limit {query.PageSize};";
-        string offset = query.Page <= 0 ? "" : $"offset {query.PageSize * query.Page};";
+        string limit = $"limit {pag.PageSize};";
+        string offset = pag.Page <= 0 ? "" : $"offset {pag.PageSize * pag.Page};";
 
-        string bodyString = $"{fields}{filters}{sort}{limit}{offset}";
-        Console.WriteLine($"BodyString: {bodyString}, URI: {uri}");
+        string mainBodyString = $"{fields}{filters}{sort}{limit}{offset}";
+        string countBodyString = $"{filters}";
 
-        //Console.WriteLine(bodyString);
-
-        var body = new StringContent(bodyString, Encoding.UTF8, "text/plain");
+        string fullBodyString = $"query {uri} \"data\" {{ {mainBodyString} }}; query {uri}/count \"count\" {{ {countBodyString} }};";
+        var fullBody = new StringContent(fullBodyString, Encoding.UTF8, "text/plain");
 
         // send POST method to igdb
-        HttpResponseMessage response = await _httpClient.PostAsync(uri, body);
+        HttpResponseMessage response = await _httpClient.PostAsync(IGDBCONSTANTS.URIS.MULTIQUERY, fullBody);
 
         // if the access token is invalid, we refresh the token and try again (could have expired)
         if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
         {
-            await GetAccessToken();
+            await SetAccessToken();
 
             _httpClient.DefaultRequestHeaders.Remove("Authorization");
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_accessToken}");
 
-            response = await _httpClient.PostAsync(uri, body);
+            response = await _httpClient.PostAsync(IGDBCONSTANTS.URIS.MULTIQUERY, fullBody);
         }
 
         // if it's still invalid or there's another error, we throw exceptions
         if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             throw new Exception("Authorization error while fetching games from IGDB");
         else if (!response.IsSuccessStatusCode)
-            throw new Exception($"Unexpected error while fetching games from IGDB\nQuery: {bodyString}\nURI: {uri}\nCode:{response.StatusCode}");
+            throw new Exception($"Unexpected error while fetching games from IGDB\nQuery: {fullBodyString}\nURI: {IGDBCONSTANTS.URIS.MULTIQUERY}\nCode:{response.StatusCode}");
 
         // if the response is successful, we get the games data as a List of DTO
         var jsonOptions = new JsonSerializerOptions
@@ -173,10 +164,18 @@ public class IGDBClient
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
-        var igdbGames = await response.Content.ReadFromJsonAsync<List<T>>(jsonOptions);
+        var json = await response.Content.ReadAsStringAsync();
 
+        var igdbResponse = JsonSerializer.Deserialize<List<IgdbResponse>>(json, jsonOptions);
+
+        var data = igdbResponse?.FirstOrDefault(e => e.Name == "data")?.Result;
+        var count = igdbResponse?.FirstOrDefault(e => e.Name == "count")?.Count;
+
+        if (data is null || count is null) throw new Exception("IGDB didn't return the expected information. 'data' or 'count' are missing.");
+
+        var igdbData = data?.Deserialize<List<T>>(jsonOptions);
         //Console.WriteLine(await response.Content.ReadAsStringAsync());
 
-        return igdbGames;
+        return new PagedResult<T>(igdbData ?? new List<T>(), (int)count, (int)pag.Page!, (int)pag.PageSize!);
     }
 }

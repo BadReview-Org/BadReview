@@ -6,11 +6,11 @@ public enum IGDBGameDetail { BASE, DETAIL };
 
 public static class IGDBCONSTANTS
 {
-    public const int DEF_PAGE = 0;
-    public const int DEF_PAGESIZE = 10;
+    //public const int DEF_PAGE = 0;
+    //public const int DEF_PAGESIZE = 10;
     public const SortOrder DEF_SORTORDER = SortOrder.DSC;
     public const IGDBGameDetail DEF_GAMEDETAIL = IGDBGameDetail.BASE;
-    
+
     public static class URIS
     {
         public const string GAMES = "games";
@@ -18,7 +18,14 @@ public static class IGDBCONSTANTS
         public const string PLATFORMS = "platforms";
         public const string DEVELOPERS = "involved_companies";
         public const string TRENDING = "popularity_primitives";
+        public const string MULTIQUERY = "multiquery";
     }
+}
+
+public static class CONSTANTS
+{
+    public const int DEF_PAGE = 0;
+    public const int DEF_PAGESIZE = 10;    
 }
 
 public static class ExtensionMethods

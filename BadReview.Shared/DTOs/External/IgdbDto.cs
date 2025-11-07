@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text.Json;
 using BadReview.Shared.DTOs.Response;
 
 namespace BadReview.Shared.DTOs.External;
@@ -56,3 +57,5 @@ public record DetailGameIgdbDto(
 
 [IgdbFields("game_id")]
 public record PopularIgdbDto(int Game_id);
+
+public record IgdbResponse(string Name, JsonElement? Result, int? Count);

@@ -57,7 +57,7 @@ public static class UserEndpoints
         })
         .WithName("GetUsers");
 
-        app.MapPost("/api/login", async (LoginUserRequest req, AuthService auth, BadReviewContext db) =>
+        app.MapPost("/api/login", async (LoginUserRequest req, IAuthService auth, BadReviewContext db) =>
         {
             var user = await db.Users
                 .Where(u => u.Username == req.Username)
@@ -122,7 +122,7 @@ public static class UserEndpoints
         })
         .WithName("GetUser");
 
-        app.MapPost("/api/register", async (BadReviewContext db, RegisterUserRequest req, AuthService auth) =>
+        app.MapPost("/api/register", async (BadReviewContext db, RegisterUserRequest req, IAuthService auth) =>
         {
             // Validar que Username sea único
             if (await db.Users.AnyAsync(u => u.Username == req.Username))

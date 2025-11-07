@@ -1,0 +1,66 @@
+using BadReview.Api.Models;
+using BadReview.Shared.DTOs.External;
+using BadReview.Shared.DTOs.Request;
+using BadReview.Shared.DTOs.Response;
+using BadReview.Shared.Utils;
+
+namespace BadReview.Api.Services;
+
+public interface IGameService
+{
+    Task<PagedResult<BasicGameDto>> GetGamesAsync(IgdbRequest query, PaginationRequest pag);
+    Task<PagedResult<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag);
+    Task<DetailGameDto?> GetGameByIdAsync(int id, bool cache);
+}
+
+public interface IDeveloperService
+{
+
+}
+
+public interface IGenreService
+{
+    Task<PagedResult<GenreDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag);
+    Task<GenreDto?> GetGenreByIdAsync(int id, bool cache);
+}
+
+public interface IPlatformService
+{
+
+}
+
+
+public enum ReviewCode { OK, REVIEWNOTFOUND, GAMENOTFOUND, USERNOTMATCH, USERALREADYHASREVIEW }
+public interface IReviewService
+{
+    Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag);
+    Task<DetailReviewDto?> GetReviewByIdAsync(int id);
+    Task<(ReviewCode, DetailReviewDto?)> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview);
+    Task<ReviewCode> DeleteReviewAsync(int reviewId, int userId);
+    Task<(ReviewCode, DetailReviewDto?)> CreateReviewAsync(CreateReviewRequest newReview, User user);
+}
+
+public interface IUserService
+{
+    Task<User?> GetUserByIdAsync(int id);
+}
+
+public interface IIGDBService
+{
+    Task<PagedResult<PopularIgdbDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag);
+
+    Task<PagedResult<GenreIgdbDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag);
+
+    Task<PagedResult<T>> GetPlatformsAsync<T>(IgdbRequest query, PaginationRequest pag);
+
+    Task<PagedResult<T>> GetAsync<T>(IgdbRequest query, PaginationRequest pag, string uri);
+}
+
+public interface IAuthService
+{
+    bool VerifyPassword(string username, string password, string hashed);
+
+    string HashPassword(string username, string password);
+
+    string GenerateToken(string username, int userId);
+}
