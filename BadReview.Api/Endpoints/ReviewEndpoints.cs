@@ -8,6 +8,7 @@ using BadReview.Api.Models;
 
 using BadReview.Shared.DTOs.Request;
 using BadReview.Shared.DTOs.Response;
+using BadReview.Api.Services;
 
 namespace BadReview.Api.Endpoints;
 
@@ -16,240 +17,72 @@ public static class ReviewEndpoints
     public static void MapReviewEndpoints(this WebApplication app)
     {
         // GET: /api/reviews - Obtener todas las reseñas
-        app.MapGet("/api/reviews", async (BadReviewContext db) =>
+        app.MapGet("/api/reviews", async (PaginationRequest pag, IReviewService reviewService) =>
         {
-            var reviews = await db.Reviews
-                .Include(r => r.User)
-                .ToListAsync();
+            var reviewPage = await reviewService.GetReviewsAsync(pag);
 
-            if (reviews != null)
-            {
-                return Results.Ok(reviews.Select(r => new DetailReviewDto(
-                    r.Id,
-                    r.Rating,
-                    r.StartDate,
-                    r.EndDate,
-                    r.ReviewText,
-                    r.StateEnum,
-                    r.IsFavorite,
-                    new BasicUserDto(
-                        r.User.Id,
-                        r.User.Username,
-                        r.User.FullName
-                    ),
-                    null,
-                    r.Date.CreatedAt, r.Date.UpdatedAt
-                )).ToList());
-
-            }
-            return Results.NotFound();
+            return Results.Ok(reviewPage);
         });
 
         // GET: /api/reviews/{id} - Obtener una reseña por ID
-        app.MapGet("/api/reviews/{id}", async (int id, BadReviewContext db) =>
+        app.MapGet("/api/reviews/{id}", async (int id, IReviewService reviewService) =>
         {
-            var review = await db.Reviews
-                .Include(r => r.User)
-                .Include(r => r.Game)
-                .FirstOrDefaultAsync(r => r.Id == id);
+            var reviewDto = await reviewService.GetReviewByIdAsync(id);
 
-            if (review != null)
-            {
-                var reviewdto = new DetailReviewDto
-                (
-                    review.Id,
-                    review.Rating,
-                    review.StartDate,
-                    review.EndDate,
-                    review.ReviewText,
-                    review.StateEnum,
-                    review.IsFavorite,
-                    new BasicUserDto(
-                        review.User.Id,
-                        review.User.Username,
-                        review.User.FullName
-                    ),
-                    new BasicGameDto(
-                        review.Game.Id,
-                        review.Game.Name,
-                        review.Game.Cover?.ImageId,
-                        review.Game.Cover?.ImageHeight,
-                        review.Game.Cover?.ImageWidth,
-                        review.Game.RatingIGDB,
-                        review.Game.Total_RatingBadReview,
-                        review.Game.Count_RatingBadReview
-                    ),
-                    review.Date.CreatedAt, review.Date.UpdatedAt
-                );
+            var response = reviewDto is null ?
+                Results.NotFound($"No review with id {id}") : Results.Ok(reviewDto);
 
-                return Results.Ok(reviewdto);
-            }
-            return Results.NotFound();
+            return response;
         });
 
         //PUT: /api/reviews/{id} - Actualizar una reseña por ID
-        app.MapPut("/api/reviews/{id}", async (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview, BadReviewContext db) =>
+        app.MapPut("/api/reviews/{id}", async (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview, IReviewService reviewService) =>
         {
-            var review = await db.Reviews.Include(r => r.User)
-                                         .Include(r => r.Game)
-                                         .FirstOrDefaultAsync(r => r.Id == id);
-            if (review == null)
-            {
-                return Results.NotFound(new { error = $"Review with id {id} not found" });
-            }
-            if (user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value != review.UserId.ToString())
-            {
-                return Results.Forbid();
-            }
-            review.Game.Total_RatingBadReview -= review.Rating ?? 0;
-            review.Game.Total_RatingBadReview += updatedReview.Rating ?? 0;
+            string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
 
-            review.Rating = updatedReview.Rating;
-            review.StartDate = updatedReview.StartDate;
-            review.EndDate = updatedReview.EndDate;
-            review.ReviewText = updatedReview.ReviewText;
-            review.StateEnum = updatedReview.StateEnum;
-            review.IsFavorite = updatedReview.IsFavorite;
+            if (claimUserId is null) return Results.Forbid();
 
-            await db.SaveChangesAsync();
+            var reviewDto = await reviewService.UpdateReviewAsync(id, int.Parse(claimUserId), updatedReview);
 
-            var reviewdto = new DetailReviewDto
-            (
-                review.Id,
-                review.Rating,
-                review.StartDate,
-                review.EndDate,
-                review.ReviewText,
-                review.StateEnum,
-                review.IsFavorite,
-                new BasicUserDto(
-                    review.User.Id,
-                    review.User.Username,
-                    review.User.FullName
-                ),
-                new BasicGameDto(
-                    review.Game.Id,
-                    review.Game.Name,
-                    review.Game.Cover?.ImageId,
-                    review.Game.Cover?.ImageHeight,
-                    review.Game.Cover?.ImageWidth,
-                    review.Game.RatingIGDB,
-                    review.Game.Total_RatingBadReview,
-                    review.Game.Count_RatingBadReview
-                ),
-                review.Date.CreatedAt, review.Date.UpdatedAt
-            );
+            var response = reviewDto is null ?
+                Results.Problem() : Results.Ok(reviewDto);
 
-            return Results.Ok(reviewdto);
+            return response;
         })
         .RequireAuthorization();
 
-
-        app.MapDelete("/api/reviews/{id}", async (int id, ClaimsPrincipal user, BadReviewContext db) =>
+        // DELETE: /api/reviews/{id} - Eliminar una reseña por ID
+        app.MapDelete("/api/reviews/{id}", async (int id, ClaimsPrincipal user, IReviewService reviewService) =>
         {
-            var review = await db.Reviews.Include(r => r.Game)
-                                         .FirstOrDefaultAsync(r => r.Id == id);
-            if (review == null)
-            {
-                return Results.NotFound(new { error = $"Review with id {id} not found" });
-            }
-            if (user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value != review.UserId.ToString())
-            {
-                return Results.Forbid();
-            }
-            review.Game.Total_RatingBadReview -= review.Rating ?? 0;
-            review.Game.Count_RatingBadReview--;
-            
-            db.Reviews.Remove(review);
-            await db.SaveChangesAsync();
+            string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
 
-            return Results.NoContent();
-        }).RequireAuthorization();
-        
+            if (claimUserId is null) return Results.Forbid();
+
+            var deleted = await reviewService.DeleteReviewAsync(id, int.Parse(claimUserId));
+
+            return deleted ? Results.NoContent() : Results.Problem();
+        })
+        .RequireAuthorization();
+
         // POST: /api/reviews - Crear una nueva reseña
-
-        app.MapPost("/api/reviews", async (CreateReviewRequest review, ClaimsPrincipal user, BadReviewContext db) =>
+        app.MapPost("/api/reviews", async (CreateReviewRequest newReview, ClaimsPrincipal user, IReviewService reviewService, IUserService userService) =>
         {
-            var userId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
 
-            // Verificar que el usuario existe en la base de datos
-            if(userId == null)
-            {
-                return Results.Unauthorized();
-            }
-            var userdb = await db.Users.Include(u => u.Reviews)
-                                       .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
-            if (userdb == null)
-            {
-                return Results.NotFound(new { error = $"User with id {userId} not found" });
-            }
-            var gameId = review.GameId;
-            var game = await db.Games.FindAsync(gameId);
-            if (game == null)
-            {
-                return Results.NotFound(new { error = $"Game with id {gameId} not found" });
-            }
-            if (userdb.Reviews.Select(r => r.GameId).Contains(gameId))
-            {
-                return Results.Conflict(new { error = $"User has already reviewed game with id {gameId}" });
-            }
-            
-            game.Total_RatingBadReview += review.Rating ?? 0;
-            game.Count_RatingBadReview++;
+            if (claimUserId is null) return Results.Forbid();
 
-            var reviewdb = new Review
-            {
-                Rating = review.Rating,
-                StartDate = review.StartDate,
-                EndDate = review.EndDate,
-                ReviewText = review.ReviewText,
-                StateEnum = review.StateEnum,
-                IsFavorite = review.IsFavorite,
-                UserId = userdb.Id,
-                GameId = gameId
-            };
+            User? userDb = await userService.GetUserByIdAsync(int.Parse(claimUserId));
+            if (userDb is null) return Results.NotFound($"User with id {claimUserId} not found in the db.");
 
-            db.Reviews.Add(reviewdb);
-            await db.SaveChangesAsync();
 
-            /*reviewdb = await db.Reviews
-                .AsNoTracking()
-                .FirstAsync(r => r.Id == reviewdb.Id);*/
-            reviewdb.Date = await db.Reviews
-                .Where(r => r.Id == reviewdb.Id)
-                .Select(r => r.Date)
-                .AsNoTracking()
-                .FirstAsync();
+            DetailReviewDto? reviewDto = await reviewService.CreateReviewAsync(newReview, userDb);
 
-            var reviewdto = new DetailReviewDto
-            (
-                reviewdb.Id,
-                reviewdb.Rating,
-                reviewdb.StartDate,
-                reviewdb.EndDate,
-                reviewdb.ReviewText,
-                reviewdb.StateEnum,
-                reviewdb.IsFavorite,
-                new BasicUserDto(
-                    userdb.Id,
-                    userdb.Username,
-                    userdb.FullName
-                ),
-                new BasicGameDto(
-                    game.Id,
-                    game.Name,
-                    game.Cover?.ImageId,
-                    game.Cover?.ImageHeight,
-                    game.Cover?.ImageWidth,
-                    game.RatingIGDB++, // ?
-                    game.Total_RatingBadReview,
-                    game.Count_RatingBadReview
-                ),
-                reviewdb.Date.CreatedAt, reviewdb.Date.UpdatedAt
-            );
-            return Results.Created($"/api/reviews/{reviewdto.Id}", reviewdto);
+            var response = reviewDto is null ?
+                Results.Problem() : Results.Created($"/api/reviews/{reviewDto.Id}", reviewDto);
+
+            return response;
         })
-        .WithName("ReviewEndpoints")
-        .RequireAuthorization();
+        .RequireAuthorization()
+        .WithName("ReviewEndpoints");
     }
 }

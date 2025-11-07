@@ -1,3 +1,4 @@
+using BadReview.Api.Models;
 using BadReview.Shared.DTOs.External;
 using BadReview.Shared.DTOs.Request;
 using BadReview.Shared.DTOs.Response;
@@ -30,12 +31,16 @@ public interface IPlatformService
 
 public interface IReviewService
 {
-
+    Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag);
+    Task<DetailReviewDto?> GetReviewByIdAsync(int id);
+    Task<DetailReviewDto?> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview);
+    Task<bool> DeleteReviewAsync(int reviewId, int userId);
+    Task<DetailReviewDto?> CreateReviewAsync(CreateReviewRequest newReview, User user);
 }
 
 public interface IUserService
 {
-
+    Task<User?> GetUserByIdAsync(int id);
 }
 
 public interface IIGDBService
