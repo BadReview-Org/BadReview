@@ -84,6 +84,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // Specific endpoints services
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IGenreService, GenreService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 

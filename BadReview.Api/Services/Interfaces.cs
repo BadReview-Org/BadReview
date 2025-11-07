@@ -29,13 +29,15 @@ public interface IPlatformService
 
 }
 
+
+public enum ReviewCode { OK, REVIEWNOTFOUND, GAMENOTFOUND, USERNOTMATCH, USERALREADYHASREVIEW }
 public interface IReviewService
 {
     Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag);
     Task<DetailReviewDto?> GetReviewByIdAsync(int id);
-    Task<DetailReviewDto?> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview);
-    Task<bool> DeleteReviewAsync(int reviewId, int userId);
-    Task<DetailReviewDto?> CreateReviewAsync(CreateReviewRequest newReview, User user);
+    Task<(ReviewCode, DetailReviewDto?)> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview);
+    Task<ReviewCode> DeleteReviewAsync(int reviewId, int userId);
+    Task<(ReviewCode, DetailReviewDto?)> CreateReviewAsync(CreateReviewRequest newReview, User user);
 }
 
 public interface IUserService

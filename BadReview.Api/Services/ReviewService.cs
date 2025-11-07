@@ -9,6 +9,7 @@ using BadReview.Shared.DTOs.Response;
 
 using static BadReview.Api.Mapper.Mapper;
 using BadReview.Api.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BadReview.Api.Services;
 
@@ -21,144 +22,6 @@ public class ReviewService : IReviewService
     {
         _igdb = igdb;
         _db = db;
-    }
-
-    private async Task<DetailGameDto?> GetGameByIdDB(int id)
-    {
-        return await _db.Games
-            .Where(g => g.Id == id)
-            .GameToDetailDto()
-            .FirstOrDefaultAsync();
-    }
-
-    private async Task AddRelatedGenres(HashSet<GenreIgdbDto>? genres)
-    {
-        if (genres is null) return;
-
-        var genreIds = genres.Select(g => g.Id).ToHashSet();
-
-        var existingIds = await _db.Genres
-            .Where(g => genreIds.Contains(g.Id))
-            .Select(g => g.Id)
-            .ToHashSetAsync();
-
-        var newGenres = genres
-            .Where(g => !existingIds.Contains(g.Id))
-            .Select(g => CreateGenreEntity(g))
-            .ToList();
-
-        if (newGenres.Count > 0) _db.Genres.AddRange(newGenres);
-    }
-
-    private async Task AddRelatedPlatforms(HashSet<PlatformIgdbDto>? plats)
-    {
-        if (plats is null) return;
-
-        var platIds = plats.Select(p => p.Id).ToHashSet();
-
-        var existingIds = await _db.Platforms
-            .Where(p => platIds.Contains(p.Id))
-            .Select(p => p.Id)
-            .ToHashSetAsync();
-
-        var newPlats = plats
-            .Where(p => !existingIds.Contains(p.Id))
-            .Select(p => CreatePlatformEntity(p))
-            .ToList();
-
-        if (newPlats.Count > 0) _db.Platforms.AddRange(newPlats);
-    }
-
-    private async Task AddRelatedDevelopers(HashSet<InvCompIgdbDto>? companies)
-    {
-        if (companies is null) return;
-
-        var devs = companies.Where(c => c.Developer).Select(c => c.Company).ToList();
-        var devIds = devs.Select(d => d.Id).ToHashSet();
-
-        var existingIds = await _db.Developers
-            .Where(d => devIds.Contains(d.Id))
-            .Select(d => d.Id)
-            .ToHashSetAsync();
-
-        var newDevs = devs
-            .Where(d => !existingIds.Contains(d.Id))
-            .Select(d => CreateDeveloperEntity(d))
-            .ToList();
-
-        if (newDevs.Count > 0) _db.Developers.AddRange(newDevs);
-    }
-
-
-    public async Task<List<BasicGameDto>> GetGamesAsync(IgdbRequest query, PaginationRequest pag)
-    {
-        var igdbGames = await _igdb.GetAsync<BasicGameIgdbDto>(query, pag, IGDBCONSTANTS.URIS.GAMES);
-        var basicGames = new List<BasicGameDto>();
-
-        if (igdbGames is not null && igdbGames.Count > 0)
-            basicGames = igdbGames.Select(g => CreateBasicGameDto(g)).ToList();
-
-        return basicGames;
-    }
-
-    public async Task<List<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag)
-    {
-        var responseTrending = await _igdb.GetTrendingGamesAsync(query, pag);
-
-        if (responseTrending is null || responseTrending.Count == 0)
-            return new List<BasicGameDto>();
-
-        var gameIds = responseTrending.Select(g => g.Game_id);
-        string idsFilter = $"({string.Join(",", gameIds)})";
-
-        var queryGames = new IgdbRequest { Filters = $"id = {idsFilter}" };
-        queryGames.SetDefaults();
-
-        var pagGames = new PaginationRequest(null, pag.PageSize);
-
-        var igdbGames = await _igdb.GetAsync<BasicGameIgdbDto>(queryGames, pagGames, IGDBCONSTANTS.URIS.GAMES);
-        var basicGames = new List<BasicGameDto>();
-
-        if (igdbGames is not null && igdbGames.Count > 0)
-            basicGames = igdbGames.Select(g => CreateBasicGameDto(g)).ToList();
-
-        return basicGames;
-    }
-
-    public async Task<DetailGameDto?> GetGameByIdAsync(int id, bool cache)
-    {
-        DetailGameDto? gameDB = await GetGameByIdDB(id);
-
-        if (gameDB is not null) Console.WriteLine($"Fetching game: {gameDB.Name}, from DB");
-        if (gameDB is not null) return gameDB;
-        
-
-        var query = new IgdbRequest { Filters = $"id = {id}" };
-        query.SetDefaults();
-
-        DetailGameIgdbDto? gameIGDB =
-            (await _igdb.GetAsync<DetailGameIgdbDto>(query, new PaginationRequest(), IGDBCONSTANTS.URIS.GAMES))?
-                .FirstOrDefault();
-
-        if (gameIGDB is null) return null;
-
-
-        //mapear a Game y persistir (si cache == true)
-        if (cache)
-        {
-            var newGame = CreateGameEntity(gameIGDB);
-            
-            // Investigar: es EF thread-safe para juntar los 3 primeros awaits?
-            await AddRelatedGenres(gameIGDB.Genres);
-            await AddRelatedPlatforms(gameIGDB.Platforms);
-            await AddRelatedDevelopers(gameIGDB.Involved_Companies);
-            _db.Games.Add(newGame);
-            
-            await _db.SaveChangesAsync();
-            Console.WriteLine($"Cached IGDB game: {gameIGDB.Name} into the database");
-        }
-
-        return CreateDetailGameDto(gameIGDB);
     }
 
     public async Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag)
@@ -240,13 +103,15 @@ public class ReviewService : IReviewService
         return reviewDto;
     }
 
-    public async Task<DetailReviewDto?> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview)
+    public async Task<(ReviewCode, DetailReviewDto?)> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview)
     {
         var review = await _db.Reviews.Include(r => r.User)
             .Include(r => r.Game)
             .FirstOrDefaultAsync(r => r.Id == reviewId);
 
-        if (review is null || userId != review.UserId) return null;
+        if (review is null) return (ReviewCode.REVIEWNOTFOUND, null);
+        if (userId != review.UserId) return (ReviewCode.USERNOTMATCH, null);
+
 
         review.Game.Total_RatingBadReview -= review.Rating ?? 0;
         review.Game.Total_RatingBadReview += updatedReview.Rating ?? 0;
@@ -287,15 +152,16 @@ public class ReviewService : IReviewService
             review.Date.CreatedAt, review.Date.UpdatedAt
         );
 
-        return reviewDto;
+        return (ReviewCode.OK, reviewDto);
     }
 
-    public async Task<bool> DeleteReviewAsync(int reviewId, int userId)
+    public async Task<ReviewCode> DeleteReviewAsync(int reviewId, int userId)
     {
         var review = await _db.Reviews.Include(r => r.Game)
             .FirstOrDefaultAsync(r => r.Id == reviewId);
 
-        if (review is null || review.UserId != userId) return false;
+        if (review is null) return ReviewCode.REVIEWNOTFOUND;
+        if (userId != review.UserId) return ReviewCode.USERNOTMATCH;
 
 
         review.Game.Total_RatingBadReview -= review.Rating ?? 0;
@@ -304,15 +170,17 @@ public class ReviewService : IReviewService
         _db.Reviews.Remove(review);
         await _db.SaveChangesAsync();
 
-        return true;
+        return ReviewCode.OK;
     }
 
-    public async Task<DetailReviewDto?> CreateReviewAsync(CreateReviewRequest newReview, User user)
+    public async Task<(ReviewCode, DetailReviewDto?)> CreateReviewAsync(CreateReviewRequest newReview, User user)
     {
         var game = await _db.Games.FindAsync(newReview.GameId);
-        if (game is null) return null;
 
-        if (user.Reviews.Select(r => r.GameId).Contains(game.Id)) return null;
+        if (game is null) return (ReviewCode.GAMENOTFOUND, null);
+
+        if (user.Reviews.Select(r => r.GameId).Contains(game.Id))
+            return (ReviewCode.USERALREADYHASREVIEW, null);
 
 
         game.Total_RatingBadReview += newReview.Rating ?? 0;
@@ -369,6 +237,6 @@ public class ReviewService : IReviewService
             reviewDb.Date.CreatedAt, reviewDb.Date.UpdatedAt
         );
 
-        return reviewDto;
+        return (ReviewCode.OK, reviewDto);
     }
 }
