@@ -36,6 +36,8 @@ public static class ReviewEndpoints
     private static async Task<IResult> GetReviews
     ([AsParameters] PaginationRequest pag, IReviewService reviewService)
     {
+        pag.SetDefaults();
+
         var reviewPage = await reviewService.GetReviewsAsync(pag);
 
         return Results.Ok(reviewPage);

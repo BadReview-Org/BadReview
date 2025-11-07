@@ -8,8 +8,8 @@ namespace BadReview.Api.Services;
 
 public interface IGameService
 {
-    Task<List<BasicGameDto>> GetGamesAsync(IgdbRequest query, PaginationRequest pag);
-    Task<List<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag);
+    Task<PagedResult<BasicGameDto>> GetGamesAsync(IgdbRequest query, PaginationRequest pag);
+    Task<PagedResult<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag);
     Task<DetailGameDto?> GetGameByIdAsync(int id, bool cache);
 }
 
@@ -20,7 +20,7 @@ public interface IDeveloperService
 
 public interface IGenreService
 {
-    Task<List<GenreDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag);
+    Task<PagedResult<GenreDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag);
     Task<GenreDto?> GetGenreByIdAsync(int id, bool cache);
 }
 
@@ -47,13 +47,13 @@ public interface IUserService
 
 public interface IIGDBService
 {
-    Task<List<PopularIgdbDto>?> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag);
+    Task<PagedResult<PopularIgdbDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag);
 
-    Task<List<GenreIgdbDto>?> GetGenresAsync(IgdbRequest query, PaginationRequest pag);
+    Task<PagedResult<GenreIgdbDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag);
 
-    Task<List<T>?> GetPlatformsAsync<T>(IgdbRequest query, PaginationRequest pag);
+    Task<PagedResult<T>> GetPlatformsAsync<T>(IgdbRequest query, PaginationRequest pag);
 
-    Task<List<T>?> GetAsync<T>(IgdbRequest query, PaginationRequest pag, string uri);
+    Task<PagedResult<T>> GetAsync<T>(IgdbRequest query, PaginationRequest pag, string uri);
 }
 
 public interface IAuthService

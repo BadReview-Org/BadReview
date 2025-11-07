@@ -30,18 +30,16 @@ public static class GenreEndpoints
         query.SetDefaults();
         pag.SetDefaults();
 
-        var genreList = await genreService.GetGenresAsync(query, pag);
+        var genrePage = await genreService.GetGenresAsync(query, pag);
 
-        var response = genreList.Count == 0 ?
-            Results.NotFound("No genres matching the query filters") : Results.Ok(genreList);
-
-        return response;
+        return Results.Ok(genrePage);
     }
 
     static async Task<IResult> GetGenreById
     (int id, IGenreService genreService)
     {
         if (id < 0) return Results.BadRequest($"Genre id can't be negative, received id: {id}");
+        
 
         var genre = await genreService.GetGenreByIdAsync(id, true);
 

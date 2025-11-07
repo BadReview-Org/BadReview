@@ -18,6 +18,7 @@ public static class IGDBCONSTANTS
         public const string PLATFORMS = "platforms";
         public const string DEVELOPERS = "involved_companies";
         public const string TRENDING = "popularity_primitives";
+        public const string MULTIQUERY = "multiquery";
     }
 }
 

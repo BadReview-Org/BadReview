@@ -89,25 +89,25 @@ public class GameService : IGameService
     }
 
 
-    public async Task<List<BasicGameDto>> GetGamesAsync(IgdbRequest query, PaginationRequest pag)
+    public async Task<PagedResult<BasicGameDto>> GetGamesAsync(IgdbRequest query, PaginationRequest pag)
     {
         var igdbGames = await _igdb.GetAsync<BasicGameIgdbDto>(query, pag, IGDBCONSTANTS.URIS.GAMES);
-        var basicGames = new List<BasicGameDto>();
 
-        if (igdbGames is not null && igdbGames.Count > 0)
-            basicGames = igdbGames.Select(g => CreateBasicGameDto(g)).ToList();
+        var basicGames = igdbGames.Data.Select(g => CreateBasicGameDto(g)).ToList();
 
-        return basicGames;
+        var gamesPage = new PagedResult<BasicGameDto>(basicGames, igdbGames.TotalCount, igdbGames.Page, igdbGames.PageSize);
+
+        return gamesPage;
     }
 
-    public async Task<List<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag)
+    public async Task<PagedResult<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag)
     {
         var responseTrending = await _igdb.GetTrendingGamesAsync(query, pag);
 
-        if (responseTrending is null || responseTrending.Count == 0)
-            return new List<BasicGameDto>();
+        if (responseTrending.Data.Count == 0)
+            return new PagedResult<BasicGameDto>([], responseTrending.TotalCount, responseTrending.Page, responseTrending.PageSize);
 
-        var gameIds = responseTrending.Select(g => g.Game_id);
+        var gameIds = responseTrending.Data.Select(g => g.Game_id);
         string idsFilter = $"({string.Join(",", gameIds)})";
 
         var queryGames = new IgdbRequest { Filters = $"id = {idsFilter}" };
@@ -116,12 +116,12 @@ public class GameService : IGameService
         var pagGames = new PaginationRequest(null, pag.PageSize);
 
         var igdbGames = await _igdb.GetAsync<BasicGameIgdbDto>(queryGames, pagGames, IGDBCONSTANTS.URIS.GAMES);
-        var basicGames = new List<BasicGameDto>();
 
-        if (igdbGames is not null && igdbGames.Count > 0)
-            basicGames = igdbGames.Select(g => CreateBasicGameDto(g)).ToList();
+        var basicGames = igdbGames.Data.Select(g => CreateBasicGameDto(g)).ToList();
 
-        return basicGames;
+        var gamesPage = new PagedResult<BasicGameDto>(basicGames, responseTrending.TotalCount, igdbGames.Page, igdbGames.PageSize);
+
+        return gamesPage;
     }
 
     public async Task<DetailGameDto?> GetGameByIdAsync(int id, bool cache)
@@ -135,9 +135,10 @@ public class GameService : IGameService
         var query = new IgdbRequest { Filters = $"id = {id}" };
         query.SetDefaults();
 
-        DetailGameIgdbDto? gameIGDB =
-            (await _igdb.GetAsync<DetailGameIgdbDto>(query, new PaginationRequest(), IGDBCONSTANTS.URIS.GAMES))?
-                .FirstOrDefault();
+        PagedResult<DetailGameIgdbDto> response =
+            await _igdb.GetAsync<DetailGameIgdbDto>(query, new PaginationRequest(), IGDBCONSTANTS.URIS.GAMES);
+
+        DetailGameIgdbDto? gameIGDB = response.Data.FirstOrDefault();
 
         if (gameIGDB is null) return null;
 

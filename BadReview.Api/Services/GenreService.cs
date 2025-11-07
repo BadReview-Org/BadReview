@@ -24,13 +24,15 @@ public class GenreService : IGenreService
     }
 
 
-    public async Task<List<GenreDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag)
+    public async Task<PagedResult<GenreDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag)
     {
         var igdbGenres = await _igdb.GetGenresAsync(query, pag);
         
-        List<GenreDto>? genreList = igdbGenres?.Select(gen => CreateGenreDto(gen)).ToList();
+        List<GenreDto> genreList = igdbGenres.Data.Select(gen => CreateGenreDto(gen)).ToList();
 
-        return genreList ?? new List<GenreDto>();
+        var genresPage = new PagedResult<GenreDto>(genreList, igdbGenres.TotalCount, igdbGenres.Page, igdbGenres.PageSize);
+
+        return genresPage;
     }
 
     public async Task<GenreDto?> GetGenreByIdAsync(int id, bool cache)
@@ -43,9 +45,10 @@ public class GenreService : IGenreService
         var query = new IgdbRequest { Filters = $"id = {id}" };
         query.SetDefaults();
 
-        GenreIgdbDto? genreIGDB =
-            (await _igdb.GetAsync<GenreIgdbDto>(query, new PaginationRequest(), IGDBCONSTANTS.URIS.GENRES))?
-                .FirstOrDefault();
+        PagedResult<GenreIgdbDto> response =
+            await _igdb.GetAsync<GenreIgdbDto>(query, new PaginationRequest(), IGDBCONSTANTS.URIS.GENRES);
+
+        GenreIgdbDto? genreIGDB = response.Data.FirstOrDefault();
 
         if (genreIGDB is null) return null;
 
