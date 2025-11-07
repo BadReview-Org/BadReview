@@ -28,16 +28,46 @@
             Search for your favorite games and discover new ones! @SelectedFilter
         </MudText>
     </MudPaper>
-    <CustomFilter @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
+    <MudPaper Class="pa-4 mb-4" Elevation="6">
+        <CustomFilter SearchGenres="OnSearchGenresAsync" Platforms="@Platforms" Genres="@Genres" @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
+    </MudPaper>
     <CustomGridCard arrayElement="gameCards"  placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
 </MudContainer>
 
 
 @code {
     private CardContainer[]? gameCards;
+    private List<PlatformDto> Platforms { get; set; } = new();
+    private List<GenreDto> Genres { get; set; } = new List<GenreDto>();
+
 
     private string? SelectedFilter = "name";
     private string _searchText = string.Empty;
+    private async Task<IEnumerable<GenreDto>> OnSearchGenresAsync(string searchText)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            // Retornar todos los géneros
+            var allGenres = await Client.GetFromJsonAsync<GenreDto[]>("api/genres");
+            return allGenres ?? Enumerable.Empty<GenreDto>();
+        }
+        string filters = (string.IsNullOrWhiteSpace(searchText)) ?
+            "" : Uri.EscapeDataString($"name ~ *\"{searchText}\"*");
+
+        string queryString = $"?filters={filters}";
+        Console.WriteLine($"Query: {queryString}");
+        var genres = await Client.GetFromJsonAsync<List<GenreDto>>($"api/genres{queryString}");
+        if (genres is not null)
+        {
+            Genres = genres;
+        }
+        // Buscar en la API con el texto
+        return genres ?? Enumerable.Empty<GenreDto>();
+    }
+
+
+
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,7 +78,7 @@
     {
         string uri = "api/games";
         string orderby = Uri.EscapeDataString("total_rating_count");
-        string filters = (string.IsNullOrWhiteSpace(_searchText)) ?//game.genre 
+        string filters = (string.IsNullOrWhiteSpace(_searchText)) ?
             "" : Uri.EscapeDataString($"@{SelectedFilter} ~ *\"{_searchText}\"*");
 
         string queryString = $"?filters={filters}&orderby={orderby}";

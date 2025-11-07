@@ -17,7 +17,7 @@
 @inject AuthenticationStateProvider _provider
 
 <MudLayout>
-    <MudAppBar MaxWidth="MaxWidth.ExtraExtraLarge">
+    <MudAppBar>
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle" />
 
         <CustomFilter @bind-Value="_searchText" OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />

@@ -1,31 +1,81 @@
-<MudPaper Class="pa-4 mb-4" Elevation="6" MaxWidth="MaxWidth.Large">
-    <MudTextField @bind-Value="Value" 
-                    Placeholder="@Placeholder" 
-                    Adornment="Adornment.Start" 
-                    AdornmentIcon="@Icons.Material.Filled.Search"
-                    Variant="Variant.Outlined"
-                    Immediate="true"
-                    DebounceInterval="500"
-                    OnDebounceIntervalElapsed="OnSearchAsyncInternal"
-                    FullWidth="true"
-                    Style="background: rgba(255,255,255,0.05); border-radius: 8px;" />
-    @if (SetChips)
-    {   
-        <MudText Class="mt-3 mb-2" Typo="Typo.body2" Style="color: #b0b0b0;">Filter by:</MudText>
+@using BadReview.Shared.DTOs.Response
+
+<MudTextField Class="flex-grow-1 mx-4" @bind-Value="Value" 
+                Placeholder="@Placeholder" 
+                Adornment="Adornment.Start" 
+                AdornmentIcon="@Icons.Material.Filled.Search"
+                Variant="Variant.Outlined"
+                Immediate="true"
+                DebounceInterval="500"
+                OnDebounceIntervalElapsed="OnSearchAsyncInternal"
+                Margin="Margin.Dense"
+                    />
+@if (SetChips)
+{   
+    <MudButton Variant="Variant.Text"
+            Color="Color.Primary"
+            Class="mud-typography mud-typography-h6 text-button"
+            OnClick="() => _openEnd = true">
+        Abrir menú
+    </MudButton>    
+}
+
+<MudDrawer @bind-Open="@_openEnd" Width="350px" Fixed="true" Anchor="Anchor.End" Elevation="0" Variant="@DrawerVariant.Temporary">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">Filter</MudText>
+    </MudDrawerHeader>
+    <MudStack Spacing="3" Class="mt-2 px-4">
         <MudChipSet SelectedValue="@SelectedFilter" 
                     SelectedValueChanged="@OnSelectedFilterChangedInternal"
                     T="string" 
                     CheckMark="true" 
                     SelectionMode="@SelectionMode.SingleSelection">
-            <MudChip Text="Name" Color="Color.Primary" Value="@("name")">Name</MudChip>
-            <MudChip Text="Developer" Color="Color.Primary" Value="@("developer")">Developer</MudChip>
-            <MudChip Text="Platform" Color="Color.Primary" Value="@("platforms.name")">Platform</MudChip>
-            <MudChip Text="Genre" Color="Color.Primary" Value="@("genre")">Genre</MudChip>
-        </MudChipSet>
-    }
+            <MudChip Text="Name" Size="Size.Small" Color="Color.Primary" Value="@("name")">Name</MudChip>
+            <MudChip Text="Developer" Size="Size.Small" Color="Color.Primary" Value="@("developer")">Developer</MudChip>
+            <MudChip Text="Platform" Size="Size.Small" Color="Color.Primary" Value="@("platforms.name")">Platform</MudChip>
+            <MudChip Text="Genre" Size="Size.Small" Color="Color.Primary" Value="@("genre")">Genre</MudChip>
+    </MudChipSet>
+    
+    <MudDivider />
+       
+    <MudStack Spacing="2">
+        <MudText Typo="Typo.subtitle1" Class="fw-bold">Platform</MudText>
+        <MudAutocomplete T="PlatformDto" 
+                            Label="Name" 
+                            Value="@SelectedPlatform"
+                            SearchFunc="@SearchPlatforms"
+                            ToStringFunc="@(p => p?.Name ?? "")"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            Adornment="Adornment.Start"
+                            Clearable="true"
+                            ValueChanged="@OnPlatformSelected" />
+    </MudStack>
 
-</MudPaper>
+    <MudDivider />
+
+    <MudStack Spacing="2">
+        <MudText Typo="Typo.subtitle1" Class="fw-bold">Genre</MudText>
+        <MudAutocomplete T="GenreDto" 
+                            Label="Name" 
+                            Value="@SelectedGenre"
+                            SearchFunc="@OnSearchGenres"
+                            ToStringFunc="@(g => g?.Name ?? "")"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            Adornment="Adornment.Start"
+                            Clearable="true"
+                            ValueChanged="@OnGenreSelected" 
+                             />
+    </MudStack>
+    </MudStack>
+</MudDrawer>
+
+
 @code {
+    private bool _openEnd = false;
     [Parameter] public string? SelectedFilter { get; set; } = "name";
 
     [Parameter] public string Value { get; set; } = string.Empty;
@@ -36,10 +86,27 @@
 
     [Parameter] public EventCallback<string> SelectedFilterChanged { get; set; }
     [Parameter] public EventCallback<string> OnSearchAsync { get; set; }
+    
+    // Platform and Genre specific filters
+    [Parameter] public List<PlatformDto> Platforms { get; set; } = new();
+    [Parameter] public List<GenreDto> Genres { get; set; } = new();
+    
+    private PlatformDto? SelectedPlatform { get; set; }
+    private GenreDto? SelectedGenre { get; set; }
+    
+    [Parameter] public EventCallback<PlatformDto?> OnPlatformChanged { get; set; }
+    [Parameter] public EventCallback<GenreDto?> OnGenreChanged { get; set; }
+
+    [Parameter] public Func<string, Task<IEnumerable<GenreDto>>>? SearchGenres { get; set; }
+    
     private async Task OnSelectedFilterChangedInternal(string value)
     {
         SelectedFilter = value;
         await SelectedFilterChanged.InvokeAsync(value);
+        
+        // Clear specific filters when changing filter type
+        SelectedPlatform = null;
+        SelectedGenre = null;
     }
 
     private async Task OnSearchAsyncInternal(string value)
@@ -49,6 +116,48 @@
         if (OnSearchAsync.HasDelegate)
         {
             await OnSearchAsync.InvokeAsync(value);
+        }
+    }
+    
+    private async Task<IEnumerable<PlatformDto>> SearchPlatforms(string value, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Platforms;
+            
+        return Platforms.Where(p => p.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task<IEnumerable<GenreDto>> OnSearchGenres(string value, CancellationToken token)
+    {
+        // Si hay un callback definido, úsalo para buscar en la API
+        if (SearchGenres != null)
+        {
+            var genres = await SearchGenres(value);
+            return genres ?? Enumerable.Empty<GenreDto>();
+        }
+        
+        // Fallback: búsqueda local si no hay callback
+        if (string.IsNullOrWhiteSpace(value))
+            return Genres;
+            
+        return Genres.Where(g => g.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+    }
+    
+    private async Task OnPlatformSelected(PlatformDto? platform)
+    {
+        SelectedPlatform = platform;
+        if (OnPlatformChanged.HasDelegate)
+        {
+            await OnPlatformChanged.InvokeAsync(platform);
+        }
+    }
+    
+    private async Task OnGenreSelected(GenreDto? genre)
+    {
+        SelectedGenre = genre;
+        if (OnGenreChanged.HasDelegate)
+        {
+            await OnGenreChanged.InvokeAsync(genre);
         }
     }
 }

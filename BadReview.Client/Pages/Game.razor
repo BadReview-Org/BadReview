@@ -44,7 +44,7 @@ else
                 <MudStack Spacing="3">
                     <!-- Cover Image -->
                     <MudPaper Elevation="10" Class="pa-3 mud-elevation-hover" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); transition: all 0.3s ease;">
-                        <MudImage Src="@ImageHelper.GetCoverUrl(gameDetails.Cover)" 
+                        <MudImage Src="@ImageHelper.GetCoverUrl(gameDetails.CoverId)" 
                                   Alt="@gameDetails.Name" 
                                   Class="rounded-lg" 
                                   Style="width: 100%; height: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
@@ -197,10 +197,10 @@ else
                                 <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" Class="mr-2" />
                                 Developers
                             </MudText>
-                            @foreach (var developer in gameDetails.Developers)
+                            @foreach (DetailDeveloperDto developer in gameDetails.Developers)
                             {
                                 <MudText Typo="Typo.body2" Color="Color.Default">
-                                <MudImage Src="@ImageHelper.GetCoverUrl(developer.Logo)" Alt="@developer.Name" Width="32" Height="32" Class="ml-2" Style="vertical-align: middle; border-radius: 4px;" />
+                                <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" Alt="@developer.Name" Width="32" Height="32" Class="ml-2" Style="vertical-align: middle; border-radius: 4px;" />
                                     @developer.Name                     
                                 </MudText>
                             }
@@ -328,7 +328,7 @@ else
     {
         try
         {
-            var coverUrl = ImageHelper.GetCoverUrl(gameDetails?.Cover);
+            var coverUrl = ImageHelper.GetCoverUrl(gameDetails?.CoverId);
             if (!string.IsNullOrEmpty(coverUrl))
             {
                 var colors = await JS.InvokeAsync<ColorPalette>("colorExtractor.extractColors", coverUrl);
