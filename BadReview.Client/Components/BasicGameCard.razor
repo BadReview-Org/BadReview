@@ -32,6 +32,10 @@
                     <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
                         @((game.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
                     </MudText>
+                    <img src="icon-192_white.png" alt="BadReview" style="height: 24px; width: auto; opacity: 0.8;" />
+                    <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
+                        @((game?.Total_RatingBadReview ?? 0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
+                    </MudText>
                 </MudStack>
             }
         </MudCardContent>

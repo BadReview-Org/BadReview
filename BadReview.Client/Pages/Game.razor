@@ -58,6 +58,16 @@ else
                                         </MudText>
                                     </MudStack>
                                 }
+                        
+                        @if (gameDetails.Count_RatingBadReview > 0)
+                                {
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
+                                        <img src="icon-192_white.png" alt="BadReview" style="height: 16px; width: auto; opacity: 0.8;" />
+                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
+                                            @((gameDetails.Total_RatingBadReview / gameDetails.Count_RatingBadReview).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
+                                        </MudText>
+                                    </MudStack>
+                                }
                     </MudPaper>
                     <!-- User Review Section -->
                     <MudPaper Elevation ="6" Class="pa-3" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">

@@ -45,7 +45,7 @@
     private string pagesize = "12";
 
     private int totalPages = 1;
-    private string? SelectedFilter = "name";
+    private string? SelectedFilter = "released";
     private string _searchText = string.Empty;
     private async Task<IEnumerable<GenreDto>> OnSearchGenresAsync(string searchText)
     {
@@ -106,9 +106,10 @@
 
     private async Task LoadGamesAsync(int page = 1,string extraFilters = "")
     {
+    
         ApiRequest apiRequest = new ApiRequest{
                     URI = APIUTILS.URIS.GAMES, 
-                    Filters = $"{SelectedFilter} ~ *\"{_searchText}\"*&{extraFilters}",
+                    Filters = (extraFilters == string.Empty) ?  $"name ~ *\"{_searchText}\"*" : $"name ~ *\"{_searchText}\"*&{extraFilters}",
                     OrderBy = "total_rating_count",
                     Page = page-1 };
 

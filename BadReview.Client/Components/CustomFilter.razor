@@ -30,10 +30,8 @@
                     T="string" 
                     CheckMark="true" 
                     SelectionMode="@SelectionMode.SingleSelection">
-            <MudChip Text="Name" Size="Size.Small" Color="Color.Primary" Value="@("name")">Name</MudChip>
-            <MudChip Text="Developer" Size="Size.Small" Color="Color.Primary" Value="@("developer")">Developer</MudChip>
-            <MudChip Text="Platform" Size="Size.Small" Color="Color.Primary" Value="@("platforms.name")">Platform</MudChip>
-            <MudChip Text="Genre" Size="Size.Small" Color="Color.Primary" Value="@("genre")">Genre</MudChip>
+            <MudChip Text="Released" Size="Size.Small" Color="Color.Primary" Value="@("released")">Released</MudChip>
+            <MudChip Text="TBA" Size="Size.Small" Color="Color.Primary" Value="@("tba")">TBA</MudChip>
     </MudChipSet>
     
     <MudDivider />
@@ -50,7 +48,8 @@
                             AdornmentIcon="@Icons.Material.Filled.Search"
                             Adornment="Adornment.Start"
                             Clearable="true"
-                            ValueChanged="@OnPlatformSelected" />
+                            ValueChanged="@(platform => SelectedPlatform = platform)"
+                            />
     </MudStack>
 
     <MudDivider />
@@ -67,38 +66,41 @@
                             AdornmentIcon="@Icons.Material.Filled.Search"
                             Adornment="Adornment.Start"
                             Clearable="true"
-                            ValueChanged="@OnGenreSelected" 
+                            ValueChanged="@(genre => SelectedGenre = genre)"
                              />
     </MudStack>
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnClickApplyFilters" Class="mt-4 mx-4">
-        Apply Filters
+       Apply Filters
     </MudButton>
     </MudStack>
 </MudDrawer>
 
 
 @code {
+    //--------------- Private variables ----------------
+
     private bool _openEnd = false;
-    [Parameter] public string? SelectedFilter { get; set; } = "name";
+
+    private PlatformDto? SelectedPlatform { get; set; }
+    private GenreDto? SelectedGenre { get; set; }
+    //--------------- Public Parameters ----------------
+
+    [Parameter] public List<PlatformDto> Platforms { get; set; } = new();
+    [Parameter] public List<GenreDto> Genres { get; set; } = new();
+    [Parameter] public string? SelectedFilter { get; set; } = "released";
 
     [Parameter] public string Value { get; set; } = string.Empty;
     [Parameter] public string? Placeholder { get; set; } = "Search...";
 
-    [Parameter] public bool SetChips {get; set;} = false;
+    [Parameter] public bool SetChips { get; set; } = false;
+    //--------------- Bind callbacks ----------------
     [Parameter] public EventCallback<string> ValueChanged { get; set; }
 
     [Parameter] public EventCallback<string> SelectedFilterChanged { get; set; }
+
+    //--------------- Public callbacks parameters ----------------
+
     [Parameter] public EventCallback<string> OnSearchAsync { get; set; }
-    
-    // Platform and Genre specific filters
-    [Parameter] public List<PlatformDto> Platforms { get; set; } = new();
-    [Parameter] public List<GenreDto> Genres { get; set; } = new();
-    
-    private PlatformDto? SelectedPlatform { get; set; }
-    private GenreDto? SelectedGenre { get; set; }
-    
-    [Parameter] public EventCallback<PlatformDto?> OnPlatformChanged { get; set; }
-    [Parameter] public EventCallback<GenreDto?> OnGenreChanged { get; set; }
 
     [Parameter] public Func<string, Task<IEnumerable<GenreDto>>>? SearchGenres { get; set; }
 
@@ -106,20 +108,32 @@
 
     [Parameter] public EventCallback<string> ClickApplyFilters { get; set; }
     
+    // Platform and Genre specific filters
+    
+    
+//    [Parameter] public EventCallback<PlatformDto?> OnPlatformChanged { get; set; }
+//    [Parameter] public EventCallback<GenreDto?> OnGenreChanged { get; set; }
+
+
+    
     private async Task OnSelectedFilterChangedInternal(string value)
     {
         SelectedFilter = value;
         await SelectedFilterChanged.InvokeAsync(value);
-        
-        // Clear specific filters when changing filter type
-        SelectedPlatform = null;
-        SelectedGenre = null;
     }
 
     private async Task OnClickApplyFilters()
     {
         _openEnd = false;
-        await ClickApplyFilters.InvokeAsync($"genres.name = \"{SelectedGenre?.Name}\"&platforms.name = \"{SelectedPlatform?.Name}\"");
+        List<string>? param = new List<string>();
+        if(SelectedGenre?.Id != null)
+            param.Add($"genres = {SelectedGenre?.Id}");
+        if(SelectedPlatform?.Id != null)
+            param.Add($"platforms = {SelectedPlatform?.Id}");
+        string query = string.Join('&',param);
+        //string developerparams = (SelectedDeveloper?.Id == null) ? "" : 
+        //                $"involved_companies.companies = {SelectedDeveloper?.Id}&involved_companies.developer = true"
+        await ClickApplyFilters.InvokeAsync(query);
     }
 
     private async Task OnSearchAsyncInternal(string value)
@@ -163,7 +177,7 @@
             
         return Genres.Where(g => g.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
     }
-    
+/*    
     private async Task OnPlatformSelected(PlatformDto? platform)
     {
         SelectedPlatform = platform;
@@ -172,7 +186,8 @@
             await OnPlatformChanged.InvokeAsync(platform);
         }
     }
-    
+ */ 
+/*  
     private async Task OnGenreSelected(GenreDto? genre)
     {
         SelectedGenre = genre;
@@ -181,4 +196,5 @@
             await OnGenreChanged.InvokeAsync(genre);
         }
     }
+    */
 }

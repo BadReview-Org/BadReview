@@ -21,8 +21,8 @@ public class ApiService
         request.SetDefaults();
         string orderby = Uri.EscapeDataString(request.OrderBy ?? "");
         string filters = Uri.EscapeDataString(request.Filters ?? "");
-
-        string queryString = $"?filters={request.Filters}&orderby={request.OrderBy}&page={request.Page}&pageSize={request.PageSize}";
+        Console.WriteLine($"Filters after escape: {filters}");
+        string queryString = $"?filters={filters}&orderby={orderby}&order={request.Order}&page={request.Page}&pageSize={request.PageSize}";
         var response = await _httpClient.GetFromJsonAsync<PagedResult<T>>($"api/{request.URI}{queryString}");
         return response ?? new PagedResult<T>(new List<T>(), 0, 0, 0);
     }
