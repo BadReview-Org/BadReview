@@ -1,8 +1,11 @@
 @page "/trending-games"
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Client.Utils
+@using BadReview.Client.Services
+@using BadReview.Shared.Utils
 @inject HttpClient Client
 @inject NavigationManager Navigation
+@inject ApiService ApiService
 
 <PageTitle>Trending Games</PageTitle>
 
@@ -19,24 +22,29 @@
             Discover the hottest games right now
         </MudText>
     </MudPaper>
-    <CustomGridCard arrayElement="gameCards" placeholderTitle="No games found." placeholderBody="Check back later for trending games!"/>
-    
+    <CustomGridCard totalPages="@totalPages" PageChanged="@OnPageChanged" arrayElement="gameCards" placeholderTitle="No games found." placeholderBody="Check back later for trending games!"/>
 </MudContainer>
 
 
 @code {
     private CardContainer[]? gameCards;
-
+    private int totalPages;
+    
     protected override async Task OnInitializedAsync()
     {
-        string pagesize = "10";
-
-        string queryString = $"?pagesize={pagesize}";
-        Console.WriteLine($"Query: {queryString}");
-
-        BasicGameDto[]? gamesDto = await Client.GetFromJsonAsync<BasicGameDto[]>($"{Uris.Trending}{queryString}");
-
-        gameCards = gamesDto is null ? null :
-            gameCards = gamesDto.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
+        ApiRequest apiRequest = new ApiRequest{URI = APIUTILS.URIS.TRENDING, Page = 0 };
+        PagedResult<BasicGameDto>? gamesDto = await ApiService.GetManyAsync<BasicGameDto>(apiRequest);
+        totalPages = (gamesDto?.TotalCount ?? 0 )/ (gamesDto?.PageSize ?? 1);
+        gameCards = gamesDto?.Data.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
     }
+
+    private async Task OnPageChanged(int page)
+    {
+        gameCards = null;      // Mostrar skeleton mientras se carga la nueva página
+
+        ApiRequest apiRequest = new ApiRequest{URI = APIUTILS.URIS.TRENDING, Page = page-1 };
+        PagedResult<BasicGameDto>? gamesDto = await ApiService.GetManyAsync<BasicGameDto>(apiRequest);
+        gameCards = gamesDto?.Data.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
+    }
+
 }

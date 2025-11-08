@@ -43,17 +43,39 @@ else
         }
     </MudGrid>
 }
-
+@if (Pagination && totalPages > 1)
+{
+    <div class="d-flex flex-column align-center">
+        <MudPagination Color="Color.Dark" Class="mt-4" SelectedChanged="@OnPageChanged" BoundaryCount="5" Count="totalPages" Selected="@_selected" />
+    </div>
+}
 @code{
-    // --- Parámetros personalizables --
-    [Parameter] public CardContainer[]? arrayElement {get; set;}
+    private int _selected = 1;
 
-    [Parameter] public string? placeholderTitle {get; set;}
-    [Parameter] public string? placeholderBody {get; set;}
 
-    [Parameter] public int xs {get; set;} = 12;
-    [Parameter] public int sm {get; set;} = 6;
-    [Parameter] public int md {get; set;} = 4;
-    [Parameter] public int lg {get; set;} = 2;
-    [Parameter] public int xl {get; set;} = 2;
+    // --- Parámetros personalizables ---
+    [Parameter] public bool Pagination { get; set; } = true;
+    [Parameter] public int totalPages { get; set; } = 1;
+    [Parameter] public CardContainer[]? arrayElement { get; set; }
+
+    [Parameter] public string? placeholderTitle { get; set; }
+    [Parameter] public string? placeholderBody { get; set; }
+
+    [Parameter] public int xs { get; set; } = 12;
+    [Parameter] public int sm { get; set; } = 6;
+    [Parameter] public int md { get; set; } = 4;
+    [Parameter] public int lg { get; set; } = 2;
+    [Parameter] public int xl { get; set; } = 2;
+    //Callback
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    public async Task OnPageChanged(int page)
+    {
+        _selected = page;
+        
+        if (PageChanged.HasDelegate)
+        {
+            await PageChanged.InvokeAsync(page);
+        }
+    }
 }

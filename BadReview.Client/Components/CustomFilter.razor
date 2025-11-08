@@ -43,7 +43,7 @@
         <MudAutocomplete T="PlatformDto" 
                             Label="Name" 
                             Value="@SelectedPlatform"
-                            SearchFunc="@SearchPlatforms"
+                            SearchFunc="@OnSearchPlatforms"
                             ToStringFunc="@(p => p?.Name ?? "")"
                             Variant="Variant.Outlined"
                             Margin="Margin.Dense"
@@ -70,6 +70,9 @@
                             ValueChanged="@OnGenreSelected" 
                              />
     </MudStack>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnClickApplyFilters" Class="mt-4 mx-4">
+        Apply Filters
+    </MudButton>
     </MudStack>
 </MudDrawer>
 
@@ -98,6 +101,10 @@
     [Parameter] public EventCallback<GenreDto?> OnGenreChanged { get; set; }
 
     [Parameter] public Func<string, Task<IEnumerable<GenreDto>>>? SearchGenres { get; set; }
+
+    [Parameter] public Func<string, Task<IEnumerable<PlatformDto>>>? SearchPlatforms { get; set; }
+
+    [Parameter] public EventCallback<string> ClickApplyFilters { get; set; }
     
     private async Task OnSelectedFilterChangedInternal(string value)
     {
@@ -109,6 +116,12 @@
         SelectedGenre = null;
     }
 
+    private async Task OnClickApplyFilters()
+    {
+        _openEnd = false;
+        await ClickApplyFilters.InvokeAsync($"genres.name = \"{SelectedGenre?.Name}\"&platforms.name = \"{SelectedPlatform?.Name}\"");
+    }
+
     private async Task OnSearchAsyncInternal(string value)
     {
         Value = value;
@@ -118,18 +131,26 @@
             await OnSearchAsync.InvokeAsync(value);
         }
     }
-    
-    private async Task<IEnumerable<PlatformDto>> SearchPlatforms(string value, CancellationToken token)
+
+    private async Task<IEnumerable<PlatformDto>> OnSearchPlatforms(string value, CancellationToken token)
     {
+        // Si hay un callback definido, se busca en la API
+        if (SearchPlatforms != null)
+        {
+            var platforms = await SearchPlatforms(value);
+            return platforms ?? Enumerable.Empty<PlatformDto>();
+        }
+        
+        // Fallback: búsqueda local si no hay callback
         if (string.IsNullOrWhiteSpace(value))
             return Platforms;
-            
+
         return Platforms.Where(p => p.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task<IEnumerable<GenreDto>> OnSearchGenres(string value, CancellationToken token)
     {
-        // Si hay un callback definido, úsalo para buscar en la API
+        // Si hay un callback definido, se busca en la API
         if (SearchGenres != null)
         {
             var genres = await SearchGenres(value);

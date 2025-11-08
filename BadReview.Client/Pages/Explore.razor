@@ -1,8 +1,10 @@
 @page "/explore"
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Client.Utils
+@using BadReview.Shared.Utils
 @inject HttpClient Client
 @inject NavigationManager Navigation
+@inject ApiService ApiService
 
 <PageTitle>Explore Games</PageTitle>
 
@@ -29,9 +31,9 @@
         </MudText>
     </MudPaper>
     <MudPaper Class="pa-4 mb-4" Elevation="6">
-        <CustomFilter SearchGenres="OnSearchGenresAsync" Platforms="@Platforms" Genres="@Genres" @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
+        <CustomFilter ClickApplyFilters="OnFilterChanged" SearchGenres="OnSearchGenresAsync" SearchPlatforms="OnSearchPlatformAsync" Platforms="@Platforms" Genres="@Genres" @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
     </MudPaper>
-    <CustomGridCard arrayElement="gameCards"  placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
+    <CustomGridCard totalPages="@totalPages" arrayElement="gameCards" PageChanged="OnPageChanged" placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
 </MudContainer>
 
 
@@ -40,33 +42,61 @@
     private List<PlatformDto> Platforms { get; set; } = new();
     private List<GenreDto> Genres { get; set; } = new List<GenreDto>();
 
+    private string pagesize = "12";
 
+    private int totalPages = 1;
     private string? SelectedFilter = "name";
     private string _searchText = string.Empty;
     private async Task<IEnumerable<GenreDto>> OnSearchGenresAsync(string searchText)
     {
+        ApiRequest apiRequest = new ApiRequest{
+            URI = APIUTILS.URIS.GENRES, 
+            PageSize = 10,
+            Page = 0 };
+
         if (string.IsNullOrWhiteSpace(searchText))
         {
             // Retornar todos los géneros
-            var allGenres = await Client.GetFromJsonAsync<GenreDto[]>("api/genres");
-            return allGenres ?? Enumerable.Empty<GenreDto>();
+            var allGenres = await ApiService.GetManyAsync<GenreDto>(apiRequest);
+            return allGenres?.Data ?? Enumerable.Empty<GenreDto>();
         }
-        string filters = (string.IsNullOrWhiteSpace(searchText)) ?
-            "" : Uri.EscapeDataString($"name ~ *\"{searchText}\"*");
+        apiRequest.Filters = $"@name ~ *\"{searchText}\"*";
 
-        string queryString = $"?filters={filters}";
-        Console.WriteLine($"Query: {queryString}");
-        var genres = await Client.GetFromJsonAsync<List<GenreDto>>($"api/genres{queryString}");
-        if (genres is not null)
+        PagedResult<GenreDto>? responseDto = await ApiService.GetManyAsync<GenreDto>(apiRequest);
+        if (responseDto != null)
         {
-            Genres = genres;
+            totalPages = (responseDto?.TotalCount ?? 0 )/ (responseDto?.PageSize ?? 1);
+            gameCards = responseDto?.Data.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
+            return responseDto?.Data ?? Enumerable.Empty<GenreDto>();
         }
-        // Buscar en la API con el texto
-        return genres ?? Enumerable.Empty<GenreDto>();
+        return Enumerable.Empty<GenreDto>();
     }
 
 
+    private async Task<IEnumerable<PlatformDto>> OnSearchPlatformAsync(string searchText)
+    {    
+        ApiRequest apiRequest = new ApiRequest{
+            URI = APIUTILS.URIS.PLATFORMS, 
+            PageSize = 10,
+            Page = 0 };
 
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            // Retornar todos los géneros
+            var allPlatform = await ApiService.GetManyAsync<PlatformDto>(apiRequest);
+            return allPlatform?.Data ?? Enumerable.Empty<PlatformDto>();
+        }
+        apiRequest.Filters = $"@name ~ *\"{searchText}\"*";
+
+        PagedResult<PlatformDto>? responseDto = await ApiService.GetManyAsync<PlatformDto>(apiRequest);
+        if (responseDto != null)
+        {
+            totalPages = (responseDto?.TotalCount ?? 0 )/ (responseDto?.PageSize ?? 1);
+            gameCards = responseDto?.Data.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
+            return responseDto?.Data ?? Enumerable.Empty<PlatformDto>();
+        }
+        return Enumerable.Empty<PlatformDto>();
+    }
 
 
     protected override async Task OnInitializedAsync()
@@ -74,19 +104,17 @@
         await LoadGamesAsync();
     }
 
-    private async Task LoadGamesAsync()
+    private async Task LoadGamesAsync(int page = 1,string extraFilters = "")
     {
-        string uri = "api/games";
-        string orderby = Uri.EscapeDataString("total_rating_count");
-        string filters = (string.IsNullOrWhiteSpace(_searchText)) ?
-            "" : Uri.EscapeDataString($"@{SelectedFilter} ~ *\"{_searchText}\"*");
+        ApiRequest apiRequest = new ApiRequest{
+                    URI = APIUTILS.URIS.GAMES, 
+                    Filters = $"{SelectedFilter} ~ *\"{_searchText}\"*&{extraFilters}",
+                    OrderBy = "total_rating_count",
+                    Page = page-1 };
 
-        string queryString = $"?filters={filters}&orderby={orderby}";
-        Console.WriteLine($"Query: {queryString}");
-        BasicGameDto[]? gamesDto = await Client.GetFromJsonAsync<BasicGameDto[]>($"{uri}{queryString}");
-
-        gameCards = gamesDto is null ? null :
-            gameCards = gamesDto.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
+        PagedResult<BasicGameDto>? responseDto = await ApiService.GetManyAsync<BasicGameDto>(apiRequest);
+        totalPages = (responseDto?.TotalCount ?? 0 )/ (responseDto?.PageSize ?? 1);
+        gameCards = responseDto?.Data.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
     }
 
     private async Task OnSearchAsync(string searchText)
@@ -94,5 +122,19 @@
         gameCards = null; // Mostrar skeletons mientras carga
         //StateHasChanged();
         await LoadGamesAsync();
+    }
+    
+    private async Task OnPageChanged(int page)
+    {
+        gameCards = null; // Mostrar skeletons mientras carga la nueva página
+
+        await LoadGamesAsync(page);
+    }
+
+    private async Task OnFilterChanged(string filter)
+    {
+        gameCards = null; // Mostrar skeletons mientras carga la nueva página
+
+        await LoadGamesAsync(1,filter);
     }
 }

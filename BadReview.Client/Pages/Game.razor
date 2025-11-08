@@ -6,6 +6,7 @@
 @inject HttpClient Client
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject ApiService ApiService
 
 <PageTitle>@gameDetails?.Name</PageTitle>
 
@@ -309,7 +310,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        gameDetails = await Client.GetFromJsonAsync<DetailGameDto>($"api/games/{id}");
+        gameDetails = await ApiService.GetByIdAsync<DetailGameDto>("games",id);
         if (gameDetails == null)
         {
             Navigation.NavigateTo("/trending-games");

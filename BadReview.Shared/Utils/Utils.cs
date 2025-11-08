@@ -25,7 +25,7 @@ public static class IGDBCONSTANTS
 public static class CONSTANTS
 {
     public const int DEF_PAGE = 0;
-    public const int DEF_PAGESIZE = 10;    
+    public const int DEF_PAGESIZE = 12;    
 }
 
 public static class ExtensionMethods
