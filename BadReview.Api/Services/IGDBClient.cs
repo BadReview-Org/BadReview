@@ -70,6 +70,34 @@ public class IGDBClient : IIGDBService
         // release the semaphore
         _tokenSemaphore.Release();
     }
+
+
+    public async Task<PagedResult<BasicCompanyIgdbDto>> GetDevelopersAsync(IgdbRequest query, PaginationRequest pag)
+    {
+        IgdbRequest queryDevs = new IgdbRequest
+        {
+            Filters = $"{query.Filters} & developed != null",
+            OrderBy = query.OrderBy ?? "name",
+            Order = query.Order ?? SortOrder.ASC
+        };
+        //queryDevs.SetDefaults();
+
+        return await GetAsync<BasicCompanyIgdbDto>(queryDevs, pag, IGDBCONSTANTS.URIS.DEVELOPERS);
+    }
+
+    public async Task<PagedResult<PlatformIgdbDto>> GetPlatformsAsync(IgdbRequest query, PaginationRequest pag)
+    {
+        IgdbRequest queryDevs = new IgdbRequest
+        {
+            Filters = query.Filters,
+            OrderBy = query.OrderBy ?? "name",
+            Order = query.Order ?? SortOrder.ASC
+        };
+        //queryDevs.SetDefaults();
+
+        return await GetAsync<PlatformIgdbDto>(queryDevs, pag, IGDBCONSTANTS.URIS.PLATFORMS);
+    }
+
     public async Task<PagedResult<PopularIgdbDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag)
     {
         IgdbRequest queryTrending = new IgdbRequest
@@ -77,7 +105,7 @@ public class IGDBClient : IIGDBService
             Filters = "popularity_type = 3",
             OrderBy = "value"
         };
-        queryTrending.SetDefaults();
+        //queryTrending.SetDefaults();
 
         return await GetAsync<PopularIgdbDto>(queryTrending, pag, IGDBCONSTANTS.URIS.TRENDING);
     }
@@ -90,7 +118,7 @@ public class IGDBClient : IIGDBService
             OrderBy = query.OrderBy ?? "name",
             Order = query.Order ?? SortOrder.ASC
         };
-        queryGenres.SetDefaults();
+        //queryGenres.SetDefaults();
 
         return await GetAsync<GenreIgdbDto>(queryGenres, pag, IGDBCONSTANTS.URIS.GENRES);
     }
@@ -103,7 +131,7 @@ public class IGDBClient : IIGDBService
             OrderBy = query.OrderBy ?? "name",
             Order = query.Order ?? SortOrder.ASC
         };
-        queryGenres.SetDefaults();
+        //queryGenres.SetDefaults();
 
         return await GetAsync<T>(queryGenres, pag, IGDBCONSTANTS.URIS.PLATFORMS);
     }
@@ -136,6 +164,8 @@ public class IGDBClient : IIGDBService
 
         string fullBodyString = $"query {uri} \"data\" {{ {mainBodyString} }}; query {uri}/count \"count\" {{ {countBodyString} }};";
         var fullBody = new StringContent(fullBodyString, Encoding.UTF8, "text/plain");
+
+        Console.WriteLine($"IGDB Query Body: {fullBodyString}");
 
         // send POST method to igdb
         HttpResponseMessage response = await _httpClient.PostAsync(IGDBCONSTANTS.URIS.MULTIQUERY, fullBody);

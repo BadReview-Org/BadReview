@@ -34,7 +34,7 @@ public static class GameEndpoints
     private static async Task<IResult> GetGames
     ([AsParameters] PaginationRequest pag, [AsParameters] IgdbRequest query, IGameService gameService)
     {
-        query.SetDefaults();
+        //query.SetDefaults();
         pag.SetDefaults();
 
         var gamesPage = await gameService.GetGamesAsync(query, pag);
@@ -45,7 +45,7 @@ public static class GameEndpoints
     private static async Task<IResult> GetTrendingGames
     ([AsParameters] PaginationRequest pag, [AsParameters] IgdbRequest query, IGameService gameService)
     {
-        query.SetDefaults();
+        //query.SetDefaults();
         pag.SetDefaults();
 
         var trendingGamesPage = await gameService.GetTrendingGamesAsync(query, pag);

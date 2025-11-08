@@ -27,7 +27,7 @@ public static class GenreEndpoints
     static async Task<IResult> GetGenres
     ([AsParameters] PaginationRequest pag, [AsParameters] IgdbRequest query, IGenreService genreService)
     {
-        query.SetDefaults();
+        //query.SetDefaults();
         pag.SetDefaults();
 
         var genrePage = await genreService.GetGenresAsync(query, pag);

@@ -111,7 +111,7 @@ public class GameService : IGameService
         string idsFilter = $"({string.Join(",", gameIds)})";
 
         var queryGames = new IgdbRequest { Filters = $"id = {idsFilter}" };
-        queryGames.SetDefaults();
+        //queryGames.SetDefaults();
 
         var pagGames = new PaginationRequest(null, pag.PageSize);
 
@@ -119,7 +119,9 @@ public class GameService : IGameService
 
         var basicGames = igdbGames.Data.Select(g => CreateBasicGameDto(g)).ToList();
 
-        var gamesPage = new PagedResult<BasicGameDto>(basicGames, responseTrending.TotalCount, igdbGames.Page, igdbGames.PageSize);
+        var gamesPage = new PagedResult<BasicGameDto>(
+            basicGames, responseTrending.TotalCount,
+            pag.Page ?? CONSTANTS.DEF_PAGE, pag.PageSize ?? CONSTANTS.DEF_PAGESIZE);
 
         return gamesPage;
     }
@@ -133,7 +135,7 @@ public class GameService : IGameService
         
 
         var query = new IgdbRequest { Filters = $"id = {id}" };
-        query.SetDefaults();
+        //query.SetDefaults();
 
         PagedResult<DetailGameIgdbDto> response =
             await _igdb.GetAsync<DetailGameIgdbDto>(query, new PaginationRequest(), IGDBCONSTANTS.URIS.GAMES);

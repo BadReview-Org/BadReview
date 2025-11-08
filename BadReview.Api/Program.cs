@@ -86,6 +86,8 @@ builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IGenreService, GenreService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDeveloperService, DeveloperService>();
+builder.Services.AddScoped<IPlatformService, PlatformService>();
 
 var app = builder.Build();
 
@@ -106,5 +108,7 @@ app.MapUserEndpoints();
 app.MapGameEndpoints();
 app.MapReviewEndpoints();
 app.MapGenreEndpoints();
+app.MapDeveloperEndpoints();
+app.MapPlatformEndpoints();
 
 app.Run();

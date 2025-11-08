@@ -16,7 +16,7 @@ public static class IGDBCONSTANTS
         public const string GAMES = "games";
         public const string GENRES = "genres";
         public const string PLATFORMS = "platforms";
-        public const string DEVELOPERS = "involved_companies";
+        public const string DEVELOPERS = "companies";
         public const string TRENDING = "popularity_primitives";
         public const string MULTIQUERY = "multiquery";
     }
@@ -36,7 +36,7 @@ public static class ExtensionMethods
         {
             SortOrder.ASC => "asc",
             SortOrder.DSC => "desc",
-            _ => "",
+            _ => "desc",
         };
     }
 }
