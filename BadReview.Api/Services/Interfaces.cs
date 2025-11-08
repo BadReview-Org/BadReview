@@ -15,7 +15,8 @@ public interface IGameService
 
 public interface IDeveloperService
 {
-
+    Task<PagedResult<BasicDeveloperDto>> GetDevelopersAsync(IgdbRequest query, PaginationRequest pag);
+    Task<DetailDeveloperDto?> GetDeveloperByIdAsync(int id, bool cache);
 }
 
 public interface IGenreService
@@ -52,6 +53,8 @@ public interface IIGDBService
     Task<PagedResult<GenreIgdbDto>> GetGenresAsync(IgdbRequest query, PaginationRequest pag);
 
     Task<PagedResult<T>> GetPlatformsAsync<T>(IgdbRequest query, PaginationRequest pag);
+
+    Task<PagedResult<BasicCompanyIgdbDto>> GetDevelopersAsync(IgdbRequest query, PaginationRequest pag);
 
     Task<PagedResult<T>> GetAsync<T>(IgdbRequest query, PaginationRequest pag, string uri);
 }

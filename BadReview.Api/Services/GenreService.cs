@@ -43,7 +43,7 @@ public class GenreService : IGenreService
         if (genreDB is not null) return CreateGenreDto(genreDB);
 
         var query = new IgdbRequest { Filters = $"id = {id}" };
-        query.SetDefaults();
+        //query.SetDefaults();
 
         PagedResult<GenreIgdbDto> response =
             await _igdb.GetAsync<GenreIgdbDto>(query, new PaginationRequest(), IGDBCONSTANTS.URIS.GENRES);

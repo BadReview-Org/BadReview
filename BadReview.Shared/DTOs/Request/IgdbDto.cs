@@ -13,10 +13,10 @@ public record IgdbRequest
     //public int? PageSize { get; set; }
 
     // Must call SetDefaults after initialization
-    public void SetDefaults()
+    /*public void SetDefaults()
     {
-        this.Order ??= IGDBCONSTANTS.DEF_SORTORDER;
+        //this.Order ??= IGDBCONSTANTS.DEF_SORTORDER;
         //this.Page ??= IGDBCONSTANTS.DEF_PAGE;
         //this.PageSize ??= IGDBCONSTANTS.DEF_PAGESIZE;
-    }
+    }*/
 }
