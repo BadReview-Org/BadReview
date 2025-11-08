@@ -1,4 +1,3 @@
-#if false
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -20,53 +19,31 @@ public static class PlatformEndpoints
 {
     public static void MapPlatformEndpoints(this WebApplication app)
     {
-        // GET: /api/platforms - Obtener todos las plataformas
-        app.MapGet("/api/platforms", async ([AsParameters] IgdbRequest query, BadReviewContext db, IGDBClient igdb) =>
-        {
-            var platformsIgdb = await igdb.GetPlatformsAsync<PlatformIgdbDto>(query);
+        // GET: /api/genres - Obtener todas las plataformas
+        app.MapGet("/api/platforms", GetPlatforms);
 
-            List<PlatformDto>? platformsList = platformsIgdb?.Select(p => CreatePlatformDto(p)).ToList();
+        app.MapGet("/api/platforms/{id}", GetPlatformById);
+    }
 
-            var response = platformsList is null || platformsList.Count == 0
-                ? Results.Ok(platformsList) : Results.NotFound("No platforms matching the query filters");
+    static async Task<IResult> GetPlatforms
+    ([AsParameters] PaginationRequest pag, [AsParameters] IgdbRequest query, IPlatformService platformService)
+    {
+        //query.SetDefaults();
+        pag.SetDefaults();
 
-            return response;
-        });
+        var platformPage = await platformService.GetPlatformsAsync(query, pag);
 
-        // GET: /api/platforms/{id} - Obtener una plataforma por ID
-        app.MapGet("/api/platforms/{id}", async (int id, BadReviewContext db, IGDBClient igdb) =>
-        {
-            PlatformDto? platDB = await db.Platforms
-                .Where(p => p.Id == id)
-                .Select(p => new PlatformDto(
-                    p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
-                    p.Logo?.ImageId, p.Logo?.ImageHeight, p.Logo?.ImageWidth,
-                    p.GamePlatforms.Select(gp => CreateBasicGameDto(gp.Game)).ToList()
-                ))
-                .FirstOrDefaultAsync();
+        return Results.Ok(platformPage);
+    }
 
-            if (platDB is not null) Console.WriteLine($"Fetching platform: {platDB.Name}, from DB");
-            if (platDB is not null) return Results.Ok(platDB);
-            else
-            {
-                var query = new IgdbRequest { Filters = $"id = {id}" };
-                query.SetDefaults();
+    static async Task<IResult> GetPlatformById
+    (int id, IPlatformService platformService)
+    {
+        var platform = await platformService.GetPlatformByIdAsync(id, true);
 
-                PlatformIgdbDto? platIGDB = (await igdb.GetPlatformsAsync<PlatformIgdbDto>(query))?.FirstOrDefault();
+        var response = platform is null ?
+            Results.NotFound($"No platform with id {id}") : Results.Ok(platform);
 
-                if (platIGDB is null) return Results.NotFound($"No platform matching the ID: {id}");
-                else
-                {
-                    Console.WriteLine($"Saving game {gameIGDB.Name} from IGDB into database");
-                    //mapear a Game y persistir
-                    var newGame = CreateGameEntity(gameIGDB);
-
-                    db.Games.Add(newGame);
-                    await db.SaveChangesAsync();
-                    return Results.Ok(CreateDetailGameDto(gameIGDB));
-                }
-            }
-        });
+        return response;
     }
 }
-#endif

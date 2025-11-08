@@ -85,6 +85,19 @@ public class IGDBClient : IIGDBService
         return await GetAsync<BasicCompanyIgdbDto>(queryDevs, pag, IGDBCONSTANTS.URIS.DEVELOPERS);
     }
 
+    public async Task<PagedResult<PlatformIgdbDto>> GetPlatformsAsync(IgdbRequest query, PaginationRequest pag)
+    {
+        IgdbRequest queryDevs = new IgdbRequest
+        {
+            Filters = query.Filters,
+            OrderBy = query.OrderBy ?? "name",
+            Order = query.Order ?? SortOrder.ASC
+        };
+        //queryDevs.SetDefaults();
+
+        return await GetAsync<PlatformIgdbDto>(queryDevs, pag, IGDBCONSTANTS.URIS.PLATFORMS);
+    }
+
     public async Task<PagedResult<PopularIgdbDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag)
     {
         IgdbRequest queryTrending = new IgdbRequest

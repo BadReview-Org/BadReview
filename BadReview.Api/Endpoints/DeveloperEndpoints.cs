@@ -18,7 +18,7 @@ public static class DeveloperEndpoints
 {
     public static void MapDeveloperEndpoints(this WebApplication app)
     {
-        // GET: /api/genres - Obtener todos los generos
+        // GET: /api/genres - Obtener todos los developers
         app.MapGet("/api/developers", GetDevelopers);
 
         app.MapGet("/api/developer/{id}", GetDeveloperById);
