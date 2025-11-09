@@ -40,7 +40,7 @@ public static class ReviewEndpoints
     {
         pag.SetDefaults();
 
-        var reviewPage = await reviewService.GetReviewsAsync(pag);
+        var reviewPage = await reviewService.GetBasicReviewsAsync(pag);
 
         return Results.Ok(reviewPage);
     }

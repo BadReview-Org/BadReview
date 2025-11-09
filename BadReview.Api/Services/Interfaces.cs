@@ -39,7 +39,8 @@ public interface IReviewService
     public enum ReviewCode { OK, REVIEWNOTFOUND, GAMENOTFOUND, USERNOTMATCH, USERALREADYHASREVIEW }
 
     public enum GetReviewsOpt { ALL, FAVORITES, REVIEWS }
-    Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null);
+    Task<PagedResult<BasicReviewDto>> GetBasicReviewsAsync(PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null);
+    Task<PagedResult<DetailReviewDto>> GetDetailReviewsAsync(PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null);
     Task<DetailReviewDto?> GetReviewByIdAsync(int id);
     Task<(ReviewCode, DetailReviewDto?)> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview);
     Task<ReviewCode> DeleteReviewAsync(int reviewId, int userId);
@@ -48,12 +49,12 @@ public interface IReviewService
 
 public interface IUserService
 {
-    public enum UserCode { OK, USERNAMENOTFOUND, PASSDONTMATCH, USERNAMEALREADYEXISTS, EMAILALREADYEXISTS, BADUSERCLAIMS }
+    public enum UserCode { OK, USERNAMENOTFOUND, PASSDONTMATCH, USERNAMEALREADYEXISTS, EMAILALREADYEXISTS, BADUSERCLAIMS, NULLPASSWORD }
 
     Task<User?> GetUserByIdAsync(int id); // ?
-    Task<(UserCode, PrivateUserDto?)> GetUserPrivateData();
+    Task<(UserCode, PrivateUserDto?)> GetUserPrivateData(int userId, PaginationRequest pag);
     Task<(UserCode, PublicUserDto?)> GetUserPublicData(int userId, PaginationRequest pag);
-    Task<(UserCode, RegisterUserDto?)> CreateUserAsync(RegisterUserRequest req);
+    Task<(UserCode, RegisterUserDto?)> CreateUserAsync(CreateUserRequest req);
     Task<(UserCode, BasicUserDto?)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req);
     Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims);
     Task<(UserCode, LoginUserDto?)> LoginUserAsync(LoginUserRequest req);

@@ -28,7 +28,7 @@ public class ReviewService : IReviewService
     }
 
 
-    public async Task<PagedResult<DetailReviewDto>> GetReviewsAsync
+    public async Task<PagedResult<BasicReviewDto>> GetBasicReviewsAsync
     (PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null)
     {
         var page = pag.Page ?? CONSTANTS.DEF_PAGE;
@@ -52,18 +52,16 @@ public class ReviewService : IReviewService
             .Skip(page * pageSize)
             .Take(pageSize)
             .Include(r => r.User)
+            .Include(r => r.Game)
             .ToListAsync();
 
         if (reviews is null)
-            return new PagedResult<DetailReviewDto>(new(), count, page, pageSize);
+            return new PagedResult<BasicReviewDto>(new(), count, page, pageSize);
 
-
-        List<DetailReviewDto> reviewList = reviews
-            .Select(r => new DetailReviewDto(
+        List<BasicReviewDto> basicList = reviews
+            .Select(r => new BasicReviewDto(
                 r.Id,
                 r.Rating,
-                r.StartDate,
-                r.EndDate,
                 r.ReviewText,
                 r.StateEnum,
                 r.IsFavorite,
@@ -72,12 +70,81 @@ public class ReviewService : IReviewService
                     r.User.Id,
                     r.User.Username
                 ),
-                null,
+                new BasicGameDto(
+                    r.Game.Id,
+                    r.Game.Name,
+                    r.Game.Cover?.ImageId,
+                    r.Game.Cover?.ImageHeight,
+                    r.Game.Cover?.ImageWidth,
+                    r.Game.RatingIGDB,
+                    r.Game.Total_RatingBadReview,
+                    r.Game.Count_RatingBadReview
+                ),
+                r.Date.UpdatedAt
+                ))
+            .ToList();
+
+        return new PagedResult<BasicReviewDto>(basicList, count, page, pageSize);
+    }
+
+    public async Task<PagedResult<DetailReviewDto>> GetDetailReviewsAsync
+    (PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null)
+    {
+        var page = pag.Page ?? CONSTANTS.DEF_PAGE;
+        var pageSize = pag.PageSize ?? CONSTANTS.DEF_PAGESIZE;
+
+        IQueryable<Review> reviewsDomain = opt switch
+        {
+            GetReviewsOpt.ALL =>
+                _db.Reviews.Where(r => userId == null || r.UserId == userId),
+            GetReviewsOpt.REVIEWS =>
+                _db.Reviews.Where(r => r.IsReview && (userId == null || r.UserId == userId)),
+            GetReviewsOpt.FAVORITES =>
+                _db.Reviews.Where(r => r.IsFavorite && (userId == null || r.UserId == userId)),
+            _ => throw new InvalidEnumArgumentException()
+        };
+
+        int count = await reviewsDomain.CountAsync();
+
+        List<Review>? reviews = await reviewsDomain
+            .OrderBy(r => r.Id)
+            .Skip(page * pageSize)
+            .Take(pageSize)
+            .Include(r => r.User)
+            .Include(r => r.Game)
+            .ToListAsync();
+
+        if (reviews is null)
+            return new PagedResult<DetailReviewDto>(new(), count, page, pageSize);
+
+        List<DetailReviewDto> detailList = reviews
+            .Select(r => new DetailReviewDto(
+                r.Id,
+                r.Rating,
+                r.StartDate, r.EndDate,
+                r.ReviewText,
+                r.StateEnum,
+                r.IsFavorite,
+                r.IsReview,
+                new BasicUserDto(
+                    r.User.Id,
+                    r.User.Username
+                ),
+                new BasicGameDto(
+                    r.Game.Id,
+                    r.Game.Name,
+                    r.Game.Cover?.ImageId,
+                    r.Game.Cover?.ImageHeight,
+                    r.Game.Cover?.ImageWidth,
+                    r.Game.RatingIGDB,
+                    r.Game.Total_RatingBadReview,
+                    r.Game.Count_RatingBadReview
+                ),
                 r.Date.CreatedAt, r.Date.UpdatedAt
                 ))
             .ToList();
 
-        return new PagedResult<DetailReviewDto>(reviewList, count, page, pageSize);
+        return new PagedResult<DetailReviewDto>(detailList, count, page, pageSize);
     }
 
     public async Task<DetailReviewDto?> GetReviewByIdAsync(int id)

@@ -28,14 +28,16 @@ public class UserService : IUserService
         _auth = auth;
     }
 
-    public async Task<(UserCode, RegisterUserDto?)> CreateUserAsync(RegisterUserRequest req)
+    public async Task<(UserCode, RegisterUserDto?)> CreateUserAsync(CreateUserRequest req)
     {
         if (await _db.Users.AnyAsync(u => u.Username == req.Username))
             return (UserCode.USERNAMEALREADYEXISTS, null);
 
         if (await _db.Users.AnyAsync(u => u.Email == req.Email))
             return (UserCode.EMAILALREADYEXISTS, null);
-        
+
+        if (req.Password is null) return (UserCode.NULLPASSWORD, null);
+
 
         var hashedPassword = _auth.HashPassword(req.Username, req.Password);
         var newUser = new User
@@ -90,9 +92,59 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public Task<(UserCode, PrivateUserDto?)> GetUserPrivateData()
+    public async Task<(UserCode, PrivateUserDto?)> GetUserPrivateData(int userId, PaginationRequest pag)
     {
-        throw new NotImplementedException();
+        var user = await _db.Users.AnyAsync(u => u.Id == userId);
+
+        if (!user) return (UserCode.USERNAMENOTFOUND, null);
+
+
+        var page = pag.Page ?? CONSTANTS.DEF_PAGE;
+        var pageSize = pag.PageSize ?? CONSTANTS.DEF_PAGESIZE;
+
+        int reviewCount = await _db.Reviews.CountAsync(r => r.UserId == userId && r.IsReview);
+        int favoriteCount = await _db.Reviews.CountAsync(r => r.UserId == userId && r.IsFavorite);
+
+        PrivateUserDto? userDto = await _db.Users
+            .Where(u => u.Id == userId)
+            .Select(u => new PrivateUserDto(
+                u.Id, u.Username, u.FullName, u.Birthday, u.Country,
+                u.Reviews
+                    .Where(r => r.IsReview)
+                    .OrderBy(r => r.Id)
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .Select(r => new DetailReviewDto(
+                    r.Id, r.Rating, r.StartDate, r.EndDate, r.ReviewText, r.StateEnum, r.IsFavorite, r.IsReview, null,
+                    new BasicGameDto(
+                        r.Game.Id, r.Game.Name,
+                        r.Game.Cover != null ? r.Game.Cover.ImageId : null,
+                        r.Game.Cover != null ? r.Game.Cover.ImageHeight : null,
+                        r.Game.Cover != null ? r.Game.Cover.ImageWidth : null,
+                        r.Game.RatingIGDB, r.Game.Total_RatingBadReview, r.Game.Count_RatingBadReview),
+                        r.Date.CreatedAt, r.Date.UpdatedAt
+                )).ToPagedResult(reviewCount, page, pageSize),
+                u.Reviews
+                    .Where(r => r.IsFavorite)
+                    .OrderBy(r => r.Id)
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .Select(r => new DetailReviewDto(
+                    r.Id, r.Rating, r.StartDate, r.EndDate, r.ReviewText, r.StateEnum, r.IsFavorite, r.IsReview, null,
+                    new BasicGameDto(
+                        r.Game.Id, r.Game.Name,
+                        r.Game.Cover != null ? r.Game.Cover.ImageId : null,
+                        r.Game.Cover != null ? r.Game.Cover.ImageHeight : null,
+                        r.Game.Cover != null ? r.Game.Cover.ImageWidth : null,
+                        r.Game.RatingIGDB, r.Game.Total_RatingBadReview, r.Game.Count_RatingBadReview),
+                        r.Date.CreatedAt, r.Date.UpdatedAt
+                )).ToPagedResult(reviewCount, page, pageSize),
+                u.Date.CreatedAt, u.Date.UpdatedAt
+                )
+            )
+            .FirstOrDefaultAsync();
+
+        return (UserCode.OK, userDto);
     }
 
     public async Task<(UserCode, PublicUserDto?)> GetUserPublicData(int userId, PaginationRequest pag)
@@ -148,56 +200,6 @@ public class UserService : IUserService
             .FirstOrDefaultAsync();
 
         return (UserCode.OK, userDto);
-        /*var user = await db.Users
-            .Include(u => u.Reviews)
-                .ThenInclude(r => r.Game)
-            .FirstOrDefaultAsync(u => u.Id == id);
-        var userdto = user is not null ? new PublicUserDto(
-            user.Id,
-            user.Username,
-            user.Country,
-            user.Reviews.Select(r => new BasicReviewDto(
-                r.Id,
-                r.Rating,
-                r.ReviewText,
-                r.StateEnum,
-                r.IsFavorite, r.IsReview,
-                null,
-                new BasicGameDto(
-                    r.Game.Id,
-                    r.Game.Name,
-                    r.Game.Cover?.ImageId,
-                    r.Game.Cover?.ImageHeight,
-                    r.Game.Cover?.ImageWidth,
-                    r.Game.RatingIGDB,
-                    r.Game.Total_RatingBadReview,
-                    r.Game.Count_RatingBadReview
-                ),
-                r.Date.UpdatedAt
-            )
-            ).ToPagedResult(0, 0, 0),
-            user.Reviews.Select(r => new BasicReviewDto(
-                r.Id,
-                r.Rating,
-                r.ReviewText,
-                r.StateEnum,
-                r.IsFavorite, r.IsReview,
-                null,
-                new BasicGameDto(
-                    r.Game.Id,
-                    r.Game.Name,
-                    r.Game.Cover?.ImageId,
-                    r.Game.Cover?.ImageHeight,
-                    r.Game.Cover?.ImageWidth,
-                    r.Game.RatingIGDB,
-                    r.Game.Total_RatingBadReview,
-                    r.Game.Count_RatingBadReview
-                ),
-                r.Date.UpdatedAt
-            )
-            ).ToPagedResult(0, 0, 0),
-            user.Date.UpdatedAt
-        ) : null;*/
     }
 
     public async Task<(UserCode, BasicUserDto?)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req)
@@ -225,6 +227,11 @@ public class UserService : IUserService
         existingUser.FullName = req.FullName;
         existingUser.Birthday = req.Birthday;
         existingUser.Country = req.Country;
+
+        if (req.Password is null)
+            existingUser.Password = _auth.HashPassword(existingUser.Username, existingUser.Password);
+        else
+            existingUser.Password = _auth.HashPassword(existingUser.Username, req.Password);
 
         await _db.SaveChangesAsync();
 

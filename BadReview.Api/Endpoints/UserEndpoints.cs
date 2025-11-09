@@ -59,7 +59,7 @@ public static class UserEndpoints
     }
 
     private static async Task<IResult> RegisterUser
-    (RegisterUserRequest req, IUserService userService)
+    (CreateUserRequest req, IUserService userService)
     {
         (UserCode code, RegisterUserDto? dto) = await userService.CreateUserAsync(req);
 
@@ -68,6 +68,7 @@ public static class UserEndpoints
             UserCode.OK => Results.Ok(dto),
             UserCode.USERNAMEALREADYEXISTS => Results.Conflict("Username already exists."),
             UserCode.EMAILALREADYEXISTS => Results.Conflict("Email already exists."),
+            UserCode.NULLPASSWORD => Results.BadRequest("Didn't receive a password."),
             _ => Results.InternalServerError()
         };
 
@@ -109,60 +110,38 @@ public static class UserEndpoints
     }
 
     private static async Task<IResult> GetPrivateProfile
-    (ClaimsPrincipal user)
+    (ClaimsPrincipal claims, [AsParameters] PaginationRequest pag, UserPaginationField? field,
+    IUserService userService, IReviewService reviewService)
     {
-        throw new NotImplementedException();
-        /*var user = await db.Users
-            .Include(u => u.Reviews)
-                .ThenInclude(r => r.Game)
-            .FirstOrDefaultAsync(u => u.Id == id);
-        var userdto = user is not null ? new PublicUserDto(
-            user.Id,
-            user.Username,
-            user.Country,
-            user.Reviews.Select(r => new BasicReviewDto(
-                r.Id,
-                r.Rating,
-                r.ReviewText,
-                r.StateEnum,
-                r.IsFavorite, r.IsReview,
-                null,
-                new BasicGameDto(
-                    r.Game.Id,
-                    r.Game.Name,
-                    r.Game.Cover?.ImageId,
-                    r.Game.Cover?.ImageHeight,
-                    r.Game.Cover?.ImageWidth,
-                    r.Game.RatingIGDB,
-                    r.Game.Total_RatingBadReview,
-                    r.Game.Count_RatingBadReview
-                ),
-                r.Date.UpdatedAt
-            )
-            ).ToPagedResult(0, 0, 0),
-            user.Reviews.Select(r => new BasicReviewDto(
-                r.Id,
-                r.Rating,
-                r.ReviewText,
-                r.StateEnum,
-                r.IsFavorite, r.IsReview,
-                null,
-                new BasicGameDto(
-                    r.Game.Id,
-                    r.Game.Name,
-                    r.Game.Cover?.ImageId,
-                    r.Game.Cover?.ImageHeight,
-                    r.Game.Cover?.ImageWidth,
-                    r.Game.RatingIGDB,
-                    r.Game.Total_RatingBadReview,
-                    r.Game.Count_RatingBadReview
-                ),
-                r.Date.UpdatedAt
-            )
-            ).ToPagedResult(0, 0, 0),
-            user.Date.UpdatedAt
-        ) : null;
-        return userdto is not null ? Results.Ok(userdto) : Results.NotFound();*/
+        string? claimUserId =
+            claims.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (claimUserId is null) return Results.BadRequest("Can't retrieve user id from JWT claims.");
+
+
+        int userId = int.Parse(claimUserId);
+        switch (field)
+        {
+            case null:
+                (UserCode code, PrivateUserDto? dto) = await userService.GetUserPrivateData(userId, pag);
+
+                return code switch
+                {
+                    UserCode.OK => Results.Ok(dto),
+                    UserCode.USERNAMENOTFOUND => Results.NotFound($"User with id {userId} not found"),
+                    _ => Results.InternalServerError()
+                };
+            case UserPaginationField.REVIEWS:
+                var reviewsPage = await reviewService.GetDetailReviewsAsync(pag, GetReviewsOpt.REVIEWS, userId);
+
+                return Results.Ok(reviewsPage);
+            case UserPaginationField.FAVORITES:
+                var favoritesPage = await reviewService.GetDetailReviewsAsync(pag, GetReviewsOpt.FAVORITES, userId);
+
+                return Results.Ok(favoritesPage);
+            default:
+                return Results.BadRequest("Pagination field is incorrect.");
+        }
     }
 
     private static async Task<IResult> GetPublicProfile
@@ -180,55 +159,15 @@ public static class UserEndpoints
                     _ => Results.InternalServerError()
                 };
             case UserPaginationField.REVIEWS:
-                var reviewsPage = await reviewService.GetReviewsAsync(pag, GetReviewsOpt.REVIEWS, id);
+                var reviewsPage = await reviewService.GetBasicReviewsAsync(pag, GetReviewsOpt.REVIEWS, id);
 
                 return Results.Ok(reviewsPage);
             case UserPaginationField.FAVORITES:
-                var favoritesPage = await reviewService.GetReviewsAsync(pag, GetReviewsOpt.FAVORITES, id);
+                var favoritesPage = await reviewService.GetBasicReviewsAsync(pag, GetReviewsOpt.FAVORITES, id);
 
                 return Results.Ok(favoritesPage);
             default:
                 return Results.BadRequest("Pagination field is incorrect.");
         }
     }
-
-    /*private static async Task<IResult> GetUsers
-    (BadReviewContext db)
-    {
-        var users = await db.Users
-            .Include(u => u.Reviews)
-                .ThenInclude(r => r.Game)
-            .ToListAsync();
-
-        return users.Select(u => new PrivateUserDto(
-            u.Id,
-            u.Username,
-            u.FullName,
-            u.Birthday,
-            u.Country,
-            u.Reviews.Select(r => new DetailReviewDto(
-                r.Id,
-                r.Rating,
-                r.StartDate,
-                r.EndDate,
-                r.ReviewText,
-                r.StateEnum,
-                r.IsFavorite,
-                null,
-                new BasicGameDto(
-                    r.Game.Id,
-                    r.Game.Name,
-                    r.Game.Cover?.ImageId,
-                    r.Game.Cover?.ImageHeight,
-                    r.Game.Cover?.ImageWidth,
-                    r.Game.RatingIGDB,
-                    r.Game.Total_RatingBadReview,
-                    r.Game.Count_RatingBadReview
-                ),
-                r.Date.CreatedAt, r.Date.UpdatedAt
-            )
-            ).ToList(),
-            u.Date.CreatedAt, u.Date.UpdatedAt
-        ));
-    }*/
 }
