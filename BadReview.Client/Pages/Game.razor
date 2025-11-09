@@ -64,6 +64,11 @@ else
                                 @((gameDetails.Total_RatingBadReview / gameDetails.Count_RatingBadReview).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
                             </MudText>
                             }
+                        <MudToggleIconButton @bind-Toggled="Favorite"
+                            Icon="@Icons.Material.Filled.FavoriteBorder"
+                            Color="@Color.Error"
+                            ToggledIcon="@Icons.Material.Filled.Favorite"
+                            ToggledColor="@Color.Success"/>
                         </MudStack>
                               
                         
@@ -233,6 +238,8 @@ else
     public int id { get; set; }
     private DetailGameDto? gameDetails;
 
+    private bool Favorite { get; set; } = false;
+
     private CardContainer[]? reviewCards;
     private string primaryColor = "#667eea";
     private string secondaryColor = "#764ba2";
@@ -275,52 +282,23 @@ else
     
     protected async Task PostReview()
     {
-        // Obtener el token JWT del localStorage
-        var token = await JS.InvokeAsync<string>("localStorage.getItem", "JWT");
-        
-        Console.WriteLine($"Review Data:");
-        Console.WriteLine($"Token: {token}");
-        Console.WriteLine($"Rating: {currentRating}");
-        Console.WriteLine($"State: {reviewState} ({_buttonText})");
-        Console.WriteLine($"Text: {reviewText}");
-        Console.WriteLine($"GameId: {id}");
-        
-        // Crear el request con el header de autorización
-        var request = new HttpRequestMessage(HttpMethod.Post, "api/reviews");
-        
-        if (!string.IsNullOrEmpty(token))
-        {
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-        }
-        
+
         var reviewData = new CreateReviewRequest(
             Rating: currentRating,
             StartDate: DateTime.UtcNow,
             EndDate: DateTime.UtcNow,
             ReviewText: reviewText,
             StateEnum: reviewState,
-            IsFavorite: false,
+            IsFavorite: Favorite,
             GameId: id
         );
-        
-        request.Content = JsonContent.Create(reviewData);
-        
-        var response = await Client.SendAsync(request);
-        
-        if (response.IsSuccessStatusCode)
-        {
-            var newReview = await response.Content.ReadFromJsonAsync<DetailReviewDto>();
-            popupReview?.Close();
-        }
-        else
-        {
-            Console.WriteLine($"Error creating review: {response.StatusCode}");
-        }
+        await ApiService.PostAsync<CreateReviewRequest>(APIUTILS.URIS.REVIEWS, reviewData);
     }
+
 
     protected override async Task OnInitializedAsync()
     {
-        gameDetails = await ApiService.GetByIdAsync<DetailGameDto>("games",id);
+        gameDetails = await ApiService.PublicGetByIdAsync<DetailGameDto>("games",id);
         if (gameDetails == null)
         {
             Navigation.NavigateTo("/trending-games");

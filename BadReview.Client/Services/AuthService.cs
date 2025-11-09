@@ -5,12 +5,16 @@ using Microsoft.JSInterop;
 using BadReview.Shared.DTOs.Request;
 using BadReview.Shared.DTOs.Response;
 using Microsoft.AspNetCore.Components.Authorization;
+using System.Net.Http.Headers;
 
 public class AuthService
 {
     private readonly IJSRuntime js;
     private readonly HttpClient http;
-    private const string TokenKey = "JWT";
+    public const string AccessKey = "accessToken";
+
+    public const string RefreshKey = "refreshToken";
+
 
     public AuthService(IJSRuntime js, HttpClient http)
     {
@@ -30,7 +34,7 @@ public class AuthService
 
         Console.WriteLine($"User registered successfully:\n{content.UserDto}\nReceived token:\n{content.Token}");
 
-        await js.InvokeVoidAsync("localStorage.setItem", TokenKey, content.Token);
+        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, content.Token);
 
         prov.NotifyAuthStateChanged();
         return true;
@@ -48,7 +52,7 @@ public class AuthService
 
         Console.WriteLine($"Received token:\n{content.Token}");
 
-        await js.InvokeVoidAsync("localStorage.setItem", TokenKey, content.Token);
+        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, content.Token);
 
         prov.NotifyAuthStateChanged();
         return true;
@@ -56,11 +60,11 @@ public class AuthService
 
     public async Task LogoutAsync(JWTAuthStateProvider prov)
     {
-        await js.InvokeVoidAsync("localStorage.removeItem", TokenKey);
+        await js.InvokeVoidAsync("localStorage.removeItem", AccessKey);
         prov.NotifyAuthStateChanged();
     }
 
-    public async Task<string?> GetTokenAsync() => await js.InvokeAsync<string?>("localStorage.getItem", TokenKey);
+    public async Task<string?> GetTokenAsync(string key) => await js.InvokeAsync<string?>("localStorage.getItem", key);
 
     public void LogJWToken(AuthenticationState state, ILogger logger)
     {
@@ -74,4 +78,26 @@ public class AuthService
         foreach (Claim claim in state.User.Claims) logger.LogInformation($"Type: {claim.Type}, Value: {claim.Value}");
         logger.LogInformation("------------------------------------");
     }
+
+    public async Task<bool> RefreshTokenAsync()
+    {
+        var refreshToken = await GetTokenAsync(RefreshKey);
+        if (string.IsNullOrEmpty(refreshToken))
+            return false;
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "api/refresh");
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue("Bearer", refreshToken);
+
+        var response = await http.SendAsync(request);
+        
+        if (!response.IsSuccessStatusCode)
+            return false;
+        
+        var tokens = await response.Content.ReadFromJsonAsync<LoginUserDto>();
+        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, tokens.AccessToken);
+        await js.InvokeVoidAsync("localStorage.setItem", RefreshKey, tokens.RefreshToken);
+
+        return true;
+    }
+    
 }

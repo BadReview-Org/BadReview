@@ -8,6 +8,8 @@ using BadReview.Shared.DTOs.Request;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using System;
 using System.Threading.Tasks;
+using System.Net.Http.Headers;
+using System.Net;
 
 namespace BadReview.Client.Services;
 public class ApiService
@@ -15,10 +17,15 @@ public class ApiService
     private readonly HttpClient _httpClient;
     private readonly IJSRuntime _jsRuntime;
 
-    public ApiService(HttpClient httpClient, IJSRuntime jsRuntime)
+    private readonly AuthService _authService;
+
+    private bool _isRefreshing = false;
+
+    public ApiService(HttpClient httpClient, IJSRuntime jsRuntime, AuthService authService)
     {
         _httpClient = httpClient;
         _jsRuntime = jsRuntime;
+        _authService = authService;
     }
 
     public async Task<PagedResult<T>> GetManyAsync<T>(ApiRequest request)
@@ -32,30 +39,81 @@ public class ApiService
         return response ?? new PagedResult<T>(new List<T>(), 0, 0, 0);
     }
 
-    public async Task<T?> GetByIdAsync<T>(string uri, int id)
+    public async Task<T?> PublicGetByIdAsync<T>(string uri, int id)
     {
-        var response = await _httpClient.GetFromJsonAsync<T>($"api/{uri}/{id}");
-        return response;
+        return await _httpClient.GetFromJsonAsync<T>($"api/{uri}/{id}");;
     }
-    public async Task<T?> PostAsync<T>(string uri, object data)
-    {
-        var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "JWT");
-        // Crear el request con el header de autorización
-        var request = new HttpRequestMessage(HttpMethod.Post, $"api/{uri}");
-        _httpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", token);
 
+    public async Task<T?> PrivateGetByIdAsync<T>(string uri, int id)
+    {
+        return await RefreshTokenRequestAsync<T>($"api/{uri}/{id}", default, HttpMethod.Get);
+    }
+
+    public async Task<T?> PostAsync<T>(string uri, T data)
+    {
+        return await RefreshTokenRequestAsync<T>(uri, data, HttpMethod.Post);
+    }
+
+    public async Task<T?> PutAsync<T>(string uri, T data)
+    {
+        return await RefreshTokenRequestAsync<T>(uri, data, HttpMethod.Put);
+    }
+
+    public async Task<T?> DeleteAsync<T>(string uri, T data)
+    {
+        return await RefreshTokenRequestAsync<T>(uri, data, HttpMethod.Delete);
+    }
+    public async Task<T?> RefreshTokenRequestAsync<T>(string uri, T? data, HttpMethod method = null!)
+    {
+        // 1. Agregar access token
+        var token = await _authService.GetTokenAsync(AuthService.AccessKey);
+        HttpRequestMessage request = new HttpRequestMessage(method ?? HttpMethod.Post, $"api/{uri}");
         if (!string.IsNullOrEmpty(token))
         {
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
         }
-        var response = await _httpClient.PostAsJsonAsync($"api/{uri}", data);
-        if (response.IsSuccessStatusCode)
+        if (data != null)
+            request.Content = JsonContent.Create(data);
+
+        // 2. Enviar request
+        var response = await _httpClient.SendAsync(request);
+
+        // 3. Si es 401 y no estamos ya refrescando
+        if (response.StatusCode == HttpStatusCode.Unauthorized && !_isRefreshing)
         {
-            return await response.Content.ReadFromJsonAsync<T>();
+            _isRefreshing = true;
+
+            try
+            {
+                // 4. Intentar refrescar el token
+                var refreshed = await _authService.RefreshTokenAsync();
+
+                if (refreshed)
+                {
+                    // 5. Reintentar el request original con nuevo token
+
+            
+                    var newToken = await _authService.GetTokenAsync(AuthService.AccessKey);
+                    request.Headers.Authorization =
+                        new AuthenticationHeaderValue("Bearer", newToken);
+
+                    response = await _httpClient.SendAsync(request);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"Error after refreshing token: {response.StatusCode}");
+                    }
+                }
+            }
+            finally
+            {
+                _isRefreshing = false;
+            }
         }
-        return default;
+        var serializeResponse = await response.Content.ReadFromJsonAsync<T>();
+        return serializeResponse;
     }
 
 
 }
+
