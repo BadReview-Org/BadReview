@@ -11,6 +11,9 @@ using static BadReview.Api.Mapper.Mapper;
 using BadReview.Api.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 
+using static BadReview.Api.Services.IReviewService;
+using System.ComponentModel;
+
 namespace BadReview.Api.Services;
 
 public class ReviewService : IReviewService
@@ -24,14 +27,27 @@ public class ReviewService : IReviewService
         _db = db;
     }
 
-    public async Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag)
+
+    public async Task<PagedResult<DetailReviewDto>> GetReviewsAsync
+    (PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null)
     {
         var page = pag.Page ?? CONSTANTS.DEF_PAGE;
         var pageSize = pag.PageSize ?? CONSTANTS.DEF_PAGESIZE;
 
-        var count = await _db.Reviews.CountAsync();
+        IQueryable<Review> reviewsDomain = opt switch
+        {
+            GetReviewsOpt.ALL =>
+                _db.Reviews.Where(r => userId == null || r.UserId == userId),
+            GetReviewsOpt.REVIEWS =>
+                _db.Reviews.Where(r => r.IsReview && (userId == null || r.UserId == userId)),
+            GetReviewsOpt.FAVORITES =>
+                _db.Reviews.Where(r => r.IsFavorite && (userId == null || r.UserId == userId)),
+            _ => throw new InvalidEnumArgumentException()
+        };
 
-        var reviews = await _db.Reviews
+        int count = await reviewsDomain.CountAsync();
+
+        List<Review>? reviews = await reviewsDomain
             .OrderBy(r => r.Id)
             .Skip(page * pageSize)
             .Take(pageSize)
@@ -122,6 +138,7 @@ public class ReviewService : IReviewService
         review.ReviewText = updatedReview.ReviewText;
         review.StateEnum = updatedReview.StateEnum;
         review.IsFavorite = updatedReview.IsFavorite;
+        review.IsReview = updatedReview.IsReview;
 
         await _db.SaveChangesAsync();
 
@@ -166,7 +183,7 @@ public class ReviewService : IReviewService
 
         review.Game.Total_RatingBadReview -= review.Rating ?? 0;
         review.Game.Count_RatingBadReview--;
-        
+
         _db.Reviews.Remove(review);
         await _db.SaveChangesAsync();
 
@@ -193,6 +210,7 @@ public class ReviewService : IReviewService
             EndDate = newReview.EndDate,
             ReviewText = newReview.ReviewText,
             StateEnum = newReview.StateEnum,
+            IsReview = newReview.IsReview,
             IsFavorite = newReview.IsFavorite,
             UserId = user.Id,
             GameId = game.Id

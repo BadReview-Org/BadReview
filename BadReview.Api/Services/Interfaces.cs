@@ -33,26 +33,30 @@ public interface IPlatformService
 }
 
 
-public enum ReviewCode { OK, REVIEWNOTFOUND, GAMENOTFOUND, USERNOTMATCH, USERALREADYHASREVIEW }
+
 public interface IReviewService
 {
-    Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag);
+    public enum ReviewCode { OK, REVIEWNOTFOUND, GAMENOTFOUND, USERNOTMATCH, USERALREADYHASREVIEW }
+
+    public enum GetReviewsOpt { ALL, FAVORITES, REVIEWS }
+    Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null);
     Task<DetailReviewDto?> GetReviewByIdAsync(int id);
     Task<(ReviewCode, DetailReviewDto?)> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview);
     Task<ReviewCode> DeleteReviewAsync(int reviewId, int userId);
     Task<(ReviewCode, DetailReviewDto?)> CreateReviewAsync(CreateReviewRequest newReview, User user);
 }
 
-public enum UserCode { OK, USERNAMENOTFOUND, PASSDONTMATCH }
 public interface IUserService
 {
+    public enum UserCode { OK, USERNAMENOTFOUND, PASSDONTMATCH, USERNAMEALREADYEXISTS, EMAILALREADYEXISTS, BADUSERCLAIMS }
+
     Task<User?> GetUserByIdAsync(int id); // ?
-    Task<(UserCode, string?)> LoginUserAsync(LoginUserRequest req);
+    Task<(UserCode, PrivateUserDto?)> GetUserPrivateData();
+    Task<(UserCode, PublicUserDto?)> GetUserPublicData(int userId, PaginationRequest pag);
+    Task<(UserCode, RegisterUserDto?)> CreateUserAsync(RegisterUserRequest req);
+    Task<(UserCode, BasicUserDto?)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req);
     Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims);
-    Task<(UserCode, BasicUserDto)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req);
-    Task<(UserCode, BasicUserDto?, string?)> CreateUserAsync(RegisterUserRequest req);
-    Task<(UserCode, PrivateUserDto)> GetUserPrivateData();
-    Task<PublicUserDto?> GetUserPublicData();
+    Task<(UserCode, LoginUserDto?)> LoginUserAsync(LoginUserRequest req);
 }
 
 public interface IIGDBService

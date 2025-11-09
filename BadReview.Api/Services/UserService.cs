@@ -1,6 +1,9 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
+using BadReview.Api.Models;
 using BadReview.Api.Data;
 using BadReview.Shared.DTOs.External;
 using BadReview.Shared.DTOs.Request;
@@ -8,8 +11,7 @@ using BadReview.Shared.Utils;
 using BadReview.Shared.DTOs.Response;
 
 using static BadReview.Api.Mapper.Mapper;
-using BadReview.Api.Models;
-using System.Security.Claims;
+using static BadReview.Api.Services.IUserService;
 
 namespace BadReview.Api.Services;
 
@@ -26,14 +28,58 @@ public class UserService : IUserService
         _auth = auth;
     }
 
-    public Task<(UserCode, BasicUserDto?, string?)> CreateUserAsync(RegisterUserRequest req)
+    public async Task<(UserCode, RegisterUserDto?)> CreateUserAsync(RegisterUserRequest req)
     {
-        throw new NotImplementedException();
+        if (await _db.Users.AnyAsync(u => u.Username == req.Username))
+            return (UserCode.USERNAMEALREADYEXISTS, null);
+
+        if (await _db.Users.AnyAsync(u => u.Email == req.Email))
+            return (UserCode.EMAILALREADYEXISTS, null);
+        
+
+        var hashedPassword = _auth.HashPassword(req.Username, req.Password);
+        var newUser = new User
+        {
+            Username = req.Username,
+            Email = req.Email,
+            Password = hashedPassword,
+            FullName = req.FullName,
+            Birthday = req.Birthday,
+            Country = req.Country
+        };
+
+        _db.Users.Add(newUser);
+        await _db.SaveChangesAsync();
+
+        var userDto = new BasicUserDto(
+            newUser.Id,
+            newUser.Username
+        );
+
+        var token = _auth.GenerateToken(req.Username, newUser.Id);
+
+        return (UserCode.OK, new RegisterUserDto(userDto, new LoginUserDto(token)));
     }
 
-    public Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims)
+    public async Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims)
     {
-        throw new NotImplementedException();
+        string? claimUserId =
+            userClaims.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (claimUserId is null) return UserCode.BADUSERCLAIMS;
+
+
+        var existingUser = await _db.Users
+            .Where(u => u.Id == int.Parse(claimUserId))
+            .FirstOrDefaultAsync();
+
+        if (existingUser is null) return UserCode.USERNAMENOTFOUND;
+
+
+        _db.Users.Remove(existingUser);
+        await _db.SaveChangesAsync();
+
+        return UserCode.OK;
     }
 
     public async Task<User?> GetUserByIdAsync(int id)
@@ -44,27 +90,148 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public Task<(UserCode, PrivateUserDto)> GetUserPrivateData()
+    public Task<(UserCode, PrivateUserDto?)> GetUserPrivateData()
     {
         throw new NotImplementedException();
     }
 
-    public Task<PublicUserDto?> GetUserPublicData()
+    public async Task<(UserCode, PublicUserDto?)> GetUserPublicData(int userId, PaginationRequest pag)
     {
-        throw new NotImplementedException();
+        var user = await _db.Users.AnyAsync(u => u.Id == userId);
+
+        if (!user) return (UserCode.USERNAMENOTFOUND, null);
+
+
+        var page = pag.Page ?? CONSTANTS.DEF_PAGE;
+        var pageSize = pag.PageSize ?? CONSTANTS.DEF_PAGESIZE;
+
+        int reviewCount = await _db.Reviews.CountAsync(r => r.UserId == userId && r.IsReview);
+        int favoriteCount = await _db.Reviews.CountAsync(r => r.UserId == userId && r.IsFavorite);
+
+        PublicUserDto? userDto = await _db.Users
+            .Where(u => u.Id == userId)
+            .Select(u => new PublicUserDto(
+                u.Id, u.Username, u.Country,
+                u.Reviews
+                    .Where(r => r.IsReview)
+                    .OrderBy(r => r.Id)
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .Select(r => new BasicReviewDto(
+                    r.Id, r.Rating, r.ReviewText, r.StateEnum, r.IsFavorite, r.IsReview, null,
+                    new BasicGameDto(
+                        r.Game.Id, r.Game.Name,
+                        r.Game.Cover != null ? r.Game.Cover.ImageId : null,
+                        r.Game.Cover != null ? r.Game.Cover.ImageHeight : null,
+                        r.Game.Cover != null ? r.Game.Cover.ImageWidth : null,
+                        r.Game.RatingIGDB, r.Game.Total_RatingBadReview, r.Game.Count_RatingBadReview),
+                        r.Date.UpdatedAt
+                )).ToPagedResult(reviewCount, page, pageSize),
+                u.Reviews
+                    .Where(r => r.IsFavorite)
+                    .OrderBy(r => r.Id)
+                    .Skip(page * pageSize)
+                    .Take(pageSize)
+                    .Select(r => new BasicReviewDto(
+                    r.Id, r.Rating, r.ReviewText, r.StateEnum, r.IsFavorite, r.IsReview, null,
+                    new BasicGameDto(
+                        r.Game.Id, r.Game.Name,
+                        r.Game.Cover != null ? r.Game.Cover.ImageId : null,
+                        r.Game.Cover != null ? r.Game.Cover.ImageHeight : null,
+                        r.Game.Cover != null ? r.Game.Cover.ImageWidth : null,
+                        r.Game.RatingIGDB, r.Game.Total_RatingBadReview, r.Game.Count_RatingBadReview),
+                        r.Date.UpdatedAt
+                )).ToPagedResult(reviewCount, page, pageSize),
+                u.Date.CreatedAt
+                )
+            )
+            .FirstOrDefaultAsync();
+
+        return (UserCode.OK, userDto);
+        /*var user = await db.Users
+            .Include(u => u.Reviews)
+                .ThenInclude(r => r.Game)
+            .FirstOrDefaultAsync(u => u.Id == id);
+        var userdto = user is not null ? new PublicUserDto(
+            user.Id,
+            user.Username,
+            user.Country,
+            user.Reviews.Select(r => new BasicReviewDto(
+                r.Id,
+                r.Rating,
+                r.ReviewText,
+                r.StateEnum,
+                r.IsFavorite, r.IsReview,
+                null,
+                new BasicGameDto(
+                    r.Game.Id,
+                    r.Game.Name,
+                    r.Game.Cover?.ImageId,
+                    r.Game.Cover?.ImageHeight,
+                    r.Game.Cover?.ImageWidth,
+                    r.Game.RatingIGDB,
+                    r.Game.Total_RatingBadReview,
+                    r.Game.Count_RatingBadReview
+                ),
+                r.Date.UpdatedAt
+            )
+            ).ToPagedResult(0, 0, 0),
+            user.Reviews.Select(r => new BasicReviewDto(
+                r.Id,
+                r.Rating,
+                r.ReviewText,
+                r.StateEnum,
+                r.IsFavorite, r.IsReview,
+                null,
+                new BasicGameDto(
+                    r.Game.Id,
+                    r.Game.Name,
+                    r.Game.Cover?.ImageId,
+                    r.Game.Cover?.ImageHeight,
+                    r.Game.Cover?.ImageWidth,
+                    r.Game.RatingIGDB,
+                    r.Game.Total_RatingBadReview,
+                    r.Game.Count_RatingBadReview
+                ),
+                r.Date.UpdatedAt
+            )
+            ).ToPagedResult(0, 0, 0),
+            user.Date.UpdatedAt
+        ) : null;*/
     }
 
-    public Task<(UserCode, string?)> LoginUserAsync(LoginUserRequest req)
+    public async Task<(UserCode, BasicUserDto?)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req)
     {
-        throw new NotImplementedException();
+        string? claimUserId =
+            userClaims.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (claimUserId is null) return (UserCode.BADUSERCLAIMS, null);
+
+        var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(claimUserId));
+
+        if (existingUser is null) return (UserCode.USERNAMENOTFOUND, null);
+
+        // Validar que Username sea único (excluyendo el usuario actual)
+        if (await _db.Users.AnyAsync(u => u.Username == req.Username && u.Id != existingUser.Id))
+            return (UserCode.USERNAMEALREADYEXISTS, null);
+
+        // Validar que Email sea único (excluyendo el usuario actual)
+        if (await _db.Users.AnyAsync(u => u.Email == req.Email && u.Id != existingUser.Id))
+            return (UserCode.EMAILALREADYEXISTS, null);
+
+
+        existingUser.Username = req.Username;
+        existingUser.Email = req.Email;
+        existingUser.FullName = req.FullName;
+        existingUser.Birthday = req.Birthday;
+        existingUser.Country = req.Country;
+
+        await _db.SaveChangesAsync();
+
+        return (UserCode.OK, new BasicUserDto(existingUser.Id, existingUser.Username));
     }
 
-    public Task<(UserCode, BasicUserDto)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<(UserCode, string?)> UserLogin(LoginUserRequest req)
+    public async Task<(UserCode, LoginUserDto?)> LoginUserAsync(LoginUserRequest req)
     {
         var user = await _db.Users
             .Where(u => u.Username == req.Username)
@@ -79,6 +246,6 @@ public class UserService : IUserService
 
         string token = _auth.GenerateToken(req.Username, user.Id);
 
-        return (UserCode.OK, token);
+        return (UserCode.OK, new LoginUserDto(token));
     }
 }

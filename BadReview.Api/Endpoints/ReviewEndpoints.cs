@@ -11,6 +11,8 @@ using BadReview.Shared.DTOs.Response;
 using BadReview.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
+using static BadReview.Api.Services.IReviewService;
+
 namespace BadReview.Api.Endpoints;
 
 public static class ReviewEndpoints

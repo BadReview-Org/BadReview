@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BadReview.Api.Migrations
 {
     [DbContext(typeof(BadReviewContext))]
-    [Migration("20251105154312_InitialCreate")]
+    [Migration("20251109172630_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -177,6 +177,9 @@ namespace BadReview.Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<bool>("IsFavorite")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReview")
                         .HasColumnType("bit");
 
                     b.Property<int?>("Rating")

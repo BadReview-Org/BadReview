@@ -176,6 +176,9 @@ namespace BadReview.Api.Migrations
                     b.Property<bool>("IsFavorite")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsReview")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("Rating")
                         .HasColumnType("int");
 

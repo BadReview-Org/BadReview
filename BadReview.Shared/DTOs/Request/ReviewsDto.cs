@@ -9,5 +9,6 @@ public record CreateReviewRequest(
     string? ReviewText,
     ReviewState StateEnum,
     bool IsFavorite,
+    bool IsReview,
     int GameId
 );
