@@ -26,6 +26,6 @@ public record BasicUserDto(
     string Username
 );
 
-public record RegisterUserDto(BasicUserDto UserDto, LoginUserDto LoginDto);
+public record RegisterUserDto(BasicUserDto UserDto, UserTokensDto LoginDto);
 
-public record LoginUserDto(string Token);
+public record UserTokensDto(string AccessToken, string RefreshToken);

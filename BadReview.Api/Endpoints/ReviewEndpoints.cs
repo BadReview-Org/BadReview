@@ -26,13 +26,13 @@ public static class ReviewEndpoints
         app.MapGet("/api/reviews/{id}", GetReviewById);
 
         //PUT: /api/reviews/{id} - Actualizar una reseña por ID
-        app.MapPut("/api/reviews/{id}", UpdateReviewWithId).RequireAuthorization();
+        app.MapPut("/api/reviews/{id}", UpdateReviewWithId).RequireAuthorization("AccessTokenPolicy");
 
         // DELETE: /api/reviews/{id} - Eliminar una reseña por ID
-        app.MapDelete("/api/reviews/{id}", DeleteReviewWithId).RequireAuthorization();
+        app.MapDelete("/api/reviews/{id}", DeleteReviewWithId).RequireAuthorization("AccessTokenPolicy");
 
         // POST: /api/reviews - Crear una nueva reseña
-        app.MapPost("/api/reviews", CreateReview).RequireAuthorization().WithName("ReviewEndpoints");
+        app.MapPost("/api/reviews", CreateReview).RequireAuthorization("AccessTokenPolicy").WithName("ReviewEndpoints");
     }
 
     private static async Task<IResult> GetReviews

@@ -1,3 +1,4 @@
+using BadReview.Shared.Utils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -29,7 +30,7 @@ public class AuthService : IAuthService
     public string HashPassword(string username, string password)
         => _hasher.HashPassword(username, password);
 
-    public string GenerateToken(string username, int userId)
+    private string GenerateToken(string username, int userId, string type, double hours)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -38,17 +39,24 @@ public class AuthService : IAuthService
         {
             new Claim(JwtRegisteredClaimNames.Sub, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("userId", userId.ToString())
+            new Claim("userId", userId.ToString()),
+            new Claim("token_type", type)
         };
 
         var token = new JwtSecurityToken(
             issuer: _issuer,
             audience: null,
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: DateTime.UtcNow.AddHours(hours),
             signingCredentials: creds
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    public string GenerateAccessToken(string username, int userId) =>
+        GenerateToken(username, userId, CONSTANTS.ACCESSTOKEN, 1);
+
+    public string GenerateRefreshToken(string username, int userId) =>
+        GenerateToken(username, userId, CONSTANTS.REFRESHTOKEN, 24 * 30);
 }

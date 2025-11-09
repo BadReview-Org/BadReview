@@ -58,9 +58,10 @@ public class UserService : IUserService
             newUser.Username
         );
 
-        var token = _auth.GenerateToken(req.Username, newUser.Id);
+        var accessToken = _auth.GenerateAccessToken(req.Username, newUser.Id);
+        var refreshToken = _auth.GenerateRefreshToken(req.Username, newUser.Id);
 
-        return (UserCode.OK, new RegisterUserDto(userDto, new LoginUserDto(token)));
+        return (UserCode.OK, new RegisterUserDto(userDto, new UserTokensDto(accessToken, refreshToken)));
     }
 
     public async Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims)
@@ -238,7 +239,7 @@ public class UserService : IUserService
         return (UserCode.OK, new BasicUserDto(existingUser.Id, existingUser.Username));
     }
 
-    public async Task<(UserCode, LoginUserDto?)> LoginUserAsync(LoginUserRequest req)
+    public async Task<(UserCode, UserTokensDto?)> LoginUserAsync(LoginUserRequest req)
     {
         var user = await _db.Users
             .Where(u => u.Username == req.Username)
@@ -251,8 +252,27 @@ public class UserService : IUserService
 
         if (!validHash) return (UserCode.PASSDONTMATCH, null);
 
-        string token = _auth.GenerateToken(req.Username, user.Id);
+        string accessToken = _auth.GenerateAccessToken(req.Username, user.Id);
+        string refreshToken = _auth.GenerateRefreshToken(req.Username, user.Id);
 
-        return (UserCode.OK, new LoginUserDto(token));
+        return (UserCode.OK, new UserTokensDto(accessToken, refreshToken));
+    }
+
+    public async Task<(UserCode, UserTokensDto?)> RefreshTokens(ClaimsPrincipal refreshTokenClaims)
+    {
+        string? claimUserId =
+            refreshTokenClaims.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (claimUserId is null) return (UserCode.BADUSERCLAIMS, null);
+
+        var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(claimUserId));
+
+        if (existingUser is null) return (UserCode.USERNAMENOTFOUND, null);
+
+
+        string newAccessToken = _auth.GenerateAccessToken(existingUser.Username, existingUser.Id);
+        string newRefreshToken = _auth.GenerateRefreshToken(existingUser.Username, existingUser.Id);
+        
+        return (UserCode.OK, new UserTokensDto(newAccessToken, newRefreshToken));
     }
 }

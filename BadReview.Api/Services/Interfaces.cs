@@ -57,7 +57,8 @@ public interface IUserService
     Task<(UserCode, RegisterUserDto?)> CreateUserAsync(CreateUserRequest req);
     Task<(UserCode, BasicUserDto?)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req);
     Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims);
-    Task<(UserCode, LoginUserDto?)> LoginUserAsync(LoginUserRequest req);
+    Task<(UserCode, UserTokensDto?)> LoginUserAsync(LoginUserRequest req);
+    Task<(UserCode, UserTokensDto?)> RefreshTokens(ClaimsPrincipal refreshTokenClaims);
 }
 
 public interface IIGDBService
@@ -79,5 +80,7 @@ public interface IAuthService
 
     string HashPassword(string username, string password);
 
-    string GenerateToken(string username, int userId);
+    string GenerateAccessToken(string username, int userId);
+
+    string GenerateRefreshToken(string username, int userId);
 }

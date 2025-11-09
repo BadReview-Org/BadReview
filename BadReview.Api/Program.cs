@@ -1,11 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authorization;
 using System.Text;
 
 using BadReview.Api.Data;
 using BadReview.Api.Endpoints;
 using BadReview.Api.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 var key = builder.Configuration["Jwt:Key"] ?? "";
@@ -26,51 +28,61 @@ builder.Services.AddCors(options =>
     });
 });
 
+var validationParameters = new TokenValidationParameters
+{
+    ValidateIssuer = true,
+    ValidateAudience = false,
+    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+    ValidateLifetime = true,
+    ValidateIssuerSigningKey = true,
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+};
+
 builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+    .AddAuthentication(opts => opts.DefaultScheme = JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer("AccessToken", opts =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        opts.TokenValidationParameters = validationParameters;
+
+        opts.Events = new JwtBearerEvents
         {
-            ValidateIssuer = true,
-            ValidateAudience = false,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
-        };
-        
-        // JWT Debugger
-        options.Events = new JwtBearerEvents
-        {
-            OnAuthenticationFailed = context =>
-            {
-                Console.WriteLine($"JWT Authentication Failed: {context.Exception.Message}");
-                Console.WriteLine($"   Exception Type: {context.Exception.GetType().Name}");
-                if (context.Exception.InnerException != null)
-                    Console.WriteLine($"   Inner Exception: {context.Exception.InnerException.Message}");
-                return Task.CompletedTask;
-            },
             OnTokenValidated = context =>
             {
-                Console.WriteLine("JWT Token Validated Successfully");
-                var claims = context.Principal?.Claims.Select(c => $"{c.Type}: {c.Value}");
-                Console.WriteLine($"   Claims: {string.Join(", ", claims ?? new[] { "No claims" })}");
+                var claim = context.Principal?.FindFirst("token_type")?.Value;
+                if (claim != "access_token") context.Fail("Invalid token type, expected an Access token.");
+
                 return Task.CompletedTask;
-            },
-            OnMessageReceived = context =>
+            }
+        };
+    })
+    .AddJwtBearer("RefreshToken", opts =>
+    {
+        opts.TokenValidationParameters = validationParameters;
+
+        opts.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = context =>
             {
-                var token = context.Token;
-                var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-                Console.WriteLine($"Authorization Header: {authHeader ?? "NULL"}");
-                Console.WriteLine($"JWT Token Received: {(token?.Length > 20 ? token.Substring(0, 20) + "..." : "null")}");
+                var claim = context.Principal?.FindFirst("token_type")?.Value;
+                if (claim != "refresh_token") context.Fail("Invalid token type, expected a Refresh Token.");
+
                 return Task.CompletedTask;
             }
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(opts =>
+{
+    opts.AddPolicy("AccessTokenPolicy", policy =>
+    {
+        policy.AddAuthenticationSchemes("AccessToken").RequireAuthenticatedUser();
+    });
 
+    opts.AddPolicy("RefreshTokenPolicy", policy =>
+    {
+        policy.AddAuthenticationSchemes("RefreshToken").RequireAuthenticatedUser();
+    });
+});
 
 // DbContext
 builder.Services.AddDbContext<BadReviewContext>(options =>

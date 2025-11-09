@@ -25,27 +25,44 @@ public static class UserEndpoints
         app.MapPost("/api/register", RegisterUser).WithName("RegisterUser");
 
         // PUT: /api/profile - Actualizar un usuario existente
-        app.MapPut("/api/profile", UpdateUser).RequireAuthorization().WithName("UpdateUser");
+        app.MapPut("/api/profile", UpdateUser).RequireAuthorization("AccessTokenPolicy").WithName("UpdateUser");
 
         // DELETE: /api/users/{id} - Eliminar un usuario
-        app.MapDelete("/api/profile", DeleteUser).RequireAuthorization().WithName("DeleteUser");
+        app.MapDelete("/api/profile", DeleteUser).RequireAuthorization("AccessTokenPolicy").WithName("DeleteUser");
 
         // autorizar, traer private dto, paginar
-        app.MapGet("/api/profile", GetPrivateProfile).RequireAuthorization();
+        app.MapGet("/api/profile", GetPrivateProfile).RequireAuthorization("AccessTokenPolicy");
 
         // GET: /api/users/{id} - Obtener un usuario por ID
-        // traer public dto, paginar
         app.MapGet("/api/users/{id}", GetPublicProfile).WithName("GetUser");
+
+        app.MapPost("/api/refresh", RefreshUserTokens).RequireAuthorization("RefreshTokenPolicy");
 
         // GET: /api/users - Obtener todos los usuarios (solo para debugging)
         //app.MapGet("/api/users", GetUsers).WithName("GetUsers");
     }
 
 
+    private static async Task<IResult> RefreshUserTokens
+    (ClaimsPrincipal claims, IUserService userService)
+    {
+        (UserCode code, UserTokensDto? dto) = await userService.RefreshTokens(claims);
+
+        var response = code switch
+        {
+            UserCode.OK => Results.Ok(dto),
+            UserCode.BADUSERCLAIMS => Results.BadRequest("Can't retrieve user id from JWT claims."),
+            UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered."),
+            _ => Results.InternalServerError()
+        };
+
+        return response;
+    }
+
     private static async Task<IResult> LoginUser
     (LoginUserRequest req, IUserService userService)
     {
-        (UserCode code, LoginUserDto? dto) = await userService.LoginUserAsync(req);
+        (UserCode code, UserTokensDto? dto) = await userService.LoginUserAsync(req);
 
         var response = code switch
         {
@@ -84,7 +101,7 @@ public static class UserEndpoints
         {
             UserCode.OK => Results.Ok(dto),
             UserCode.BADUSERCLAIMS => Results.BadRequest("Can't retrieve user id from JWT claims."),
-            UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered'."),
+            UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered."),
             UserCode.USERNAMEALREADYEXISTS => Results.Conflict("Trying to change Username to a one already registered."),
             UserCode.EMAILALREADYEXISTS => Results.Conflict("Trying to change Email to a one already registered."),
             _ => Results.InternalServerError()
