@@ -49,25 +49,25 @@ else
                                   Alt="@gameDetails.Name" 
                                   Class="rounded-lg" 
                                   Style="width: 100%; height: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
                         @if (gameDetails.RatingIGDB.HasValue)
-                                {
-                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
-                                        <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
-                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
-                                            @((gameDetails.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
-                                        </MudText>
-                                    </MudStack>
-                                }
-                        
+                            {
+                            <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
+                            <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
+                                @((gameDetails.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
+                            </MudText>
+                            }
                         @if (gameDetails.Count_RatingBadReview > 0)
-                                {
-                                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
-                                        <img src="icon-192_white.png" alt="BadReview" style="height: 16px; width: auto; opacity: 0.8;" />
-                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
-                                            @((gameDetails.Total_RatingBadReview / gameDetails.Count_RatingBadReview).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
-                                        </MudText>
-                                    </MudStack>
-                                }
+                            {
+                            <img src="icon-192_white.png" alt="BadReview" style="height: 16px; width: auto; opacity: 0.8;" />
+                            <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
+                                @((gameDetails.Total_RatingBadReview / gameDetails.Count_RatingBadReview).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
+                            </MudText>
+                            }
+                        </MudStack>
+                              
+                        
+ 
                     </MudPaper>
                     <!-- User Review Section -->
                     <MudPaper Elevation ="6" Class="pa-3" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">

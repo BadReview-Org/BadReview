@@ -31,7 +31,7 @@
         </MudText>
     </MudPaper>
     <MudPaper Class="pa-4 mb-4" Elevation="6">
-        <CustomFilter ClickApplyFilters="OnFilterChanged" SearchGenres="OnSearchGenresAsync" SearchPlatforms="OnSearchPlatformAsync" Platforms="@Platforms" Genres="@Genres" @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
+        <CustomFilter @bind-extraFilters="@extraFilters" ClickApplyFilters="OnFilterChanged" SearchDevelopers="OnSearchDevelopersAsync" SearchGenres="OnSearchGenresAsync" SearchPlatforms="OnSearchPlatformAsync" Developers="@Developers" Platforms="@Platforms" Genres="@Genres" @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
     </MudPaper>
     <CustomGridCard totalPages="@totalPages" arrayElement="gameCards" PageChanged="OnPageChanged" placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
 </MudContainer>
@@ -41,6 +41,10 @@
     private CardContainer[]? gameCards;
     private List<PlatformDto> Platforms { get; set; } = new();
     private List<GenreDto> Genres { get; set; } = new List<GenreDto>();
+
+    private List<BasicDeveloperDto> Developers { get; set;} = new List<BasicDeveloperDto>();
+
+    private string extraFilters = "";
 
     private string pagesize = "12";
 
@@ -61,7 +65,8 @@
             return allGenres?.Data ?? Enumerable.Empty<GenreDto>();
         }
         apiRequest.Filters = $"@name ~ *\"{searchText}\"*";
-
+        apiRequest.OrderBy = "name";
+        apiRequest.Order = SortOrder.ASC;
         PagedResult<GenreDto>? responseDto = await ApiService.GetManyAsync<GenreDto>(apiRequest);
         if (responseDto != null)
         {
@@ -70,6 +75,32 @@
             return responseDto?.Data ?? Enumerable.Empty<GenreDto>();
         }
         return Enumerable.Empty<GenreDto>();
+    }
+
+    private async Task<IEnumerable<BasicDeveloperDto>> OnSearchDevelopersAsync(string searchText)
+    {
+        ApiRequest apiRequest = new ApiRequest{
+            URI = APIUTILS.URIS.DEVELOPERS, 
+            PageSize = 10,
+            Page = 0 };
+
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            // Retornar todos los géneros
+            var allDevelopers = await ApiService.GetManyAsync<BasicDeveloperDto>(apiRequest);
+            return allDevelopers?.Data ?? Enumerable.Empty<BasicDeveloperDto>();
+        }
+        apiRequest.Filters = $"@name ~ *\"{searchText}\"*";
+        apiRequest.OrderBy = "name";
+        apiRequest.Order = SortOrder.ASC;
+        PagedResult<BasicDeveloperDto>? responseDto = await ApiService.GetManyAsync<BasicDeveloperDto>(apiRequest);
+        if (responseDto != null)
+        {
+            totalPages = (responseDto?.TotalCount ?? 0 )/ (responseDto?.PageSize ?? 1);
+            gameCards = responseDto?.Data.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
+            return responseDto?.Data ?? Enumerable.Empty<BasicDeveloperDto>();
+        }
+        return Enumerable.Empty<BasicDeveloperDto>();
     }
 
 
@@ -87,7 +118,8 @@
             return allPlatform?.Data ?? Enumerable.Empty<PlatformDto>();
         }
         apiRequest.Filters = $"@name ~ *\"{searchText}\"*";
-
+        apiRequest.OrderBy = "name";
+        apiRequest.Order = SortOrder.ASC;
         PagedResult<PlatformDto>? responseDto = await ApiService.GetManyAsync<PlatformDto>(apiRequest);
         if (responseDto != null)
         {
@@ -122,14 +154,14 @@
     {
         gameCards = null; // Mostrar skeletons mientras carga
         //StateHasChanged();
-        await LoadGamesAsync();
+        await LoadGamesAsync(1,extraFilters);
     }
     
     private async Task OnPageChanged(int page)
     {
         gameCards = null; // Mostrar skeletons mientras carga la nueva página
 
-        await LoadGamesAsync(page);
+        await LoadGamesAsync(page, extraFilters);
     }
 
     private async Task OnFilterChanged(string filter)

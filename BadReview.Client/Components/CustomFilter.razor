@@ -69,6 +69,23 @@
                             ValueChanged="@(genre => SelectedGenre = genre)"
                              />
     </MudStack>
+        <MudDivider />
+
+    <MudStack Spacing="2">
+        <MudText Typo="Typo.subtitle1" Class="fw-bold">Developers</MudText>
+        <MudAutocomplete T="BasicDeveloperDto" 
+                            Label="Name" 
+                            Value="@SelectedDeveloper"
+                            SearchFunc="@OnSearchDevelopers"
+                            ToStringFunc="@(g => g?.Name ?? "")"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            Adornment="Adornment.Start"
+                            Clearable="true"
+                            ValueChanged="@(developer => SelectedDeveloper = developer)"
+                             />
+    </MudStack>
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnClickApplyFilters" Class="mt-4 mx-4">
        Apply Filters
     </MudButton>
@@ -83,12 +100,17 @@
 
     private PlatformDto? SelectedPlatform { get; set; }
     private GenreDto? SelectedGenre { get; set; }
+
+    private BasicDeveloperDto? SelectedDeveloper { get; set; }
     //--------------- Public Parameters ----------------
 
     [Parameter] public List<PlatformDto> Platforms { get; set; } = new();
     [Parameter] public List<GenreDto> Genres { get; set; } = new();
+
+    [Parameter] public List<BasicDeveloperDto> Developers { get; set; } = new();
     [Parameter] public string? SelectedFilter { get; set; } = "released";
 
+    [Parameter] public string? extraFilters { get; set; } = "";
     [Parameter] public string Value { get; set; } = string.Empty;
     [Parameter] public string? Placeholder { get; set; } = "Search...";
 
@@ -98,6 +120,8 @@
 
     [Parameter] public EventCallback<string> SelectedFilterChanged { get; set; }
 
+    [Parameter] public EventCallback<string> extraFiltersChanged {get; set;}
+
     //--------------- Public callbacks parameters ----------------
 
     [Parameter] public EventCallback<string> OnSearchAsync { get; set; }
@@ -105,6 +129,8 @@
     [Parameter] public Func<string, Task<IEnumerable<GenreDto>>>? SearchGenres { get; set; }
 
     [Parameter] public Func<string, Task<IEnumerable<PlatformDto>>>? SearchPlatforms { get; set; }
+
+    [Parameter] public Func<string, Task<IEnumerable<BasicDeveloperDto>>>? SearchDevelopers { get; set; }
 
     [Parameter] public EventCallback<string> ClickApplyFilters { get; set; }
     
@@ -130,9 +156,12 @@
             param.Add($"genres = {SelectedGenre?.Id}");
         if(SelectedPlatform?.Id != null)
             param.Add($"platforms = {SelectedPlatform?.Id}");
+        if(SelectedDeveloper?.Id != null)
+            param.Add($"involved_companies.company = {SelectedDeveloper?.Id}&involved_companies.developer = true");
         string query = string.Join('&',param);
-        //string developerparams = (SelectedDeveloper?.Id == null) ? "" : 
-        //                $"involved_companies.companies = {SelectedDeveloper?.Id}&involved_companies.developer = true"
+        
+        extraFilters = query;
+        await extraFiltersChanged.InvokeAsync(query);
         await ClickApplyFilters.InvokeAsync(query);
     }
 
@@ -176,6 +205,30 @@
             return Genres;
             
         return Genres.Where(g => g.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task<IEnumerable<BasicDeveloperDto>> OnSearchDevelopers(string value, CancellationToken token)
+    {
+        // Si hay un callback definido, se busca en la API
+        if (SearchDevelopers != null)
+        {
+            var developers = await SearchDevelopers(value);
+            return developers ?? Enumerable.Empty<BasicDeveloperDto>();
+        }
+        
+        // Fallback: búsqueda local si no hay callback
+        if (string.IsNullOrWhiteSpace(value))
+            return Developers;
+            
+        return Developers.Where(g => g.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+    }
+
+        /*// Fallback: búsqueda local si no hay callback
+        if (string.IsNullOrWhiteSpace(value))
+            return Developers;
+            
+        return Developers.Where(g => g.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+       
     }
 /*    
     private async Task OnPlatformSelected(PlatformDto? platform)

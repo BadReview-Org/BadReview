@@ -74,9 +74,12 @@ public class IGDBClient : IIGDBService
 
     public async Task<PagedResult<BasicCompanyIgdbDto>> GetDevelopersAsync(IgdbRequest query, PaginationRequest pag)
     {
+
         IgdbRequest queryDevs = new IgdbRequest
         {
-            Filters = $"{query.Filters} & developed != null",
+            Filters = string.IsNullOrWhiteSpace(query.Filters) ?
+                     $"developed != null" : $"{query.Filters} & developed != null",
+
             OrderBy = query.OrderBy ?? "name",
             Order = query.Order ?? SortOrder.ASC
         };
