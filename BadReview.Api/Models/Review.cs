@@ -14,6 +14,7 @@ public class Review
     public string? ReviewText { get; set; }
     public ReviewState StateEnum { get; set; } = ReviewState.NONE;
     public bool IsFavorite { get; set; } = false;
+    public bool IsReview { get; set; } = false;
     public CUDate Date { get; set; } = null!;
 
     public User User { get; set; } = null!;

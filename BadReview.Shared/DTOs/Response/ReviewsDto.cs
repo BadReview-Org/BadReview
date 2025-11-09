@@ -12,6 +12,7 @@ public record DetailReviewDto(
     string? ReviewText,
     ReviewState StateEnum,
     bool IsFavorite,
+    bool IsReview,
     [property:JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     BasicUserDto? User,
     BasicGameDto? Game,
@@ -20,4 +21,15 @@ public record DetailReviewDto(
     DateTime UpdatedAt
 );
 
-
+public record BasicReviewDto(
+    int Id,
+    int? Rating,
+    string? ReviewText,
+    ReviewState StateEnum,
+    bool IsFavorite,
+    bool IsReview,
+    [property:JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    BasicUserDto? User,
+    BasicGameDto? Game,
+    DateTime UpdatedAt
+);

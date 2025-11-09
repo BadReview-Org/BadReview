@@ -51,10 +51,10 @@ public class ReviewService : IReviewService
                 r.ReviewText,
                 r.StateEnum,
                 r.IsFavorite,
+                r.IsReview,
                 new BasicUserDto(
                     r.User.Id,
-                    r.User.Username,
-                    r.User.FullName
+                    r.User.Username
                 ),
                 null,
                 r.Date.CreatedAt, r.Date.UpdatedAt
@@ -82,10 +82,10 @@ public class ReviewService : IReviewService
             review.ReviewText,
             review.StateEnum,
             review.IsFavorite,
+            review.IsReview,
             new BasicUserDto(
                 review.User.Id,
-                review.User.Username,
-                review.User.FullName
+                review.User.Username
             ),
             new BasicGameDto(
                 review.Game.Id,
@@ -134,10 +134,10 @@ public class ReviewService : IReviewService
             review.ReviewText,
             review.StateEnum,
             review.IsFavorite,
+            review.IsReview,
             new BasicUserDto(
                 review.User.Id,
-                review.User.Username,
-                review.User.FullName
+                review.User.Username
             ),
             new BasicGameDto(
                 review.Game.Id,
@@ -219,10 +219,10 @@ public class ReviewService : IReviewService
             reviewDb.ReviewText,
             reviewDb.StateEnum,
             reviewDb.IsFavorite,
+            reviewDb.IsReview,
             new BasicUserDto(
                 user.Id,
-                user.Username,
-                user.FullName
+                user.Username
             ),
             new BasicGameDto(
                 game.Id,

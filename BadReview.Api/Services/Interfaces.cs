@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BadReview.Api.Models;
 using BadReview.Shared.DTOs.External;
 using BadReview.Shared.DTOs.Request;
@@ -42,9 +43,16 @@ public interface IReviewService
     Task<(ReviewCode, DetailReviewDto?)> CreateReviewAsync(CreateReviewRequest newReview, User user);
 }
 
+public enum UserCode { OK, USERNAMENOTFOUND, PASSDONTMATCH }
 public interface IUserService
 {
-    Task<User?> GetUserByIdAsync(int id);
+    Task<User?> GetUserByIdAsync(int id); // ?
+    Task<(UserCode, string?)> LoginUserAsync(LoginUserRequest req);
+    Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims);
+    Task<(UserCode, BasicUserDto)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req);
+    Task<(UserCode, BasicUserDto?, string?)> CreateUserAsync(RegisterUserRequest req);
+    Task<(UserCode, PrivateUserDto)> GetUserPrivateData();
+    Task<PublicUserDto?> GetUserPublicData();
 }
 
 public interface IIGDBService
