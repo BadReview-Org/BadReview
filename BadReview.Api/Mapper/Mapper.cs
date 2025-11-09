@@ -24,7 +24,7 @@ public static class Mapper
         };
     }
 
-    public static DetailReviewDto CreateReviewDto(Review model, int userId, string userName, string userEmail)
+    public static DetailReviewDto CreateReviewDto(Review model, int userId, string userName)
     {
         return new DetailReviewDto
         (
@@ -35,16 +35,17 @@ public static class Mapper
             model.ReviewText,
             model.StateEnum,
             model.IsFavorite,
-            CreateUserDto(userId, userName, userEmail),
+            model.IsReview,
+            CreateUserDto(userId, userName),
             null,
             DateTime.Now,
             DateTime.Now
         );
     }
 
-    public static BasicUserDto CreateUserDto(int id, string name, string email)
+    public static BasicUserDto CreateUserDto(int id, string userName)
     {
-        return new BasicUserDto(id, name, email);
+        return new BasicUserDto(id, userName);
     }
 
     public static GenreDto CreateGenreDto(GenreIgdbDto gen) => new GenreDto(gen.Id, gen.Name);
@@ -199,10 +200,10 @@ public static class Mapper
                 r.ReviewText,
                 r.StateEnum,
                 r.IsFavorite,
+                r.IsReview,
                 new BasicUserDto(
                     r.User.Id,
-                    r.User.Username,
-                    r.User.FullName
+                    r.User.Username
                 ),
                 null,
                 r.Date.CreatedAt, r.Date.UpdatedAt
@@ -214,5 +215,11 @@ public static class Mapper
             g.GamePlatforms.Select(gp => CreatePlatformDto(gp.Platform)
             ).ToList()
         ));
+    }
+
+    public static PagedResult<T> ToPagedResult<T>(this IEnumerable<T> data, int totalCount, int page, int pageSize)
+    {
+        var dataList = data.ToList();
+        return new PagedResult<T>(dataList, totalCount, page, pageSize);
     }
 }

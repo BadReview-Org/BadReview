@@ -11,6 +11,9 @@ using static BadReview.Api.Mapper.Mapper;
 using BadReview.Api.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 
+using static BadReview.Api.Services.IReviewService;
+using System.ComponentModel;
+
 namespace BadReview.Api.Services;
 
 public class ReviewService : IReviewService
@@ -24,44 +27,124 @@ public class ReviewService : IReviewService
         _db = db;
     }
 
-    public async Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag)
+
+    public async Task<PagedResult<BasicReviewDto>> GetBasicReviewsAsync
+    (PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null)
     {
         var page = pag.Page ?? CONSTANTS.DEF_PAGE;
         var pageSize = pag.PageSize ?? CONSTANTS.DEF_PAGESIZE;
 
-        var count = await _db.Reviews.CountAsync();
+        IQueryable<Review> reviewsDomain = opt switch
+        {
+            GetReviewsOpt.ALL =>
+                _db.Reviews.Where(r => userId == null || r.UserId == userId),
+            GetReviewsOpt.REVIEWS =>
+                _db.Reviews.Where(r => r.IsReview && (userId == null || r.UserId == userId)),
+            GetReviewsOpt.FAVORITES =>
+                _db.Reviews.Where(r => r.IsFavorite && (userId == null || r.UserId == userId)),
+            _ => throw new InvalidEnumArgumentException()
+        };
 
-        var reviews = await _db.Reviews
+        int count = await reviewsDomain.CountAsync();
+
+        List<Review>? reviews = await reviewsDomain
             .OrderBy(r => r.Id)
             .Skip(page * pageSize)
             .Take(pageSize)
             .Include(r => r.User)
+            .Include(r => r.Game)
+            .ToListAsync();
+
+        if (reviews is null)
+            return new PagedResult<BasicReviewDto>(new(), count, page, pageSize);
+
+        List<BasicReviewDto> basicList = reviews
+            .Select(r => new BasicReviewDto(
+                r.Id,
+                r.Rating,
+                r.ReviewText,
+                r.StateEnum,
+                r.IsFavorite,
+                r.IsReview,
+                new BasicUserDto(
+                    r.User.Id,
+                    r.User.Username
+                ),
+                new BasicGameDto(
+                    r.Game.Id,
+                    r.Game.Name,
+                    r.Game.Cover?.ImageId,
+                    r.Game.Cover?.ImageHeight,
+                    r.Game.Cover?.ImageWidth,
+                    r.Game.RatingIGDB,
+                    r.Game.Total_RatingBadReview,
+                    r.Game.Count_RatingBadReview
+                ),
+                r.Date.UpdatedAt
+                ))
+            .ToList();
+
+        return new PagedResult<BasicReviewDto>(basicList, count, page, pageSize);
+    }
+
+    public async Task<PagedResult<DetailReviewDto>> GetDetailReviewsAsync
+    (PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null)
+    {
+        var page = pag.Page ?? CONSTANTS.DEF_PAGE;
+        var pageSize = pag.PageSize ?? CONSTANTS.DEF_PAGESIZE;
+
+        IQueryable<Review> reviewsDomain = opt switch
+        {
+            GetReviewsOpt.ALL =>
+                _db.Reviews.Where(r => userId == null || r.UserId == userId),
+            GetReviewsOpt.REVIEWS =>
+                _db.Reviews.Where(r => r.IsReview && (userId == null || r.UserId == userId)),
+            GetReviewsOpt.FAVORITES =>
+                _db.Reviews.Where(r => r.IsFavorite && (userId == null || r.UserId == userId)),
+            _ => throw new InvalidEnumArgumentException()
+        };
+
+        int count = await reviewsDomain.CountAsync();
+
+        List<Review>? reviews = await reviewsDomain
+            .OrderBy(r => r.Id)
+            .Skip(page * pageSize)
+            .Take(pageSize)
+            .Include(r => r.User)
+            .Include(r => r.Game)
             .ToListAsync();
 
         if (reviews is null)
             return new PagedResult<DetailReviewDto>(new(), count, page, pageSize);
 
-
-        List<DetailReviewDto> reviewList = reviews
+        List<DetailReviewDto> detailList = reviews
             .Select(r => new DetailReviewDto(
                 r.Id,
                 r.Rating,
-                r.StartDate,
-                r.EndDate,
+                r.StartDate, r.EndDate,
                 r.ReviewText,
                 r.StateEnum,
                 r.IsFavorite,
+                r.IsReview,
                 new BasicUserDto(
                     r.User.Id,
-                    r.User.Username,
-                    r.User.FullName
+                    r.User.Username
                 ),
-                null,
+                new BasicGameDto(
+                    r.Game.Id,
+                    r.Game.Name,
+                    r.Game.Cover?.ImageId,
+                    r.Game.Cover?.ImageHeight,
+                    r.Game.Cover?.ImageWidth,
+                    r.Game.RatingIGDB,
+                    r.Game.Total_RatingBadReview,
+                    r.Game.Count_RatingBadReview
+                ),
                 r.Date.CreatedAt, r.Date.UpdatedAt
                 ))
             .ToList();
 
-        return new PagedResult<DetailReviewDto>(reviewList, count, page, pageSize);
+        return new PagedResult<DetailReviewDto>(detailList, count, page, pageSize);
     }
 
     public async Task<DetailReviewDto?> GetReviewByIdAsync(int id)
@@ -82,10 +165,10 @@ public class ReviewService : IReviewService
             review.ReviewText,
             review.StateEnum,
             review.IsFavorite,
+            review.IsReview,
             new BasicUserDto(
                 review.User.Id,
-                review.User.Username,
-                review.User.FullName
+                review.User.Username
             ),
             new BasicGameDto(
                 review.Game.Id,
@@ -122,6 +205,7 @@ public class ReviewService : IReviewService
         review.ReviewText = updatedReview.ReviewText;
         review.StateEnum = updatedReview.StateEnum;
         review.IsFavorite = updatedReview.IsFavorite;
+        review.IsReview = updatedReview.IsReview;
 
         await _db.SaveChangesAsync();
 
@@ -134,10 +218,10 @@ public class ReviewService : IReviewService
             review.ReviewText,
             review.StateEnum,
             review.IsFavorite,
+            review.IsReview,
             new BasicUserDto(
                 review.User.Id,
-                review.User.Username,
-                review.User.FullName
+                review.User.Username
             ),
             new BasicGameDto(
                 review.Game.Id,
@@ -166,7 +250,7 @@ public class ReviewService : IReviewService
 
         review.Game.Total_RatingBadReview -= review.Rating ?? 0;
         review.Game.Count_RatingBadReview--;
-        
+
         _db.Reviews.Remove(review);
         await _db.SaveChangesAsync();
 
@@ -193,6 +277,7 @@ public class ReviewService : IReviewService
             EndDate = newReview.EndDate,
             ReviewText = newReview.ReviewText,
             StateEnum = newReview.StateEnum,
+            IsReview = newReview.IsReview,
             IsFavorite = newReview.IsFavorite,
             UserId = user.Id,
             GameId = game.Id
@@ -219,10 +304,10 @@ public class ReviewService : IReviewService
             reviewDb.ReviewText,
             reviewDb.StateEnum,
             reviewDb.IsFavorite,
+            reviewDb.IsReview,
             new BasicUserDto(
                 user.Id,
-                user.Username,
-                user.FullName
+                user.Username
             ),
             new BasicGameDto(
                 game.Id,

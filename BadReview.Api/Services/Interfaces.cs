@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BadReview.Api.Models;
 using BadReview.Shared.DTOs.External;
 using BadReview.Shared.DTOs.Request;
@@ -32,10 +33,14 @@ public interface IPlatformService
 }
 
 
-public enum ReviewCode { OK, REVIEWNOTFOUND, GAMENOTFOUND, USERNOTMATCH, USERALREADYHASREVIEW }
+
 public interface IReviewService
 {
-    Task<PagedResult<DetailReviewDto>> GetReviewsAsync(PaginationRequest pag);
+    public enum ReviewCode { OK, REVIEWNOTFOUND, GAMENOTFOUND, USERNOTMATCH, USERALREADYHASREVIEW }
+
+    public enum GetReviewsOpt { ALL, FAVORITES, REVIEWS }
+    Task<PagedResult<BasicReviewDto>> GetBasicReviewsAsync(PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null);
+    Task<PagedResult<DetailReviewDto>> GetDetailReviewsAsync(PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null);
     Task<DetailReviewDto?> GetReviewByIdAsync(int id);
     Task<(ReviewCode, DetailReviewDto?)> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview);
     Task<ReviewCode> DeleteReviewAsync(int reviewId, int userId);
@@ -44,7 +49,16 @@ public interface IReviewService
 
 public interface IUserService
 {
-    Task<User?> GetUserByIdAsync(int id);
+    public enum UserCode { OK, USERNAMENOTFOUND, PASSDONTMATCH, USERNAMEALREADYEXISTS, EMAILALREADYEXISTS, BADUSERCLAIMS, NULLPASSWORD }
+
+    Task<User?> GetUserByIdAsync(int id); // ?
+    Task<(UserCode, PrivateUserDto?)> GetUserPrivateData(int userId, PaginationRequest pag);
+    Task<(UserCode, PublicUserDto?)> GetUserPublicData(int userId, PaginationRequest pag);
+    Task<(UserCode, RegisterUserDto?)> CreateUserAsync(CreateUserRequest req);
+    Task<(UserCode, BasicUserDto?)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req);
+    Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims);
+    Task<(UserCode, UserTokensDto?)> LoginUserAsync(LoginUserRequest req);
+    Task<(UserCode, UserTokensDto?)> RefreshTokens(ClaimsPrincipal refreshTokenClaims);
 }
 
 public interface IIGDBService
@@ -66,5 +80,7 @@ public interface IAuthService
 
     string HashPassword(string username, string password);
 
-    string GenerateToken(string username, int userId);
+    string GenerateAccessToken(string username, int userId);
+
+    string GenerateRefreshToken(string username, int userId);
 }

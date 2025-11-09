@@ -186,6 +186,7 @@ namespace BadReview.Api.Migrations
                     ReviewText = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     StateEnum = table.Column<int>(type: "int", nullable: false),
                     IsFavorite = table.Column<bool>(type: "bit", nullable: false),
+                    IsReview = table.Column<bool>(type: "bit", nullable: false),
                     Date_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "getdate()"),
                     Date_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "getdate()")
                 },
