@@ -1,0 +1,268 @@
+@page "/profile"
+@using BadReview.Shared.DTOs.Response
+@using BadReview.Shared.Utils
+@using BadReview.Client.Utils
+@using System.Globalization
+@inject HttpClient Client
+@inject NavigationManager Navigation
+@inject AuthService AuthService
+@inject ApiService ApiService
+
+<PageTitle>Profile</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        @if (user == null)
+        {
+            <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+                <MudGrid Spacing="4">
+                    <MudItem xs="12" md="4">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+                    </MudItem>
+                    <MudItem xs="12" md="8">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="150px" Class="mb-4" />
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" />
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        }
+        else
+        {
+            <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+                <MudGrid Spacing="4">
+                    <!-- Header con información del usuario -->
+                    <MudItem xs="12">
+                        <MudPaper Class="pa-6" Elevation="8" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                                <MudAvatar Size="Size.Large" Style="width: 100px; height: 100px; font-size: 2.5rem; background-color: rgba(255,255,255,0.2);">
+                                    @user.Username[0].ToString().ToUpper()
+                                </MudAvatar>
+                                <MudStack Spacing="1">
+                                    <MudText Typo="Typo.h3" Style="font-weight: 700; color: white;">
+                                        @user.Username
+                                    </MudText>
+                                    @if (!string.IsNullOrEmpty(user.FullName))
+                                    {
+                                        <MudText Typo="Typo.h6" Style="color: rgba(255,255,255,0.9);">
+                                            @user.FullName
+                                        </MudText>
+                                    }
+                                    <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                                        Member since @user.CreatedAt.ToString("MMMM yyyy", CultureInfo.InvariantCulture)
+                                    </MudText>
+                                </MudStack>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+
+                    <!-- Columna Izquierda - Información Personal -->
+                    <MudItem xs="12" md="4">
+                        <MudStack Spacing="3">
+                            <!-- Personal Info Card -->
+                            <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                                <MudText Typo="Typo.h6" Class="mb-3" Style="color: #667eea;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" Class="mr-2" />
+                                    Personal Information
+                                </MudText>
+                                <MudStack Spacing="2">
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                        <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Size="Size.Small" Color="Color.Primary" />
+                                        <MudText Typo="Typo.body2">
+                                            <strong>Username:</strong> @user.Username
+                                        </MudText>
+                                    </MudStack>
+                                    
+                                    @if (!string.IsNullOrEmpty(user.FullName))
+                                    {
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudIcon Icon="@Icons.Material.Filled.Badge" Size="Size.Small" Color="Color.Primary" />
+                                            <MudText Typo="Typo.body2">
+                                                <strong>Full Name:</strong> @user.FullName
+                                            </MudText>
+                                        </MudStack>
+                                    }
+                                    
+                                    @if (user.Birthday.HasValue)
+                                    {
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudIcon Icon="@Icons.Material.Filled.Cake" Size="Size.Small" Color="Color.Primary" />
+                                            <MudText Typo="Typo.body2">
+                                                <strong>Birthday:</strong> @user.Birthday.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
+                                            </MudText>
+                                        </MudStack>
+                                    }
+                                    
+                                    @if (user.Country.HasValue)
+                                    {
+                                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" Color="Color.Primary" />
+                                            <MudText Typo="Typo.body2">
+                                                <strong>Country:</strong> @GetCountryName(user.Country.Value)
+                                            </MudText>
+                                        </MudStack>
+                                    }
+                                </MudStack>
+                            </MudPaper>
+
+                            <!-- Activity Stats Card -->
+                            <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                                <MudText Typo="Typo.h6" Class="mb-3" Style="color: #764ba2;">
+                                    <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Medium" Class="mr-2" />
+                                    Activity
+                                </MudText>
+                                <MudStack Spacing="2">
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                        <MudText Typo="Typo.body2">
+                                            <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Small" Class="mr-1" />
+                                            Reviews
+                                        </MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Primary">
+                                            @user.Reviews.TotalCount
+                                        </MudChip>
+                                    </MudStack>
+                                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                                        <MudText Typo="Typo.body2">
+                                            <MudIcon Icon="@Icons.Material.Filled.Favorite" Size="Size.Small" Class="mr-1" />
+                                            Favorites
+                                        </MudText>
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Error">
+                                            @user.Favorites.TotalCount
+                                        </MudChip>
+                                    </MudStack>
+                                </MudStack>
+                            </MudPaper>
+                        </MudStack>
+                    </MudItem>
+
+                    <!-- Columna Derecha - Reviews y Favorites -->
+                    <MudItem xs="12" md="8">
+                        <MudStack Spacing="3">
+                            <!-- Recent Reviews -->
+                            <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                                <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
+                                    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Class="mr-2" />
+                                    Recent Reviews (@user.Reviews.TotalCount)
+                                </MudText>
+                                @if (user.Reviews.Data.Any())
+                                {
+                                    <MudStack Spacing="2">
+                                        @foreach (var review in user.Reviews.Data.Take(5))
+                                        {
+                                            <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
+                                                <MudStack Spacing="1">
+                                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                                                            @(review.Game?.Name ?? "Unknown Game")
+                                                        </MudText>
+                                                        @if (review.Rating.HasValue)
+                                                        {
+                                                            <MudRating SelectedValue="@review.Rating.Value" ReadOnly="true" Size="Size.Small" />
+                                                        }
+                                                    </MudStack>
+                                                    @if (!string.IsNullOrEmpty(review.ReviewText))
+                                                    {
+                                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
+                                                            @review.ReviewText
+                                                        </MudText>
+                                                    }
+                                                    <MudStack Row="true" Spacing="1">
+                                                        <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                                            @review.StateEnum.ToString()
+                                                        </MudChip>
+                                                        <MudText Typo="Typo.caption" Style="color: #808080;">
+                                                            @review.CreatedAt.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)
+                                                        </MudText>
+                                                    </MudStack>
+                                                </MudStack>
+                                            </MudPaper>
+                                        }
+                                    </MudStack>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #808080; padding: 40px 0;">
+                                        No reviews yet. Start reviewing games!
+                                    </MudText>
+                                }
+                            </MudPaper>
+
+                            <!-- Favorite Games -->
+                            <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                                <MudText Typo="Typo.h5" Class="mb-3" Style="color: #764ba2;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Favorite" Size="Size.Medium" Class="mr-2" />
+                                    Favorite Games (@user.Favorites.TotalCount)
+                                </MudText>
+                                @if (user.Favorites.Data.Any())
+                                {
+                                    <MudStack Spacing="2">
+                                        @foreach (var favorite in user.Favorites.Data.Take(5))
+                                        {
+                                            <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
+                                                <MudStack Spacing="1">
+                                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                                                            @(favorite.Game?.Name ?? "Unknown Game")
+                                                        </MudText>
+                                                        <MudIcon Icon="@Icons.Material.Filled.Favorite" Color="Color.Error" />
+                                                    </MudStack>
+                                                    @if (!string.IsNullOrEmpty(favorite.ReviewText))
+                                                    {
+                                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
+                                                            @favorite.ReviewText
+                                                        </MudText>
+                                                    }
+                                                    @if (favorite.Rating.HasValue)
+                                                    {
+                                                        <MudRating SelectedValue="@favorite.Rating.Value" ReadOnly="true" Size="Size.Small" />
+                                                    }
+                                                </MudStack>
+                                            </MudPaper>
+                                        }
+                                    </MudStack>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #808080; padding: 40px 0;">
+                                        No favorite games yet. Add some favorites!
+                                    </MudText>
+                                }
+                            </MudPaper>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        }
+    </Authorized>
+    <NotAuthorized>
+        @{ Navigation.NavigateTo("/login", true); }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private PrivateUserDto? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserProfile();
+    }
+
+    private async Task LoadUserProfile()
+    {
+        try
+        {
+            // Obtener el perfil del usuario autenticado
+            user = await ApiService.PrivateGetAsync<PrivateUserDto>(APIUTILS.URIS.PROFILE);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user profile: {ex.Message}");
+        }
+    }
+
+    private string GetCountryName(int countryCode)
+    {
+        // Aquí podrías mapear el código de país a su nombre
+        // Por ahora retorna el código
+        return $"Country Code: {countryCode}";
+    }
+}

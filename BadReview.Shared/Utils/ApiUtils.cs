@@ -16,6 +16,8 @@ public static class APIUTILS
 
         public const string REVIEWS = "reviews";
         public const string USERS = "users";
+
+        public const string PROFILE = "profile";
     }
 }
 

@@ -7,6 +7,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject ApiService ApiService
+@inject JWTAuthStateProvider AuthStateProvider
 
 <PageTitle>@gameDetails?.Name</PageTitle>
 
@@ -64,11 +65,13 @@ else
                                 @((gameDetails.Total_RatingBadReview / gameDetails.Count_RatingBadReview).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
                             </MudText>
                             }
-                        <MudToggleIconButton @bind-Toggled="Favorite"
+                        <MudToggleIconButton Toggled="Favorite"
                             Icon="@Icons.Material.Filled.FavoriteBorder"
                             Color="@Color.Error"
                             ToggledIcon="@Icons.Material.Filled.Favorite"
-                            ToggledColor="@Color.Success"/>
+                            ToggledColor="@Color.Success"
+                            ToggledChanged="@OnFavoriteChanged"
+                            />
                         </MudStack>
                               
                         
@@ -250,6 +253,9 @@ else
 
     private ReviewState reviewState = ReviewState.NONE;
 
+    private DetailReviewDto? userReview;
+
+
     private string reviewText = "";
     private CustomDialog? popupReview;
     private void OpenDialog() => popupReview?.Open();
@@ -299,16 +305,31 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        gameDetails = await ApiService.PublicGetByIdAsync<DetailGameDto>("games",id);
+        // Verificar si el usuario está autenticado
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        
+        // Usar endpoint apropiado según autenticación
+        if (isAuthenticated)
+        {
+            // Usuario autenticado - usar endpoint privado (sin /public)
+            gameDetails = await ApiService.PrivateGetByIdAsync<DetailGameDto>("games/private", id);
+        }
+        else
+        {
+            // Usuario NO autenticado - endpoint público
+            gameDetails = await ApiService.PublicGetByIdAsync<DetailGameDto>("games/public", id);
+        }
+        
         if (gameDetails == null)
         {
             Navigation.NavigateTo("/trending-games");
             return;
         }  
-
-        reviewCards =
-            gameDetails.Reviews
-                .Select(r => new CardContainer(new DetailReviewCardStrat(), r)).ToArray();
+        
+        // Cargar reviews
+        reviewCards = gameDetails.Reviews
+            .Select(r => new CardContainer(new DetailReviewCardStrat(), r)).ToArray();
 
         // Extract colors from cover image
         await ExtractColorsFromCover();
@@ -334,6 +355,27 @@ else
         {
             Console.WriteLine($"Error extracting colors: {ex.Message}");
             // Keep default colors
+        }
+    }
+    private async void OnFavoriteChanged(bool isFavorite)
+    {
+        Favorite = isFavorite;
+        if(Favorite){
+            var favoriteData = new CreateReviewRequest(
+                Rating: null,
+                StartDate: null,
+                EndDate: null,
+                ReviewText: null,
+                StateEnum: ReviewState.NONE,
+                IsFavorite: Favorite,
+                IsReview: false,
+                GameId: id
+            );
+            await ApiService.PostAsync<CreateReviewRequest>(APIUTILS.URIS.REVIEWS, favoriteData);
+        }
+        else{
+            var exfavorite =  
+            await ApiService.DeleteAsync($"{APIUTILS.URIS.REVIEWS}/favorite/{id}");
         }
     }
 

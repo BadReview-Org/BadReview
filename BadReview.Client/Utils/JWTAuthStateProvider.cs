@@ -13,13 +13,12 @@ public class JWTAuthStateProvider : AuthenticationStateProvider
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        Console.WriteLine(">>> GetAuthenticationStateAsync() called!");
 
         var token = await authService.GetTokenAsync(AuthService.AccessKey);
         if (string.IsNullOrEmpty(token))
         {
-            Console.WriteLine("Token is not set.");
-            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            await authService.RefreshTokenAsync();
+            token = await authService.GetTokenAsync(AuthService.AccessKey);
         }
             
 

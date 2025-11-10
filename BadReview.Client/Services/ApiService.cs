@@ -42,12 +42,17 @@ public class ApiService
 
     public async Task<T?> PublicGetByIdAsync<T>(string uri, int id)
     {
-        return await _httpClient.GetFromJsonAsync<T>($"api/{uri}/{id}");;
+        return await _httpClient.GetFromJsonAsync<T>($"{uri}/{id}");;
     }
 
     public async Task<T?> PrivateGetByIdAsync<T>(string uri, int id)
     {
-        return await RefreshTokenRequestAsync<T>($"api/{uri}/{id}", default, HttpMethod.Get);
+        return await RefreshTokenRequestAsync<T>($"{uri}/{id}", default, HttpMethod.Get);
+    }
+
+    public async Task<T?> PrivateGetAsync<T>(string uri)
+    {
+        return await RefreshTokenRequestAsync<T>(uri, default, HttpMethod.Get);
     }
 
     public async Task<T?> PostAsync<T>(string uri, T data)
