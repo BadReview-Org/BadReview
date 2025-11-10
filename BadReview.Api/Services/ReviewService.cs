@@ -29,7 +29,7 @@ public class ReviewService : IReviewService
 
 
     public async Task<PagedResult<BasicReviewDto>> GetBasicReviewsAsync
-    (PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null)
+    (PaginationRequest pag, bool includeGame, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null, int? gameId = null)
     {
         var page = pag.Page ?? CONSTANTS.DEF_PAGE;
         var pageSize = pag.PageSize ?? CONSTANTS.DEF_PAGESIZE;
@@ -37,18 +37,18 @@ public class ReviewService : IReviewService
         IQueryable<Review> reviewsDomain = opt switch
         {
             GetReviewsOpt.ALL =>
-                _db.Reviews.Where(r => userId == null || r.UserId == userId),
+                _db.Reviews.Where(r => (userId == null || r.UserId == userId) && (gameId == null || r.GameId == gameId)),
             GetReviewsOpt.REVIEWS =>
-                _db.Reviews.Where(r => r.IsReview && (userId == null || r.UserId == userId)),
+                _db.Reviews.Where(r => r.IsReview && (userId == null || r.UserId == userId) && (gameId == null || r.GameId == gameId)),
             GetReviewsOpt.FAVORITES =>
-                _db.Reviews.Where(r => r.IsFavorite && (userId == null || r.UserId == userId)),
+                _db.Reviews.Where(r => r.IsFavorite && (userId == null || r.UserId == userId) && (gameId == null || r.GameId == gameId)),
             _ => throw new InvalidEnumArgumentException()
         };
 
         int count = await reviewsDomain.CountAsync();
 
         List<Review>? reviews = await reviewsDomain
-            .OrderBy(r => r.Id)
+            .OrderByDescending(r => r.Date.UpdatedAt)
             .Skip(page * pageSize)
             .Take(pageSize)
             .Include(r => r.User)
@@ -70,16 +70,18 @@ public class ReviewService : IReviewService
                     r.User.Id,
                     r.User.Username
                 ),
-                new BasicGameDto(
-                    r.Game.Id,
-                    r.Game.Name,
-                    r.Game.Cover?.ImageId,
-                    r.Game.Cover?.ImageHeight,
-                    r.Game.Cover?.ImageWidth,
-                    r.Game.RatingIGDB,
-                    r.Game.Total_RatingBadReview,
-                    r.Game.Count_RatingBadReview
-                ),
+                includeGame ? 
+                    new BasicGameDto(
+                        r.Game.Id,
+                        r.Game.Name,
+                        r.Game.Cover?.ImageId,
+                        r.Game.Cover?.ImageHeight,
+                        r.Game.Cover?.ImageWidth,
+                        r.Game.RatingIGDB,
+                        r.Game.Total_RatingBadReview,
+                        r.Game.Count_RatingBadReview
+                    )
+                    : null,
                 r.Date.UpdatedAt
                 ))
             .ToList();
@@ -88,7 +90,7 @@ public class ReviewService : IReviewService
     }
 
     public async Task<PagedResult<DetailReviewDto>> GetDetailReviewsAsync
-    (PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null)
+    (PaginationRequest pag, bool includeGame, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null, int? gameId = null)
     {
         var page = pag.Page ?? CONSTANTS.DEF_PAGE;
         var pageSize = pag.PageSize ?? CONSTANTS.DEF_PAGESIZE;
@@ -96,18 +98,18 @@ public class ReviewService : IReviewService
         IQueryable<Review> reviewsDomain = opt switch
         {
             GetReviewsOpt.ALL =>
-                _db.Reviews.Where(r => userId == null || r.UserId == userId),
+                _db.Reviews.Where(r => (userId == null || r.UserId == userId) && (gameId == null || r.GameId == gameId)),
             GetReviewsOpt.REVIEWS =>
-                _db.Reviews.Where(r => r.IsReview && (userId == null || r.UserId == userId)),
+                _db.Reviews.Where(r => r.IsReview && (userId == null || r.UserId == userId) && (gameId == null || r.GameId == gameId)),
             GetReviewsOpt.FAVORITES =>
-                _db.Reviews.Where(r => r.IsFavorite && (userId == null || r.UserId == userId)),
+                _db.Reviews.Where(r => r.IsFavorite && (userId == null || r.UserId == userId) && (gameId == null || r.GameId == gameId)),
             _ => throw new InvalidEnumArgumentException()
         };
 
         int count = await reviewsDomain.CountAsync();
 
         List<Review>? reviews = await reviewsDomain
-            .OrderBy(r => r.Id)
+            .OrderByDescending(r => r.Date.UpdatedAt)
             .Skip(page * pageSize)
             .Take(pageSize)
             .Include(r => r.User)
@@ -130,16 +132,18 @@ public class ReviewService : IReviewService
                     r.User.Id,
                     r.User.Username
                 ),
-                new BasicGameDto(
-                    r.Game.Id,
-                    r.Game.Name,
-                    r.Game.Cover?.ImageId,
-                    r.Game.Cover?.ImageHeight,
-                    r.Game.Cover?.ImageWidth,
-                    r.Game.RatingIGDB,
-                    r.Game.Total_RatingBadReview,
-                    r.Game.Count_RatingBadReview
-                ),
+                includeGame ?
+                    new BasicGameDto(
+                        r.Game.Id,
+                        r.Game.Name,
+                        r.Game.Cover?.ImageId,
+                        r.Game.Cover?.ImageHeight,
+                        r.Game.Cover?.ImageWidth,
+                        r.Game.RatingIGDB,
+                        r.Game.Total_RatingBadReview,
+                        r.Game.Count_RatingBadReview
+                    )
+                    : null,
                 r.Date.CreatedAt, r.Date.UpdatedAt
                 ))
             .ToList();
@@ -199,6 +203,11 @@ public class ReviewService : IReviewService
         review.Game.Total_RatingBadReview -= review.Rating ?? 0;
         review.Game.Total_RatingBadReview += updatedReview.Rating ?? 0;
 
+        if ((review.Rating is null || review.Rating == 0) && (updatedReview.Rating is not null && updatedReview.Rating > 0))
+            review.Game.Count_RatingBadReview++;
+        else if ((review.Rating is not null && review.Rating > 0) && (updatedReview.Rating is null || updatedReview.Rating == 0))
+            review.Game.Count_RatingBadReview--;
+
         review.Rating = updatedReview.Rating;
         review.StartDate = updatedReview.StartDate;
         review.EndDate = updatedReview.EndDate;
@@ -249,7 +258,8 @@ public class ReviewService : IReviewService
 
 
         review.Game.Total_RatingBadReview -= review.Rating ?? 0;
-        review.Game.Count_RatingBadReview--;
+        review.Game.Count_RatingBadReview -=
+            (review.Rating is null || review.Rating == 0) ? 0 : 1;
 
         _db.Reviews.Remove(review);
         await _db.SaveChangesAsync();
@@ -268,7 +278,8 @@ public class ReviewService : IReviewService
 
 
         game.Total_RatingBadReview += newReview.Rating ?? 0;
-        game.Count_RatingBadReview++;
+        game.Count_RatingBadReview +=
+            (newReview.Rating is null || newReview.Rating == 0) ? 0 : 1;
 
         var reviewDb = new Review
         {

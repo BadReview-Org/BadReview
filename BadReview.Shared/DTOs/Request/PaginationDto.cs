@@ -3,7 +3,7 @@ using BadReview.Shared.Utils;
 namespace BadReview.Shared.DTOs.Request;
 
 
-public enum UserPaginationField { REVIEWS, FAVORITES}
+public enum UserPaginationField { REVIEWS, FAVORITES }
 public record PaginationRequest
 {
     // need nullable fields for .net parameters, in case the client does not provide these params

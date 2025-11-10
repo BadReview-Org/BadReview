@@ -149,11 +149,11 @@ public static class UserEndpoints
                     _ => Results.InternalServerError()
                 };
             case UserPaginationField.REVIEWS:
-                var reviewsPage = await reviewService.GetDetailReviewsAsync(pag, GetReviewsOpt.REVIEWS, userId);
+                var reviewsPage = await reviewService.GetDetailReviewsAsync(pag, true, GetReviewsOpt.REVIEWS, userId);
 
                 return Results.Ok(reviewsPage);
             case UserPaginationField.FAVORITES:
-                var favoritesPage = await reviewService.GetDetailReviewsAsync(pag, GetReviewsOpt.FAVORITES, userId);
+                var favoritesPage = await reviewService.GetDetailReviewsAsync(pag, true, GetReviewsOpt.FAVORITES, userId);
 
                 return Results.Ok(favoritesPage);
             default:
@@ -176,11 +176,11 @@ public static class UserEndpoints
                     _ => Results.InternalServerError()
                 };
             case UserPaginationField.REVIEWS:
-                var reviewsPage = await reviewService.GetBasicReviewsAsync(pag, GetReviewsOpt.REVIEWS, id);
+                var reviewsPage = await reviewService.GetBasicReviewsAsync(pag, true, GetReviewsOpt.REVIEWS, id);
 
                 return Results.Ok(reviewsPage);
             case UserPaginationField.FAVORITES:
-                var favoritesPage = await reviewService.GetBasicReviewsAsync(pag, GetReviewsOpt.FAVORITES, id);
+                var favoritesPage = await reviewService.GetBasicReviewsAsync(pag, true, GetReviewsOpt.FAVORITES, id);
 
                 return Results.Ok(favoritesPage);
             default:

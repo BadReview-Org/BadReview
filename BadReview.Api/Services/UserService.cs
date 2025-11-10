@@ -112,7 +112,7 @@ public class UserService : IUserService
                 u.Id, u.Username, u.FullName, u.Birthday, u.Country,
                 u.Reviews
                     .Where(r => r.IsReview)
-                    .OrderBy(r => r.Id)
+                    .OrderByDescending(r => r.Date.UpdatedAt)
                     .Skip(page * pageSize)
                     .Take(pageSize)
                     .Select(r => new DetailReviewDto(
@@ -127,7 +127,7 @@ public class UserService : IUserService
                 )).ToPagedResult(reviewCount, page, pageSize),
                 u.Reviews
                     .Where(r => r.IsFavorite)
-                    .OrderBy(r => r.Id)
+                    .OrderByDescending(r => r.Date.UpdatedAt)
                     .Skip(page * pageSize)
                     .Take(pageSize)
                     .Select(r => new DetailReviewDto(
@@ -167,7 +167,7 @@ public class UserService : IUserService
                 u.Id, u.Username, u.Country,
                 u.Reviews
                     .Where(r => r.IsReview)
-                    .OrderBy(r => r.Id)
+                    .OrderByDescending(r => r.Date.UpdatedAt)
                     .Skip(page * pageSize)
                     .Take(pageSize)
                     .Select(r => new BasicReviewDto(
@@ -182,7 +182,7 @@ public class UserService : IUserService
                 )).ToPagedResult(reviewCount, page, pageSize),
                 u.Reviews
                     .Where(r => r.IsFavorite)
-                    .OrderBy(r => r.Id)
+                    .OrderByDescending(r => r.Date.UpdatedAt)
                     .Skip(page * pageSize)
                     .Take(pageSize)
                     .Select(r => new BasicReviewDto(

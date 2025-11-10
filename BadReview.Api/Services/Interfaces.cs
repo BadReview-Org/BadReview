@@ -7,11 +7,13 @@ using BadReview.Shared.Utils;
 
 namespace BadReview.Api.Services;
 
+public enum GetReviewsOpt { ALL, FAVORITES, REVIEWS } // used in IGameService and IReviewService implementations
+
 public interface IGameService
 {
     Task<PagedResult<BasicGameDto>> GetGamesAsync(IgdbRequest query, PaginationRequest pag);
     Task<PagedResult<BasicGameDto>> GetTrendingGamesAsync(IgdbRequest query, PaginationRequest pag);
-    Task<DetailGameDto?> GetGameByIdAsync(int id, bool cache);
+    Task<DetailGameDto?> GetGameByIdAsync(int id, PaginationRequest reviewsPag, bool cache);
 }
 
 public interface IDeveloperService
@@ -38,9 +40,10 @@ public interface IReviewService
 {
     public enum ReviewCode { OK, REVIEWNOTFOUND, GAMENOTFOUND, USERNOTMATCH, USERALREADYHASREVIEW }
 
-    public enum GetReviewsOpt { ALL, FAVORITES, REVIEWS }
-    Task<PagedResult<BasicReviewDto>> GetBasicReviewsAsync(PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null);
-    Task<PagedResult<DetailReviewDto>> GetDetailReviewsAsync(PaginationRequest pag, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null);
+    Task<PagedResult<BasicReviewDto>> GetBasicReviewsAsync
+    (PaginationRequest pag, bool includeGame, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null, int? gameId = null);
+    Task<PagedResult<DetailReviewDto>> GetDetailReviewsAsync
+    (PaginationRequest pag, bool includeGame, GetReviewsOpt opt = GetReviewsOpt.ALL, int? userId = null, int? gameId = null);
     Task<DetailReviewDto?> GetReviewByIdAsync(int id);
     Task<(ReviewCode, DetailReviewDto?)> UpdateReviewAsync(int reviewId, int userId, CreateReviewRequest updatedReview);
     Task<ReviewCode> DeleteReviewAsync(int reviewId, int userId);
