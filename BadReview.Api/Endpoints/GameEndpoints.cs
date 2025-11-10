@@ -117,7 +117,7 @@ public static class GameEndpoints
 
             DetailReviewDto? review = userData.Data.FirstOrDefault();
 
-            return Results.Ok(new { Game = game, UserReview = review});
+            return Results.Ok(new PrivateDetailGameDto(game, review));
         }
     }
 }

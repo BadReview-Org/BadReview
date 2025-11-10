@@ -1,3 +1,5 @@
+@using BadReview.Shared.DTOs.Response
+
 <MudLink Href="@($"/game/{review?.Id}")" Style="text-decoration: none; color: inherit;">
     <MudCard Class="mud-elevation-hover" 
                 Style="height: 100%; 
@@ -38,5 +40,5 @@
 
 @code{
     // --- Parámetros personalizables --
-    [Parameter] public DetailReviewDto? review {get; set;}
+    [Parameter] public BasicReviewDto? review {get; set;}
 }

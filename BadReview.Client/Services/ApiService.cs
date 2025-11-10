@@ -47,29 +47,74 @@ public class ApiService
 
     public async Task<T?> PrivateGetByIdAsync<T>(string uri, int id)
     {
-        return await RefreshTokenRequestAsync<T>($"{uri}/{id}", default, HttpMethod.Get);
+        return await RefreshTokenRequestAsync<T,T>($"{uri}/{id}", default, HttpMethod.Get);
     }
 
     public async Task<T?> PrivateGetAsync<T>(string uri)
     {
-        return await RefreshTokenRequestAsync<T>(uri, default, HttpMethod.Get);
+        return await RefreshTokenRequestAsync<T,T>(uri, default, HttpMethod.Get);
     }
 
-    public async Task<T?> PostAsync<T>(string uri, T data)
+    public async Task<U?> PostAsync<T,U>(string uri, T data)
     {
-        return await RefreshTokenRequestAsync<T>(uri, data, HttpMethod.Post);
+        return await RefreshTokenRequestAsync<T,U>(uri, data, HttpMethod.Post);
     }
 
-    public async Task<T?> PutAsync<T>(string uri, T data)
+    public async Task<U?> PutAsync<T,U>(string uri, T data)
     {
-        return await RefreshTokenRequestAsync<T>(uri, data, HttpMethod.Put);
+        return await RefreshTokenRequestAsync<T,U>(uri, data, HttpMethod.Put);
     }
 
-    public async Task<T?> DeleteAsync<T>(string uri, T data)
+    public async Task<bool> DeleteAsync(string uri)
     {
-        return await RefreshTokenRequestAsync<T>(uri, data, HttpMethod.Delete);
+        return await RefreshTokenRequestAsync(uri, HttpMethod.Delete);
     }
-    public async Task<T?> RefreshTokenRequestAsync<T>(string uri, T? data, HttpMethod method = null!)
+
+    public async Task<bool> RefreshTokenRequestAsync(string uri, HttpMethod method)
+    {
+        // 1. Agregar access token
+        var token = await _authService.GetTokenAsync(AuthService.AccessKey);
+        HttpRequestMessage request = new HttpRequestMessage(method, $"api/{uri}");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+        }
+
+        // 2. Enviar request
+        var response = await _httpClient.SendAsync(request);
+
+        // 3. Si es 401 y no estamos ya refrescando
+        if (response.StatusCode == HttpStatusCode.Unauthorized && !_isRefreshing)
+        {
+            _isRefreshing = true;
+
+            try
+            {
+                // 4. Intentar refrescar el token
+                var refreshed = await _authService.RefreshTokenAsync();
+
+                if (refreshed)
+                {
+                    // 5. Reintentar el request original con nuevo token
+                    var newToken = await _authService.GetTokenAsync(AuthService.AccessKey);
+                    request.Headers.Remove("Authorization");
+                    request.Headers.Authorization =
+                        new AuthenticationHeaderValue("Bearer", newToken);
+
+                    response = await _httpClient.SendAsync(request);
+                }
+            }
+            finally
+            {
+                _isRefreshing = false;
+            }
+        }
+
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<U?> RefreshTokenRequestAsync<T,U>(string uri, T? data, HttpMethod method = null!)
     {
         // 1. Agregar access token
         var token = await _authService.GetTokenAsync(AuthService.AccessKey);
@@ -123,7 +168,7 @@ public class ApiService
         {
             return default;
         }
-        var serializeResponse = await response.Content.ReadFromJsonAsync<T>();
+        var serializeResponse = await response.Content.ReadFromJsonAsync<U>();
         return serializeResponse;
     }
 

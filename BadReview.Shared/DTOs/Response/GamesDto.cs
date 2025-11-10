@@ -25,3 +25,8 @@ public record BasicGameDto(
     long Total_RatingBadReview,
     long Count_RatingBadReview
 );
+
+public record PrivateDetailGameDto(
+    DetailGameDto? game,
+    DetailReviewDto? userReview
+);
