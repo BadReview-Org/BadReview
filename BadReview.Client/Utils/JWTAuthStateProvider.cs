@@ -13,7 +13,9 @@ public class JWTAuthStateProvider : AuthenticationStateProvider
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var token = await authService.GetTokenAsync();
+        Console.WriteLine(">>> GetAuthenticationStateAsync() called!");
+
+        var token = await authService.GetTokenAsync(AuthService.AccessKey);
         if (string.IsNullOrEmpty(token))
         {
             Console.WriteLine("Token is not set.");

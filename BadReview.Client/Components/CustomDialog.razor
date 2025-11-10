@@ -1,3 +1,5 @@
+@implements IDisposable
+
 <MudDialog @bind-Visible="_visible" Options="_dialogOptions">
     <TitleContent>
         <MudText Typo="Typo.h6">
@@ -77,5 +79,8 @@
         await OnCancel.InvokeAsync();
     }
     // --- Variables públicas ---
-
+    public void Dispose()
+    {
+        Console.WriteLine($"{GetType().Name} disposed.");
+    }
 }

@@ -22,19 +22,21 @@ public class AuthService
         this.http = http;
     }
 
-    public async Task<bool> RegisterAsync(JWTAuthStateProvider prov, RegisterUserRequest request)
+    public async Task<bool> RegisterAsync(JWTAuthStateProvider prov, CreateUserRequest request)
     {
         var response = await http.PostAsJsonAsync("api/register", request);
         if (!response.IsSuccessStatusCode)
             return false;
 
         var content = await response.Content.ReadFromJsonAsync<RegisterUserDto>();
-        if (content is null || content.UserDto is null || content.Token is null)
+        if (content is null)
             return false;
 
-        Console.WriteLine($"User registered successfully:\n{content.UserDto}\nReceived token:\n{content.Token}");
-
-        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, content.Token);
+        Console.WriteLine($"User registered successfully:\n{content.UserDto}\nReceived" +
+        $" token:\n Access token: {content.LoginDto.AccessToken}\n Refresh token: {content.LoginDto.RefreshToken}");
+        
+        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, content.LoginDto.AccessToken);
+        await js.InvokeVoidAsync("localStorage.setItem", RefreshKey, content.LoginDto.RefreshToken);
 
         prov.NotifyAuthStateChanged();
         return true;
@@ -46,13 +48,14 @@ public class AuthService
         if (!response.IsSuccessStatusCode)
             return false;
 
-        var content = await response.Content.ReadFromJsonAsync<LoginUserDto>();
-        if (content is null || content.Token is null)
+        var content = await response.Content.ReadFromJsonAsync<UserTokensDto>();
+        if (content is null)
             return false;
 
-        Console.WriteLine($"Received token:\n{content.Token}");
-
-        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, content.Token);
+        Console.WriteLine($"Received an access token:\n{content.AccessToken}");
+        Console.WriteLine($"Received a refresh token:\n{content.RefreshToken}");
+        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, content.AccessToken);
+        await js.InvokeVoidAsync("localStorage.setItem", RefreshKey, content.RefreshToken);
 
         prov.NotifyAuthStateChanged();
         return true;
@@ -61,6 +64,7 @@ public class AuthService
     public async Task LogoutAsync(JWTAuthStateProvider prov)
     {
         await js.InvokeVoidAsync("localStorage.removeItem", AccessKey);
+        await js.InvokeVoidAsync("localStorage.removeItem", RefreshKey);
         prov.NotifyAuthStateChanged();
     }
 
@@ -93,9 +97,9 @@ public class AuthService
         if (!response.IsSuccessStatusCode)
             return false;
         
-        var tokens = await response.Content.ReadFromJsonAsync<LoginUserDto>();
-        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, tokens.AccessToken);
-        await js.InvokeVoidAsync("localStorage.setItem", RefreshKey, tokens.RefreshToken);
+        var tokens = await response.Content.ReadFromJsonAsync<UserTokensDto>();
+        await js.InvokeVoidAsync("localStorage.setItem", AccessKey, tokens?.AccessToken);
+        await js.InvokeVoidAsync("localStorage.setItem", RefreshKey, tokens?.RefreshToken);
 
         return true;
     }

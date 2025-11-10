@@ -52,7 +52,7 @@
 
         Console.WriteLine("Registering a new account...");
 
-        RegisterUserRequest request = new (form.Username, form.Email, form.Password, form.FullName, form.Birthday, form.Country);
+        CreateUserRequest request = new (form.Username, form.Email, form.Password, form.FullName, form.Birthday, form.Country);
 
         bool registered = await authS.RegisterAsync(provider, request);
 

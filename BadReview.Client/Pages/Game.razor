@@ -290,6 +290,7 @@ else
             ReviewText: reviewText,
             StateEnum: reviewState,
             IsFavorite: Favorite,
+            IsReview: true,
             GameId: id
         );
         await ApiService.PostAsync<CreateReviewRequest>(APIUTILS.URIS.REVIEWS, reviewData);

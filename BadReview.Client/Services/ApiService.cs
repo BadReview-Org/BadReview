@@ -10,6 +10,7 @@ using System;
 using System.Threading.Tasks;
 using System.Net.Http.Headers;
 using System.Net;
+using System.Linq.Expressions;
 
 namespace BadReview.Client.Services;
 public class ApiService
@@ -33,7 +34,7 @@ public class ApiService
         request.SetDefaults();
         string orderby = Uri.EscapeDataString(request.OrderBy ?? "");
         string filters = Uri.EscapeDataString(request.Filters ?? "");
-        Console.WriteLine($"Filters after escape: {filters}");
+
         string queryString = $"?filters={filters}&orderby={orderby}&order={request.Order}&page={request.Page}&pageSize={request.PageSize}";
         var response = await _httpClient.GetFromJsonAsync<PagedResult<T>>($"api/{request.URI}{queryString}");
         return response ?? new PagedResult<T>(new List<T>(), 0, 0, 0);
@@ -78,8 +79,10 @@ public class ApiService
 
         // 2. Enviar request
         var response = await _httpClient.SendAsync(request);
+        // Capturamos la excepcion 401 
 
         // 3. Si es 401 y no estamos ya refrescando
+
         if (response.StatusCode == HttpStatusCode.Unauthorized && !_isRefreshing)
         {
             _isRefreshing = true;
@@ -93,8 +96,9 @@ public class ApiService
                 {
                     // 5. Reintentar el request original con nuevo token
 
-            
+
                     var newToken = await _authService.GetTokenAsync(AuthService.AccessKey);
+                    request.Headers.Remove("Authorization");
                     request.Headers.Authorization =
                         new AuthenticationHeaderValue("Bearer", newToken);
 
@@ -109,6 +113,10 @@ public class ApiService
             {
                 _isRefreshing = false;
             }
+        }
+        if (!response.IsSuccessStatusCode)
+        {
+            return default;
         }
         var serializeResponse = await response.Content.ReadFromJsonAsync<T>();
         return serializeResponse;
