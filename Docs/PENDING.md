@@ -1,13 +1,9 @@
 # BACKEND
 
-## Refresh Token
-
 ## Concurrencia
 
 ### Verificar token invalido 
 ### Al añadir un juego nuevo a la BD desde IGDB
-
-## Terminar endpoints obligatorios
 
 ## Modularizar mapper
 

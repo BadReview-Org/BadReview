@@ -9,8 +9,9 @@ public record DetailGameDto(
     double? RatingIGDB,
     long Total_RatingBadReview,
     long Count_RatingBadReview,
+    long Count_FavoritesBadReview,
     string? Video,
-    List<DetailReviewDto> Reviews,
+    PagedResult<BasicReviewDto> Reviews,
     List<GenreDto> Genres,
     List<DetailDeveloperDto> Developers,
     List<PlatformDto> Platforms

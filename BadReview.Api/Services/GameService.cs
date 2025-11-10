@@ -2,12 +2,14 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 using BadReview.Api.Data;
+
 using BadReview.Shared.DTOs.External;
 using BadReview.Shared.DTOs.Request;
 using BadReview.Shared.Utils;
 using BadReview.Shared.DTOs.Response;
 
 using static BadReview.Api.Mapper.Mapper;
+using System.ComponentModel;
 
 namespace BadReview.Api.Services;
 
@@ -22,11 +24,24 @@ public class GameService : IGameService
         _db = db;
     }
 
-    private async Task<DetailGameDto?> GetGameByIdDB(int id)
+    private async Task<int> GetGameIdReviewCount(int gameId, GetReviewsOpt opt)
     {
+        return opt switch
+        {
+            GetReviewsOpt.REVIEWS => await _db.Reviews.CountAsync(r => r.GameId == gameId && r.IsReview),
+            GetReviewsOpt.FAVORITES => await _db.Reviews.CountAsync(r => r.GameId == gameId && r.IsFavorite),
+            GetReviewsOpt.ALL => await _db.Reviews.CountAsync(r => r.GameId == gameId),
+            _ => throw new InvalidEnumArgumentException()
+        };
+    }
+
+    private async Task<DetailGameDto?> GetGameByIdDB(int id, PaginationRequest reviewsPag)
+    {
+        int reviewCount = await GetGameIdReviewCount(id, GetReviewsOpt.REVIEWS);
+        int favoritesCount = await GetGameIdReviewCount(id, GetReviewsOpt.FAVORITES);
         return await _db.Games
             .Where(g => g.Id == id)
-            .GameToDetailDto()
+            .GameToDetailDto(reviewCount, favoritesCount, reviewsPag)
             .FirstOrDefaultAsync();
     }
 
@@ -126,9 +141,9 @@ public class GameService : IGameService
         return gamesPage;
     }
 
-    public async Task<DetailGameDto?> GetGameByIdAsync(int id, bool cache)
+    public async Task<DetailGameDto?> GetGameByIdAsync(int id, PaginationRequest reviewsPag, bool cache)
     {
-        DetailGameDto? gameDB = await GetGameByIdDB(id);
+        DetailGameDto? gameDB = await GetGameByIdDB(id, reviewsPag);
 
         if (gameDB is not null) Console.WriteLine($"Fetching game: {gameDB.Name}, from DB");
         if (gameDB is not null) return gameDB;
@@ -160,6 +175,6 @@ public class GameService : IGameService
             Console.WriteLine($"Cached IGDB game: {gameIGDB.Name} into the database");
         }
 
-        return CreateDetailGameDto(gameIGDB);
+        return CreateDetailGameDto(gameIGDB, reviewsPag);
     }
 }
