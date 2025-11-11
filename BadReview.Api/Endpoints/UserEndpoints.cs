@@ -93,8 +93,10 @@ public static class UserEndpoints
 
             return response;
         }
-        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
-        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
+        catch (WritingToDBException ex)
+            { return Results.InternalServerError($"Error while persisting data to DB: {ex.Message}"); }
+        catch (Exception ex)
+            { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 
     private static async Task<IResult> UpdateUser
@@ -116,8 +118,10 @@ public static class UserEndpoints
 
             return response;
         }
-        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
-        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
+        catch (WritingToDBException ex)
+            { return Results.InternalServerError($"Error while persisting data to DB: {ex.Message}"); }
+        catch (Exception ex)
+            { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 
     private static async Task<IResult> DeleteUser
@@ -137,8 +141,10 @@ public static class UserEndpoints
 
             return response;
         }
-        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
-        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
+        catch (WritingToDBException ex)
+            { return Results.InternalServerError($"Error while persisting data to DB: {ex.Message}"); }
+        catch (Exception ex)
+            { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 
     private static async Task<IResult> GetPrivateProfile

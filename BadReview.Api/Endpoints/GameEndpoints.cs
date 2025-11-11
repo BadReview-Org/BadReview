@@ -83,8 +83,10 @@ public static class GameEndpoints
 
                 return response;
             }
-            catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
-            catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
+            catch (WritingToDBException ex)
+                { return Results.InternalServerError($"Error while persisting data to DB: {ex.Message}"); }
+            catch (Exception ex)
+                { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
         }
     }
 
@@ -124,10 +126,12 @@ public static class GameEndpoints
 
                 DetailReviewDto? review = userData.Data.FirstOrDefault();
 
-            return Results.Ok(new PrivateDetailGameDto(game, review));
+                return Results.Ok(new PrivateDetailGameDto(game, review));
             }
-            catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
-            catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
+            catch (WritingToDBException ex)
+                { return Results.InternalServerError($"Error while persisting data to DB: {ex.Message}"); }
+            catch (Exception ex)
+                { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
         }
     }
 }

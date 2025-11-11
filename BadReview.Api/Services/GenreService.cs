@@ -58,7 +58,7 @@ public class GenreService : IGenreService
             var newGenre = CreateGenreEntity(genreIGDB);
             _db.Genres.Add(newGenre);
 
-            if (await _db.SafeSaveChangesAsync())
+            if (!await _db.SafeSaveChangesAsync())
                 throw new WritingToDBException("Exception while saving new genre from IGDB to DB.");
 
             Console.WriteLine($"Cached IGDB genre: {genreIGDB.Name} into the database");

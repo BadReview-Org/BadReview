@@ -216,7 +216,7 @@ public class ReviewService : IReviewService
         review.IsFavorite = updatedReview.IsFavorite;
         review.IsReview = updatedReview.IsReview;
 
-        if (await _db.SafeSaveChangesAsync())
+        if (!await _db.SafeSaveChangesAsync())
             throw new WritingToDBException("Exception while updating the review information in the DB.");
 
         var reviewDto = new DetailReviewDto
@@ -263,7 +263,7 @@ public class ReviewService : IReviewService
 
         _db.Reviews.Remove(review);
 
-        if (await _db.SafeSaveChangesAsync())
+        if (!await _db.SafeSaveChangesAsync())
             throw new WritingToDBException("Exception while deleting the requested review from the DB.");
 
         return ReviewCode.OK;
@@ -297,7 +297,7 @@ public class ReviewService : IReviewService
 
         _db.Reviews.Add(reviewDb);
 
-        if (await _db.SafeSaveChangesAsync())
+        if (!await _db.SafeSaveChangesAsync())
             throw new WritingToDBException("Exception while saving the new review to DB.");
 
         /*reviewdb = await db.Reviews
