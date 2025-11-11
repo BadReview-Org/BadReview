@@ -164,7 +164,7 @@
                                 }
                             </MudPaper>
                             <!--  Reviews -->
-                            <ReviewList Style="false" Reviews="user.Reviews.Data.ToList()" />
+                            <ReviewList PageChanged="@OnPageReviewsChanged" Style="false" Reviews="userReviews" />
                         </MudStack>
                     </MudItem>
                 </MudGrid>
@@ -179,7 +179,11 @@
 @code {
     private PrivateUserDto? user;
     private int totalPagesFavorite = 1;
+
+    private int totalPagesReviews = 1;
     private CardContainer[]? favoriteGameCards;
+
+    private List<DetailReviewDto> userReviews = new();
     protected override async Task OnInitializedAsync()
     {
         await LoadUserProfile();
@@ -197,6 +201,8 @@
                                                     .ToArray();
             totalPagesFavorite = (int)Math.Ceiling((double)(favoritesDto?.TotalCount ?? 0) / (favoritesDto?.PageSize ?? 1));
             Console.WriteLine($"Total Pages for Favorites: {totalPagesFavorite}");
+            userReviews = user?.Reviews.Data.ToList() ?? new List<DetailReviewDto>();
+            totalPagesReviews = (int)Math.Ceiling((double)(user?.Reviews.TotalCount ?? 0) / (user?.Reviews.PageSize ?? 1));
         }
         catch (Exception ex)
         {
@@ -206,11 +212,25 @@
 
     private string GetCountryName(int countryCode)
     {
-        // Aquí podrías mapear el código de país a su nombre
-        // Por ahora retorna el código
         return $"Country Code: {countryCode}";
     }
 
+    private async Task OnPageReviewsChanged(int page)
+    {
+        userReviews = new(); // Mostrar skeleton mientras se carga la nueva página
+
+        try
+        {
+            var apiRequest = $"{APIUTILS.URIS.PROFILE}&page={page - 1}&field=0";
+            var response = await ApiService.PrivateGetAsync<PagedResult<DetailReviewDto>>(apiRequest);
+            userReviews = response?.Data.ToList() ?? new List<DetailReviewDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user reviews: {ex.Message}");
+        }
+        
+    }
 
     private async Task OnPageFavoriteChanged(int page)
     {
