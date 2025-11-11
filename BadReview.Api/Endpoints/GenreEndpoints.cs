@@ -49,7 +49,9 @@ public static class GenreEndpoints
 
             return response;
         }
-        catch (WritingToDBException ex) { return Results.InternalServerError(ex.Message); }
-        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
+        catch (WritingToDBException ex)
+            { return Results.InternalServerError($"Error while persisting data to DB: {ex.Message}"); }
+        catch (Exception ex)
+            { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 }
