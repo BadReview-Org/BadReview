@@ -39,13 +39,17 @@ public static class GenreEndpoints
     (int id, IGenreService genreService)
     {
         if (id < 0) return Results.BadRequest($"Genre id can't be negative, received id: {id}");
-        
 
-        var genre = await genreService.GetGenreByIdAsync(id, true);
+        try
+        {
+            var genre = await genreService.GetGenreByIdAsync(id, true);
 
-        var response = genre is null ?
-            Results.NotFound($"No genre with id {id}") : Results.Ok(genre);
+            var response = genre is null ?
+                Results.NotFound($"No genre with id {id}") : Results.Ok(genre);
 
-        return response;
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex.Message); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 }

@@ -51,7 +51,9 @@ public class UserService : IUserService
         };
 
         _db.Users.Add(newUser);
-        await _db.SaveChangesAsync();
+
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while saving the new user to DB.");
 
         var userDto = new BasicUserDto(
             newUser.Id,
@@ -80,7 +82,9 @@ public class UserService : IUserService
 
 
         _db.Users.Remove(existingUser);
-        await _db.SaveChangesAsync();
+
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while removing the requested user from the DB.");
 
         return UserCode.OK;
     }
@@ -170,30 +174,30 @@ public class UserService : IUserService
                     .OrderByDescending(r => r.Date.UpdatedAt)
                     .Skip(page * pageSize)
                     .Take(pageSize)
-                    .Select(r => new BasicReviewDto(
-                    r.Id, r.Rating, r.ReviewText, r.StateEnum, r.IsFavorite, r.IsReview, null,
+                    .Select(r => new DetailReviewDto(
+                    r.Id, r.Rating, r.StartDate, r.EndDate, r.ReviewText, r.StateEnum, r.IsFavorite, r.IsReview, null,
                     new BasicGameDto(
                         r.Game.Id, r.Game.Name,
                         r.Game.Cover != null ? r.Game.Cover.ImageId : null,
                         r.Game.Cover != null ? r.Game.Cover.ImageHeight : null,
                         r.Game.Cover != null ? r.Game.Cover.ImageWidth : null,
                         r.Game.RatingIGDB, r.Game.Total_RatingBadReview, r.Game.Count_RatingBadReview),
-                        r.Date.UpdatedAt
+                        r.Date.CreatedAt, r.Date.UpdatedAt
                 )).ToPagedResult(reviewCount, page, pageSize),
                 u.Reviews
                     .Where(r => r.IsFavorite)
                     .OrderByDescending(r => r.Date.UpdatedAt)
                     .Skip(page * pageSize)
                     .Take(pageSize)
-                    .Select(r => new BasicReviewDto(
-                    r.Id, r.Rating, r.ReviewText, r.StateEnum, r.IsFavorite, r.IsReview, null,
+                    .Select(r => new DetailReviewDto(
+                    r.Id, r.Rating, r.StartDate, r.EndDate, r.ReviewText, r.StateEnum, r.IsFavorite, r.IsReview, null,
                     new BasicGameDto(
                         r.Game.Id, r.Game.Name,
                         r.Game.Cover != null ? r.Game.Cover.ImageId : null,
                         r.Game.Cover != null ? r.Game.Cover.ImageHeight : null,
                         r.Game.Cover != null ? r.Game.Cover.ImageWidth : null,
                         r.Game.RatingIGDB, r.Game.Total_RatingBadReview, r.Game.Count_RatingBadReview),
-                        r.Date.UpdatedAt
+                        r.Date.CreatedAt, r.Date.UpdatedAt
                 )).ToPagedResult(reviewCount, page, pageSize),
                 u.Date.CreatedAt
                 )
@@ -234,7 +238,8 @@ public class UserService : IUserService
         else
             existingUser.Password = _auth.HashPassword(existingUser.Username, req.Password);
 
-        await _db.SaveChangesAsync();
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while updating the user information in the DB.");
 
         return (UserCode.OK, new BasicUserDto(existingUser.Id, existingUser.Username));
     }

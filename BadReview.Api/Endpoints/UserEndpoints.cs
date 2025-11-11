@@ -78,52 +78,67 @@ public static class UserEndpoints
     private static async Task<IResult> RegisterUser
     (CreateUserRequest req, IUserService userService)
     {
-        (UserCode code, RegisterUserDto? dto) = await userService.CreateUserAsync(req);
-
-        var response = code switch
+        try
         {
-            UserCode.OK => Results.Ok(dto),
-            UserCode.USERNAMEALREADYEXISTS => Results.Conflict("Username already exists."),
-            UserCode.EMAILALREADYEXISTS => Results.Conflict("Email already exists."),
-            UserCode.NULLPASSWORD => Results.BadRequest("Didn't receive a password."),
-            _ => Results.InternalServerError()
-        };
+            (UserCode code, RegisterUserDto? dto) = await userService.CreateUserAsync(req);
 
-        return response;
+            var response = code switch
+            {
+                UserCode.OK => Results.Ok(dto),
+                UserCode.USERNAMEALREADYEXISTS => Results.Conflict("Username already exists."),
+                UserCode.EMAILALREADYEXISTS => Results.Conflict("Email already exists."),
+                UserCode.NULLPASSWORD => Results.BadRequest("Didn't receive a password."),
+                _ => Results.InternalServerError()
+            };
+
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 
     private static async Task<IResult> UpdateUser
     (ClaimsPrincipal claims, CreateUserRequest req, IUserService userService)
     {
-        (UserCode code, BasicUserDto? dto) = await userService.UpdateUserAsync(claims, req);
-
-        var response = code switch
+        try
         {
-            UserCode.OK => Results.Ok(dto),
-            UserCode.BADUSERCLAIMS => Results.BadRequest("Can't retrieve user id from JWT claims."),
-            UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered."),
-            UserCode.USERNAMEALREADYEXISTS => Results.Conflict("Trying to change Username to a one already registered."),
-            UserCode.EMAILALREADYEXISTS => Results.Conflict("Trying to change Email to a one already registered."),
-            _ => Results.InternalServerError()
-        };
+            (UserCode code, BasicUserDto? dto) = await userService.UpdateUserAsync(claims, req);
 
-        return response;
+            var response = code switch
+            {
+                UserCode.OK => Results.Ok(dto),
+                UserCode.BADUSERCLAIMS => Results.BadRequest("Can't retrieve user id from JWT claims."),
+                UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered."),
+                UserCode.USERNAMEALREADYEXISTS => Results.Conflict("Trying to change Username to a one already registered."),
+                UserCode.EMAILALREADYEXISTS => Results.Conflict("Trying to change Email to a one already registered."),
+                _ => Results.InternalServerError()
+            };
+
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 
     private static async Task<IResult> DeleteUser
     (ClaimsPrincipal claims, IUserService userService)
     {
-        UserCode code = await userService.DeleteUserAsync(claims);
-
-        var response = code switch
+        try
         {
-            UserCode.OK => Results.NoContent(),
-            UserCode.BADUSERCLAIMS => Results.BadRequest("Can't retrieve user id from JWT claims."),
-            UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered."),
-            _ => Results.InternalServerError()
-        };
+            UserCode code = await userService.DeleteUserAsync(claims);
 
-        return response;
+            var response = code switch
+            {
+                UserCode.OK => Results.NoContent(),
+                UserCode.BADUSERCLAIMS => Results.BadRequest("Can't retrieve user id from JWT claims."),
+                UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered."),
+                _ => Results.InternalServerError()
+            };
+
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 
     private static async Task<IResult> GetPrivateProfile
@@ -176,11 +191,11 @@ public static class UserEndpoints
                     _ => Results.InternalServerError()
                 };
             case UserPaginationField.REVIEWS:
-                var reviewsPage = await reviewService.GetBasicReviewsAsync(pag, true, GetReviewsOpt.REVIEWS, id);
+                var reviewsPage = await reviewService.GetDetailReviewsAsync(pag, true, GetReviewsOpt.REVIEWS, id);
 
                 return Results.Ok(reviewsPage);
             case UserPaginationField.FAVORITES:
-                var favoritesPage = await reviewService.GetBasicReviewsAsync(pag, true, GetReviewsOpt.FAVORITES, id);
+                var favoritesPage = await reviewService.GetDetailReviewsAsync(pag, true, GetReviewsOpt.FAVORITES, id);
 
                 return Results.Ok(favoritesPage);
             default:

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BadReview.Api.Migrations
 {
     [DbContext(typeof(BadReviewContext))]
-    [Migration("20251109172630_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251111184036_PlatformType")]
+    partial class PlatformType
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -154,6 +154,12 @@ namespace BadReview.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("PlatformType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlatformTypeName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
@@ -182,7 +188,7 @@ namespace BadReview.Api.Migrations
                     b.Property<bool>("IsReview")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("Rating")
+                    b.Property<int>("Rating")
                         .HasColumnType("int");
 
                     b.Property<string>("ReviewText")

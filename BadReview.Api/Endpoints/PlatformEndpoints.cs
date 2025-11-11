@@ -14,7 +14,6 @@ using BadReview.Shared.Utils;
 
 namespace BadReview.Api.Endpoints;
 
-
 public static class PlatformEndpoints
 {
     public static void MapPlatformEndpoints(this WebApplication app)
@@ -39,11 +38,16 @@ public static class PlatformEndpoints
     static async Task<IResult> GetPlatformById
     (int id, IPlatformService platformService)
     {
-        var platform = await platformService.GetPlatformByIdAsync(id, true);
+        try
+        {
+            var platform = await platformService.GetPlatformByIdAsync(id, true);
 
-        var response = platform is null ?
-            Results.NotFound($"No platform with id {id}") : Results.Ok(platform);
+            var response = platform is null ?
+                Results.NotFound($"No platform with id {id}") : Results.Ok(platform);
 
-        return response;
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex.Message); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 }

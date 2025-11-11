@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
 using BadReview.Api.Models;
+using Microsoft.Data.SqlClient;
+using System.ComponentModel.DataAnnotations;
 
 namespace BadReview.Api.Data;
 
@@ -19,6 +21,41 @@ public class BadReviewContext : DbContext
     public DbSet<GameGenre> GameGenres { get; set; } = null!;
     public DbSet<GamePlatform> GamePlatforms { get; set; } = null!;
     public DbSet<GameDeveloper> GameDevelopers { get; set; } = null!;
+
+    // Wrapper of SaveChangesAsync method, to capture exceptions automatically. We could return an error code,
+    // string or just raise another exception.
+    public async Task<bool> SafeSaveChangesAsync(bool logging = true, CancellationToken cancellationToken = default)
+    {
+        bool success = false;
+        try
+        {
+            await SaveChangesAsync(cancellationToken);
+            success = true;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            if (logging) Console.WriteLine($"[Concurrency Error] {ex.Message}");
+        }
+        catch (DbUpdateException ex)
+        {
+            if (logging)
+            {
+                Console.WriteLine($"[DB Update Error] {ex.Message}");
+
+                if (ex.InnerException is SqlException sqlEx) Console.WriteLine($"[SQL Error] {sqlEx.Message}");
+            }
+        }
+        catch (ValidationException ex)
+        {
+            if (logging) Console.WriteLine($"[Validation Error] {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            if (logging) Console.WriteLine($"[Unexpected Error] {ex}");
+        }
+
+        return success;
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,7 +92,7 @@ public class BadReviewContext : DbContext
 
             entity.OwnsOne(e => e.Logo);
         });
-        
+
         modelBuilder.Entity<Developer>(entity =>
         {
             entity.Property(e => e.Id).ValueGeneratedNever();

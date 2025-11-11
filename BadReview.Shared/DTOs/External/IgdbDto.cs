@@ -21,11 +21,16 @@ public record VideoIgdbDto(string? Video_Id);
 [IgdbFields("id, name")]
 public record GenreIgdbDto(int Id, string Name);
 
+
+public record PlatformTypeIgdbDto(int Id, string Name);
+
 [IgdbFields(
     @"id, name, abbreviation, generation, summary,
+    platform_type.id, platform_type.name,
     platform_logo.image_id, platform_logo.height, platform_logo.width")]
 public record PlatformIgdbDto(
-    int Id, string Name, string? Abbreviation, int? Generation, ImageIgdbDto? Platform_logo, string? Summary
+    int Id, string Name, string? Abbreviation, int? Generation,
+    PlatformTypeIgdbDto? Platform_type, ImageIgdbDto? Platform_logo, string? Summary
 );
 
 
@@ -46,6 +51,7 @@ public record BasicGameIgdbDto(int Id, string Name, ImageIgdbDto? Cover, double?
     @"name, cover.image_id, cover.height, cover.width, first_release_date, summary, rating, videos.video_id,
     genres.name,
     platforms.abbreviation, platforms.name, platforms.generation, platforms.summary,
+    platforms.platform_type.id, platforms.platform_type.name,
     platforms.platform_logo.image_id, platforms.platform_logo.height, platforms.platform_logo.width,
     involved_companies.developer,
     involved_companies.company.name, involved_companies.company.country,

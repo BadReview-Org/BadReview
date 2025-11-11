@@ -6,6 +6,7 @@ public record PlatformDto(
     string? Abbr,
     int? Generation,
     string? Summary,
+    int? PlatformType, string? PlatformTypeName,
     string? LogoId, int? LogoHeight, int? LogoWidth,
     List<BasicGameDto>? Games
 );

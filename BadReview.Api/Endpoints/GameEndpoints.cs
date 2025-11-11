@@ -69,17 +69,22 @@ public static class GameEndpoints
 
         if ((bool)onlyReviewPage)
         {
-            var reviewsPage = await reviewService.GetBasicReviewsAsync(reviewsPag, false, GetReviewsOpt.REVIEWS, null, id);
+            var reviewsPage = await reviewService.GetDetailReviewsAsync(reviewsPag, false, GetReviewsOpt.REVIEWS, null, id);
 
             return Results.Ok(reviewsPage);
         }
         else
         {
-            DetailGameDto? game = await gameService.GetGameByIdAsync(id, reviewsPag, true);
+            try
+            {
+                DetailGameDto? game = await gameService.GetGameByIdAsync(id, reviewsPag, true);
 
-            var response = game is not null ? Results.Ok(game) : Results.NotFound($"Can't find game with id {id}");
+                var response = game is not null ? Results.Ok(game) : Results.NotFound($"Can't find game with id {id}");
 
-            return response;
+                return response;
+            }
+            catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
+            catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
         }
     }
 
@@ -101,23 +106,28 @@ public static class GameEndpoints
 
         if ((bool)onlyReviewPage)
         {
-            var reviewsPage = await reviewService.GetBasicReviewsAsync(reviewsPag, false, GetReviewsOpt.REVIEWS, null, id);
+            var reviewsPage = await reviewService.GetDetailReviewsAsync(reviewsPag, false, GetReviewsOpt.REVIEWS, null, id);
 
             return Results.Ok(reviewsPage);
         }
         else
         {
-            DetailGameDto? game = await gameService.GetGameByIdAsync(id, reviewsPag, true);
+            try
+            {
+                DetailGameDto? game = await gameService.GetGameByIdAsync(id, reviewsPag, true);
 
-            if (game is null) return Results.NotFound($"Can't find game with id {id}");
+                if (game is null) return Results.NotFound($"Can't find game with id {id}");
 
 
-            var userData =
-                await reviewService.GetDetailReviewsAsync(new PaginationRequest(), false, GetReviewsOpt.ALL, userId, id);
+                var userData =
+                    await reviewService.GetDetailReviewsAsync(new PaginationRequest(), false, GetReviewsOpt.ALL, userId, id);
 
-            DetailReviewDto? review = userData.Data.FirstOrDefault();
+                DetailReviewDto? review = userData.Data.FirstOrDefault();
 
             return Results.Ok(new PrivateDetailGameDto(game, review));
+            }
+            catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
+            catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
         }
     }
 }

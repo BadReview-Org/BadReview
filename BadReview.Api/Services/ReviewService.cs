@@ -200,12 +200,12 @@ public class ReviewService : IReviewService
         if (userId != review.UserId) return (ReviewCode.USERNOTMATCH, null);
 
 
-        review.Game.Total_RatingBadReview -= review.Rating ?? 0;
-        review.Game.Total_RatingBadReview += updatedReview.Rating ?? 0;
+        review.Game.Total_RatingBadReview -= review.Rating;
+        review.Game.Total_RatingBadReview += updatedReview.Rating;
 
-        if ((review.Rating is null || review.Rating == 0) && (updatedReview.Rating is not null && updatedReview.Rating > 0))
+        if (review.Rating == 0 && updatedReview.Rating > 0)
             review.Game.Count_RatingBadReview++;
-        else if ((review.Rating is not null && review.Rating > 0) && (updatedReview.Rating is null || updatedReview.Rating == 0))
+        else if (review.Rating > 0 && updatedReview.Rating == 0)
             review.Game.Count_RatingBadReview--;
 
         review.Rating = updatedReview.Rating;
@@ -216,7 +216,8 @@ public class ReviewService : IReviewService
         review.IsFavorite = updatedReview.IsFavorite;
         review.IsReview = updatedReview.IsReview;
 
-        await _db.SaveChangesAsync();
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while updating the review information in the DB.");
 
         var reviewDto = new DetailReviewDto
         (
@@ -257,12 +258,13 @@ public class ReviewService : IReviewService
         if (userId != review.UserId) return ReviewCode.USERNOTMATCH;
 
 
-        review.Game.Total_RatingBadReview -= review.Rating ?? 0;
-        review.Game.Count_RatingBadReview -=
-            (review.Rating is null || review.Rating == 0) ? 0 : 1;
+        review.Game.Total_RatingBadReview -= review.Rating;
+        review.Game.Count_RatingBadReview -= (review.Rating == 0) ? 0 : 1;
 
         _db.Reviews.Remove(review);
-        await _db.SaveChangesAsync();
+
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while deleting the requested review from the DB.");
 
         return ReviewCode.OK;
     }
@@ -277,9 +279,8 @@ public class ReviewService : IReviewService
             return (ReviewCode.USERALREADYHASREVIEW, null);
 
 
-        game.Total_RatingBadReview += newReview.Rating ?? 0;
-        game.Count_RatingBadReview +=
-            (newReview.Rating is null || newReview.Rating == 0) ? 0 : 1;
+        game.Total_RatingBadReview += newReview.Rating;
+        game.Count_RatingBadReview += (newReview.Rating == 0) ? 0 : 1;
 
         var reviewDb = new Review
         {
@@ -295,7 +296,9 @@ public class ReviewService : IReviewService
         };
 
         _db.Reviews.Add(reviewDb);
-        await _db.SaveChangesAsync();
+
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while saving the new review to DB.");
 
         /*reviewdb = await db.Reviews
             .AsNoTracking()

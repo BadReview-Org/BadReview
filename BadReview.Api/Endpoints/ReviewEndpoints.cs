@@ -60,63 +60,77 @@ public static class ReviewEndpoints
     (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview, IReviewService reviewService)
     {
         string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-
         if (claimUserId is null) return Results.Forbid();
 
-        var (code, reviewDto) = await reviewService.UpdateReviewAsync(id, int.Parse(claimUserId), updatedReview);
 
-        IResult response = code switch
+        try
         {
-            ReviewCode.REVIEWNOTFOUND => Results.NotFound($"No review matching the id {id}"),
-            ReviewCode.USERNOTMATCH => Results.BadRequest($"Review does not match with the user credentials"),
-            ReviewCode.OK => Results.Ok(reviewDto),
-            _ => Results.InternalServerError()
-        };
+            var (code, reviewDto) = await reviewService.UpdateReviewAsync(id, int.Parse(claimUserId), updatedReview);
 
-        return response;
+            IResult response = code switch
+            {
+                ReviewCode.REVIEWNOTFOUND => Results.NotFound($"No review matching the id {id}"),
+                ReviewCode.USERNOTMATCH => Results.BadRequest($"Review does not match with the user credentials"),
+                ReviewCode.OK => Results.Ok(reviewDto),
+                _ => Results.InternalServerError()
+            };
+
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 
     private static async Task<IResult> DeleteReviewWithId
     (int id, ClaimsPrincipal user, IReviewService reviewService)
     {
         string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-
         if (claimUserId is null) return Results.Forbid();
 
-        var code = await reviewService.DeleteReviewAsync(id, int.Parse(claimUserId));
 
-        IResult response = code switch
+        try
         {
-            ReviewCode.REVIEWNOTFOUND => Results.NotFound($"No review matching the id {id}"),
-            ReviewCode.USERNOTMATCH => Results.BadRequest($"Review does not match with the user credentials"),
-            ReviewCode.OK => Results.NoContent(),
-            _ => Results.InternalServerError()
-        };
+            var code = await reviewService.DeleteReviewAsync(id, int.Parse(claimUserId));
 
-        return response;
+            IResult response = code switch
+            {
+                ReviewCode.REVIEWNOTFOUND => Results.NotFound($"No review matching the id {id}"),
+                ReviewCode.USERNOTMATCH => Results.BadRequest($"Review does not match with the user credentials"),
+                ReviewCode.OK => Results.NoContent(),
+                _ => Results.InternalServerError()
+            };
+
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 
     private static async Task<IResult> CreateReview
     (CreateReviewRequest newReview, ClaimsPrincipal user, IReviewService reviewService, IUserService userService)
     {
         string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-
         if (claimUserId is null) return Results.Forbid();
 
         User? userDb = await userService.GetUserByIdAsync(int.Parse(claimUserId));
         if (userDb is null) return Results.NotFound($"User with id {claimUserId} not found in the db.");
 
 
-        var (code, reviewDto) = await reviewService.CreateReviewAsync(newReview, userDb);
-
-        IResult response = code switch
+        try
         {
-            ReviewCode.GAMENOTFOUND => Results.NotFound($"No game in the db matching the id {newReview.GameId}"),
-            ReviewCode.USERALREADYHASREVIEW => Results.Conflict($"User already has a review with game id {newReview.GameId}"),
-            ReviewCode.OK => Results.Ok(reviewDto),
-            _ => Results.InternalServerError()
-        };
+            var (code, reviewDto) = await reviewService.CreateReviewAsync(newReview, userDb);
 
-        return response;
+            IResult response = code switch
+            {
+                ReviewCode.GAMENOTFOUND => Results.NotFound($"No game in the db matching the id {newReview.GameId}"),
+                ReviewCode.USERALREADYHASREVIEW => Results.Conflict($"User already has a review with game id {newReview.GameId}"),
+                ReviewCode.OK => Results.Ok(reviewDto),
+                _ => Results.InternalServerError()
+            };
+
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 }
