@@ -60,10 +60,12 @@
                         <MudStack Spacing="3">
                             <!-- Personal Info Card -->
                             <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                                <MudText Typo="Typo.h6" Class="mb-3" Style="color: #667eea;">
-                                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" Class="mr-2" />
-                                    Personal Information
-                                </MudText>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
+                                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" />
+                                    <MudText Typo="Typo.h6" Style="color: #667eea;">
+                                        Personal Information
+                                    </MudText>
+                                </MudStack>
                                 <MudStack Spacing="2">
                                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                         <MudIcon Icon="@Icons.Material.Filled.AccountCircle" Size="Size.Small" Color="Color.Primary" />
@@ -106,10 +108,12 @@
 
                             <!-- Activity Stats Card -->
                             <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                                <MudText Typo="Typo.h6" Class="mb-3" Style="color: #764ba2;">
-                                    <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Medium" Class="mr-2" />
-                                    Activity
-                                </MudText>
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
+                                    <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Medium" />
+                                    <MudText Typo="Typo.h6" Style="color: #764ba2;"> 
+                                        Activity
+                                    </MudText>
+                                </MudStack>
                                 <MudStack Spacing="2">
                                     <MudStack Row="true" Justify="Justify.SpaceBetween">
                                         <MudText Typo="Typo.body2">
@@ -140,14 +144,16 @@
                             
                             <!-- Favorite Games -->
                             <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                                <MudText Typo="Typo.h5" Class="mb-3" Style="color: #764ba2;">
-                                    <MudIcon Icon="@Icons.Material.Filled.Favorite" Size="Size.Medium" Class="mr-2" />
-                                    Favorite Games (@user.Favorites.TotalCount)
-                                </MudText>
-                                @if (user.Favorites.Data.Any())
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
+                                    <MudIcon Icon="@Icons.Material.Filled.Favorite" Size="Size.Medium" Style= />
+                                    <MudText Typo="Typo.h5" Style="color: #764ba2;">
+                                        Favorite Games (@user.Favorites.TotalCount)
+                                    </MudText>
+                                </MudStack>
+                                    @if (user.Favorites.Data.Any())
                                 {
                                     <MudStack Spacing="1">
-                                        <CustomGridCard pageSize="6" CardHeight="225px" PageChanged="@OnPageFavoriteChanged" totalPages="totalPagesFavorite" arrayElement="favoriteGameCards" placeholderTitle="No favorite games found." placeholderBody="Add some games to your favorites!" />
+                                        <CustomGridCard pageSize="6" CardHeight="225" PageChanged="@OnPageFavoriteChanged" totalPages="totalPagesFavorite" arrayElement="favoriteGameCards" placeholderTitle="No favorite games found." placeholderBody="Add some games to your favorites!" />
                                     </MudStack>
                                 }
                                 else

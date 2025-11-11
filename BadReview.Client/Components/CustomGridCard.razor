@@ -7,10 +7,11 @@
         @for (int i = 0; i < pageSize; i++)
         {
             <MudItem xs="@xs" sm="@sm" md="@md" lg="@lg" xl="@xl">
-                <MudPaper Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px; overflow: hidden;">
-                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="250px" />
-                    <div class="pa-3">
-                        <MudSkeleton SkeletonType="SkeletonType.Text" Height="25px" />
+                <MudPaper Elevation="6" Style="@($" height: {CardHeight - 25}px;background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;")">
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Style="flex: 1;" />
+                    <div class="pa-3" style="flex-shrink: 0; padding: 12px;">
+                        <MudSkeleton SkeletonType="SkeletonType.Text" Height="20px" />
+                        <MudSkeleton SkeletonType="SkeletonType.Text" Height="16px" Class="mt-1" />
                     </div>
                 </MudPaper>
             </MudItem>
@@ -37,7 +38,7 @@ else
             ICardStrategy strat = element.strat;
             object dto = element.dto;
 
-            <MudItem xs="@xs" sm="@sm" md="@md" lg="@lg" xl="@xl" Style="@($"max-height: {CardHeight}")">
+            <MudItem xs="@xs" sm="@sm" md="@md" lg="@lg" xl="@xl" Style="@(CardHeight > 0 ? $"max-height: {CardHeight}px" : null)">
                 <DynamicComponent Type="@strat.GetComponentType()" Parameters="@strat.GetParameters(dto)"/>
             </MudItem>
         }
@@ -55,7 +56,7 @@ else
 
 
     // --- Parámetros personalizables ---
-    [Parameter] public string CardHeight { get; set; } = "";
+    [Parameter] public int CardHeight { get; set; } = 0;
     [Parameter] public bool Pagination { get; set; } = true;
     [Parameter] public int totalPages { get; set; } = 1;
     [Parameter] public CardContainer[]? arrayElement { get; set; }

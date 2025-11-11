@@ -1,72 +1,425 @@
 ﻿@page "/"
-@attribute [Authorize]
+@implements IDisposable
 
 @using BadReview.Shared.DTOs.Response
+@using BadReview.Client.Utils
+@using BadReview.Shared.Utils
 
-@inject ILogger<Home> Logger
 @inject HttpClient Client
-@inject AuthService authS
+@inject ApiService ApiService
+@inject NavigationManager Navigation
 
-<PageTitle>Home</PageTitle>
-<MudText Typo="Typo.h4">
-    Welcome to BadReview!
-</MudText>
-<MudText Typo="Typo.body1" Class="mt-4">
-    Hello, @myName
-</MudText>
+<PageTitle>BadReview - Home</PageTitle>
 
-<MudPaper Class="pa-4" Elevation="@currentElevation" 
-          @onmouseenter="() => currentElevation = 5" 
-          @onmouseleave="() => currentElevation = 1">
-    <MudText>Este componente se eleva con hover!</MudText>
-</MudPaper>
-<MudLink Href="https://www.google.com" Style="text-decoration: none;">
+@if (isLoading)
+{
+    <!-- Loading Skeleton -->
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="500px" Class="rounded-lg mb-6" />
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Class="rounded-lg mb-6" />
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Class="rounded-lg mb-6" />
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Class="rounded-lg" />
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-6">
+        <!-- Hero Carousel - Games of the Week -->
+        <MudPaper Elevation="8" Class="mb-8 rounded-lg overflow-hidden">
+            <MudCarousel Class="mud-width-full" 
+                         Style="height: 500px;" 
+                         ShowArrows="true" 
+                         ShowBullets="true" 
+                         EnableSwipeGesture="true" 
+                         AutoCycle="true" 
+                         TData="object"
+                         AutoCycleTime="TimeSpan.FromSeconds(5)">
+                @foreach (var game in trendingGames.Take(5))
+                {
+                    <MudCarouselItem Transition="Transition.Slide" 
+                                     Style="@GetCarouselItemStyle(game.CoverId)">
+                        <div class="d-flex align-center justify-center" style="height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);">
+                            <MudStack AlignItems="AlignItems.Center" Spacing="3" Style="max-width: 800px; padding: 20px;">
+                                <MudText Typo="Typo.h2" Align="Align.Center" Style="font-weight: 700; color: white; text-shadow: 2px 2px 8px rgba(0,0,0,0.8);">
+                                    @game.Name
+                                </MudText>
+                                @if (game.RatingIGDB.HasValue)
+                                {
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                        <MudIcon Icon="@Icons.Material.Filled.Star" Color="Color.Warning" Size="Size.Large" />
+                                        <MudText Typo="Typo.h4" Style="color: white; font-weight: 600;">
+                                            @((game.RatingIGDB.Value / 10).ToString("F1"))
+                                        </MudText>
+                                    </MudStack>
+                                }
+                                <MudButton Variant="Variant.Filled" 
+                                           Color="Color.Primary" 
+                                           Size="Size.Large"
+                                           StartIcon="@Icons.Material.Filled.Gamepad"
+                                           Href="@($"/game/{game.Id}")"
+                                           Style="padding: 12px 40px; font-size: 1.1rem;">
+                                    View Details
+                                </MudButton>
+                            </MudStack>
+                        </div>
+                    </MudCarouselItem>
+                }
+            </MudCarousel>
+        </MudPaper>
 
-    <MudCard>
-        <MudCardContent>
-            <MudText>Story of the day</MudText>
-            <MudText Typo="Typo.body2">The quick, brown fox jumps over a lazy dog.</MudText>
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton Variant="Variant.Text" Color="Color.Primary" Href="https://www.google.com">Learn more</MudButton>
-        </MudCardActions>
-    </MudCard>
-</MudLink>
-<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenDialog">
-    Mostrar Popup
-</MudButton>
+        <!-- Platforms Section -->
+        <MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.Devices" Color="Color.Primary" Size="Size.Large" />
+                    <MudText Typo="Typo.h4" Style="font-weight: 600; color: #667eea;">
+                        Platforms
+                    </MudText>
+                </MudStack>
+                <MudStack Row="true" Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
+                                   Color="Color.Primary" 
+                                   OnClick="() => ScrollPlatforms(-1)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
+                                   Color="Color.Primary" 
+                                   OnClick="() => ScrollPlatforms(1)" />
+                </MudStack>
+            </MudStack>
+            <div style="overflow: hidden;">
+                <MudStack Row="true" Spacing="3" Style="@GetScrollStyle(platformScrollPosition)">
+                    @foreach (var platform in platforms)
+                    {
+                        <MudCard Class="platform-card" 
+                                 Style="min-width: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;"
+                                 @onclick="@(() => Navigation.NavigateTo($"/explore?platform={platform.Id}"))">>
+                            <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
+                                @if (!string.IsNullOrEmpty(platform.LogoId))
+                                {
+                                    <MudImage Src="@ImageHelper.GetCoverUrl(platform.LogoId)" 
+                                              Alt="@platform.Name" 
+                                              Style="max-height: 80px; max-width: 150px; object-fit: contain;" />
+                                }
+                                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white; font-weight: 600;">
+                                    @platform.Name
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+                </MudStack>
+            </div>
+        </MudPaper>
 
-<CustomDialog @ref="dialog"
-              Title="Eliminar registro"
-              Message="¿Estás seguro que querés eliminar este elemento?"
-              Icon="@Icons.Material.Filled.Delete"
-              OnConfirm="OnConfirm"
-              OnCancel="OnCancel" >
-<MudRating @bind-SelectedValue="currentRating" MaxValue="5" ReadOnly="false" />
-</CustomDialog>
+        <!-- Genres Section -->
+        <MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.Category" Color="Color.Secondary" Size="Size.Large" />
+                    <MudText Typo="Typo.h4" Style="font-weight: 600; color: #764ba2;">
+                        Genres
+                    </MudText>
+                </MudStack>
+                <MudStack Row="true" Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
+                                   Color="Color.Secondary" 
+                                   OnClick="() => ScrollGenres(-1)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
+                                   Color="Color.Secondary" 
+                                   OnClick="() => ScrollGenres(1)" />
+                </MudStack>
+            </MudStack>
+            <div style="overflow: hidden;">
+                <MudStack Row="true" Spacing="3" Style="@GetScrollStyle(genreScrollPosition)">
+                    @foreach (var (genre, index) in genres.Select((g, i) => (g, i)))
+                    {
+                        var gradientColor = GetGenreGradient(index);
+                        <MudCard Class="genre-card" 
+                                 Style="@($"min-width: 200px; background: {gradientColor}; cursor: pointer;")"
+                                 @onclick="@(() => Navigation.NavigateTo($"/explore?genre={genre.Id}"))">>
+                            <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
+                                <MudIcon Icon="@GetGenreIcon(genre.Name)" Size="Size.Large" Style="color: white; font-size: 3rem;" />
+                                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white; font-weight: 600;">
+                                    @genre.Name
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+                </MudStack>
+            </div>
+        </MudPaper>
 
-<p>@status @currentRating</p>
+        <!-- Developers Section -->
+        <MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.Code" Color="Color.Tertiary" Size="Size.Large" />
+                    <MudText Typo="Typo.h4" Style="font-weight: 600; color: #f093fb;">
+                        Developers
+                    </MudText>
+                </MudStack>
+                <MudStack Row="true" Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
+                                   Color="Color.Tertiary" 
+                                   OnClick="() => ScrollDevelopers(-1)" />
+                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
+                                   Color="Color.Tertiary" 
+                                   OnClick="() => ScrollDevelopers(1)" />
+                </MudStack>
+            </MudStack>
+            <div style="overflow: hidden;">
+                <MudStack Row="true" Spacing="3" Style="@GetScrollStyle(developerScrollPosition)">
+                    @foreach (var developer in developers)
+                    {
+                        <MudCard Class="developer-card" 
+                                 Style="min-width: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); cursor: pointer;"
+                                 @onclick="@(() => Navigation.NavigateTo($"/explore?developer={developer.Id}"))">>
+                            <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
+                                @if (!string.IsNullOrEmpty(developer.LogoId))
+                                {
+                                    <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" 
+                                              Alt="@developer.Name" 
+                                              Style="max-height: 80px; max-width: 150px; object-fit: contain" />
+                                }
+                                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white; font-weight: 600;">
+                                    @developer.Name
+                                </MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    }
+                </MudStack>
+            </div>
+        </MudPaper>
+    </MudContainer>
+}
 
+<style>
+    .platform-card, .genre-card, .developer-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .platform-card:hover, .genre-card:hover, .developer-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+</style>
 
 @code {
-    private CustomDialog? dialog;
-    private string status = "";
+    private bool isLoading = true;
+    private List<BasicGameDto> trendingGames = new();
+    private List<PlatformDto> platforms = new();
+    private List<GenreDto> genres = new();
+    private List<BasicDeveloperDto> developers = new();
 
-    private int currentRating = 0;
-    private void OpenDialog() => dialog?.Open();
+    private int platformScrollPosition = 0;
+    private int genreScrollPosition = 0;
+    private int developerScrollPosition = 0;
 
-    private void OnConfirm() => status = "Acción confirmada";
-    private void OnCancel() => status = "Acción cancelada";
-    string myName = "";
-    int currentElevation = 1;
+    private System.Threading.Timer? platformTimer;
+    private System.Threading.Timer? genreTimer;
+    private System.Threading.Timer? developerTimer;
 
-    /*protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        //string log = $"URI: {Client.BaseAddress}";
-        //Logger.LogInformation(log);
+        await LoadData();
+        StartAutoScroll();
+    }
 
-        //UserDto? userDto = await Client.GetFromJsonAsync<UserDto>("/api/users/1");
+    private void StartAutoScroll()
+    {
+        // Auto-scroll platforms a la derecha cada 3 segundos
+        platformTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                ScrollPlatforms(1);
+            });
+        }, null, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3));
 
-        //myName = userDto?.FullName ?? "" ;
-    }*/
+        // Auto-scroll genres a la izquierda cada 3.5 segundos
+        genreTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                ScrollGenres(1); // Recuerda que genres tiene dirección inversa
+            });
+        }, null, TimeSpan.FromSeconds(3.5), TimeSpan.FromSeconds(3.5));
+
+        // Auto-scroll developers a la derecha cada 4 segundos
+        developerTimer = new System.Threading.Timer(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                ScrollDevelopers(1);
+            });
+        }, null, TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(4));
+    }
+
+    public void Dispose()
+    {
+        platformTimer?.Dispose();
+        genreTimer?.Dispose();
+        developerTimer?.Dispose();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            // Cargar trending games
+            var trendingRequest = new ApiRequest
+            {
+                URI = APIUTILS.URIS.TRENDING,
+                Page = 0,
+                PageSize = 5
+            };
+            var trendingResult = await ApiService.GetManyAsync<BasicGameDto>(trendingRequest);
+            trendingGames = trendingResult.Data.ToList();
+
+            // Cargar platforms
+            var platformRequest = new ApiRequest
+            {
+                URI = APIUTILS.URIS.PLATFORMS,
+                Page = 0,
+                PageSize = 20,
+                Filters = "platform_logo != null"
+            };
+            var platformResult = await ApiService.GetManyAsync<PlatformDto>(platformRequest);
+            platforms = platformResult.Data.ToList();
+
+            // Cargar genres
+            var genreRequest = new ApiRequest
+            {
+                URI = APIUTILS.URIS.GENRES,
+                Page = 0,
+                PageSize = 20
+            };
+            var genreResult = await ApiService.GetManyAsync<GenreDto>(genreRequest);
+            genres = genreResult.Data.ToList();
+
+            // Cargar developers
+            var developerRequest = new ApiRequest
+            {
+                URI = APIUTILS.URIS.DEVELOPERS,
+                Page = 0,
+                PageSize = 20,
+                Filters = "logo != null"
+            };
+            var developerResult = await ApiService.GetManyAsync<BasicDeveloperDto>(developerRequest);
+            developers = developerResult.Data.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading home data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetCarouselItemStyle(string? coverId)
+    {
+        if (string.IsNullOrEmpty(coverId))
+            return "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);";
+        
+        var imageUrl = ImageHelper.GetCoverUrl(coverId);
+        return $"background: url('{imageUrl}') center/cover no-repeat;";
+    }
+
+    private void ScrollPlatforms(int direction)
+    {
+        platformScrollPosition += direction * 220;
+        
+        // Reset cuando llega al límite (bucle infinito)
+        var maxScroll = -(platforms.Count * 220);
+        if (platformScrollPosition < maxScroll)
+            platformScrollPosition = 0;
+        else if (platformScrollPosition > 0)
+            platformScrollPosition = maxScroll;
+            
+        StateHasChanged();
+    }
+
+    private void ScrollGenres(int direction)
+    {
+        genreScrollPosition += direction * 220;
+        
+        // Reset cuando llega al límite (bucle infinito)
+        var maxScroll = -(genres.Count * 220);
+        if (genreScrollPosition < maxScroll)
+            genreScrollPosition = 0;
+        else if (genreScrollPosition > 0)
+            genreScrollPosition = maxScroll;
+            
+        StateHasChanged();
+    }
+
+    private void ScrollDevelopers(int direction)
+    {
+        developerScrollPosition += direction * 220;
+        
+        // Reset cuando llega al límite (bucle infinito)
+        var maxScroll = -(developers.Count * 220);
+        if (developerScrollPosition < maxScroll)
+            developerScrollPosition = 0;
+        else if (developerScrollPosition > 0)
+            developerScrollPosition = maxScroll;
+            
+        StateHasChanged();
+    }
+
+    private string GetScrollStyle(int position)
+    {
+        return $"transform: translateX({position}px); transition: transform 0.5s ease;";
+    }
+
+    private string GetGenreGradient(int index)
+    {
+        var gradients = new[]
+        {
+            "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+            "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+            "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+            "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+            "linear-gradient(135deg, #30cfd0 0%, #330867 100%)",
+            "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
+            "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
+            "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
+            "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)",
+            "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)",
+            "linear-gradient(135deg, #f8b500 0%, #fceabb 100%)"
+        };
+        return gradients[index % gradients.Length];
+    }
+
+    private string GetGenreIcon(string genreName)
+    {
+        return genreName.ToLower() switch
+        {
+            var n when n.Contains("action") => Icons.Material.Filled.SportsMartialArts,
+            var n when n.Contains("adventure") => Icons.Material.Filled.Explore,
+            var n when n.Contains("rpg") || n.Contains("role") => Icons.Material.Filled.Castle,
+            var n when n.Contains("strategy") || n.Contains("rts") || n.Contains("tbs") => Icons.Material.Filled.Psychology,
+            var n when n.Contains("shooter") => Icons.Material.Filled.GpsFixed,
+            var n when n.Contains("puzzle") => Icons.Material.Filled.Extension,
+            var n when n.Contains("racing") => Icons.Material.Filled.DirectionsCar,
+            var n when n.Contains("sport") => Icons.Material.Filled.SportsSoccer,
+            var n when n.Contains("fighting") => Icons.Material.Filled.SportsKabaddi,
+            var n when n.Contains("horror") => Icons.Material.Filled.Nightlight,
+            var n when n.Contains("simulation") || n.Contains("simulator") => Icons.Material.Filled.Computer,
+            var n when n.Contains("platformer") || n.Contains("platform") => Icons.Material.Filled.Stairs,
+            var n when n.Contains("arcade") => Icons.Material.Filled.SportsEsports,
+            var n when n.Contains("card") || n.Contains("board") => Icons.Material.Filled.Style,
+            var n when n.Contains("hack") || n.Contains("slash") || n.Contains("beat") => Icons.Material.Filled.Whatshot,
+            var n when n.Contains("indie") => Icons.Material.Filled.EmojiObjects,
+            var n when n.Contains("moba") => Icons.Material.Filled.Groups,
+            var n when n.Contains("music") => Icons.Material.Filled.MusicNote,
+            var n when n.Contains("pinball") => Icons.Material.Filled.Album,
+            var n when n.Contains("point") || n.Contains("click") => Icons.Material.Filled.TouchApp,
+            var n when n.Contains("quiz") || n.Contains("trivia") => Icons.Material.Filled.Quiz,
+            var n when n.Contains("tactical") => Icons.Material.Filled.Shield,
+            var n when n.Contains("visual novel") => Icons.Material.Filled.MenuBook,
+            _ => Icons.Material.Filled.VideogameAsset
+        };
+    }
 }
