@@ -83,7 +83,7 @@ else
                         <Authorized>
                             <div class="d-flex">
                                 <MudButton OnClick="OpenDialog" FullWidth=true Variant="Variant.Filled" Color="Color.Primary">
-                                    @(userReview is null || userReview.Rating == 0 || userReview.Rating is null ? "Rate" : "Edit rating")
+                                    @(userReview is null || userReview.Rating == 0 ? "Rate" : "Edit rating")
                                 </MudButton>
                                 @if (userReview != null && userReview.Rating > 0){
                                     <MudRating Color=Color.Warning SelectedValue="@(userReview?.Rating ?? 0)" Disabled="true" Class="mt-1 ml-3" />
@@ -231,7 +231,7 @@ else
             </MudItem>
             <MudItem xs="12" md="12" lg="12">
             <!-- Reviews -->
-                <ReviewList BasicReviews="gameDetails.Reviews.Data" />
+                <ReviewList Style = "true" Reviews="gameDetails.Reviews.Data" />
             </MudItem>
         </MudGrid>
     </MudContainer>
@@ -369,7 +369,7 @@ else
             if(userReview == null)
             {
                 var favoriteData = new CreateReviewRequest(
-                    Rating: null,
+                    Rating: 0,
                     StartDate: null,
                     EndDate: null,
                     ReviewText: null,

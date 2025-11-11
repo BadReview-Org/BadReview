@@ -163,14 +163,8 @@
                                     </MudText>
                                 }
                             </MudPaper>
-                            <!-- Recent Reviews -->
-                            <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                                <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
-                                    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Class="mr-2" />
-                                    Recent Reviews (@user.Reviews.TotalCount)
-                                </MudText>
-                                <ReviewList Reviews="user.Reviews.Data.ToList()" />
-                            </MudPaper>
+                            <!--  Reviews -->
+                            <ReviewList Style="false" Reviews="user.Reviews.Data.ToList()" />
                         </MudStack>
                     </MudItem>
                 </MudGrid>
