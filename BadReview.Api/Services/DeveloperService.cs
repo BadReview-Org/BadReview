@@ -57,7 +57,10 @@ public class DeveloperService : IDeveloperService
         {
             var newDev = CreateDeveloperEntity(devIGDB);
             _db.Developers.Add(newDev);
-            await _db.SaveChangesAsync();
+
+            if (await _db.SafeSaveChangesAsync())
+                throw new WritingToDBException("Exception while saving new developer from IGDB to DB.");
+
             Console.WriteLine($"Cached IGDB developer: {devIGDB.Name} into the database");
         }
 

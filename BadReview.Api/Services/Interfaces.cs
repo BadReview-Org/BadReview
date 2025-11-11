@@ -7,6 +7,13 @@ using BadReview.Shared.Utils;
 
 namespace BadReview.Api.Services;
 
+// Exception raised from all services in case there's an error writing to the database (e.g. SaveChangesAsync)
+public class WritingToDBException : Exception
+{
+    public WritingToDBException() { }
+    public WritingToDBException(string message) : base(message) { }
+}
+
 public enum GetReviewsOpt { ALL, FAVORITES, REVIEWS } // used in IGameService and IReviewService implementations
 
 public interface IGameService
@@ -33,8 +40,6 @@ public interface IPlatformService
     Task<PagedResult<PlatformDto>> GetPlatformsAsync(IgdbRequest query, PaginationRequest pag);
     Task<PlatformDto?> GetPlatformByIdAsync(int id, bool cache);
 }
-
-
 
 public interface IReviewService
 {

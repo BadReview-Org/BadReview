@@ -51,7 +51,9 @@ public class UserService : IUserService
         };
 
         _db.Users.Add(newUser);
-        await _db.SaveChangesAsync();
+
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while saving the new user to DB.");
 
         var userDto = new BasicUserDto(
             newUser.Id,
@@ -80,7 +82,9 @@ public class UserService : IUserService
 
 
         _db.Users.Remove(existingUser);
-        await _db.SaveChangesAsync();
+
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while removing the requested user from the DB.");
 
         return UserCode.OK;
     }
@@ -234,7 +238,8 @@ public class UserService : IUserService
         else
             existingUser.Password = _auth.HashPassword(existingUser.Username, req.Password);
 
-        await _db.SaveChangesAsync();
+        if (await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while updating the user information in the DB.");
 
         return (UserCode.OK, new BasicUserDto(existingUser.Id, existingUser.Username));
     }

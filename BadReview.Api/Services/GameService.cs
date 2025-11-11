@@ -170,8 +170,10 @@ public class GameService : IGameService
             await AddRelatedPlatforms(gameIGDB.Platforms);
             await AddRelatedDevelopers(gameIGDB.Involved_Companies);
             _db.Games.Add(newGame);
-            
-            await _db.SaveChangesAsync();
+
+            if (await _db.SafeSaveChangesAsync())
+                throw new WritingToDBException("Exception while saving new game from IGDB to DB.");
+
             Console.WriteLine($"Cached IGDB game: {gameIGDB.Name} into the database");
         }
 

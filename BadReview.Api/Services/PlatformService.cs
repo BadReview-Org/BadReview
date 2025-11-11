@@ -57,7 +57,10 @@ public class PlatformService : IPlatformService
         {
             var newPlatform = CreatePlatformEntity(platformIGDB);
             _db.Platforms.Add(newPlatform);
-            await _db.SaveChangesAsync();
+
+            if (await _db.SafeSaveChangesAsync())
+                throw new WritingToDBException("Exception while saving new platform from IGDB to DB.");
+
             Console.WriteLine($"Cached IGDB platform: {platformIGDB.Name} into the database");
         }
 

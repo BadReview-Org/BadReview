@@ -38,11 +38,16 @@ public static class DeveloperEndpoints
     static async Task<IResult> GetDeveloperById
     (int id, IDeveloperService developerService)
     {
-        var developer = await developerService.GetDeveloperByIdAsync(id, true);
+        try
+        {
+            var developer = await developerService.GetDeveloperByIdAsync(id, true);
 
-        var response = developer is null ?
-            Results.NotFound($"No developer with id {id}") : Results.Ok(developer);
+            var response = developer is null ?
+                Results.NotFound($"No developer with id {id}") : Results.Ok(developer);
 
-        return response;
+            return response;
+        }
+        catch (WritingToDBException ex) { return Results.InternalServerError(ex.Message); }
+        catch (Exception ex) { return Results.InternalServerError($"Unexpected exception: {ex.Message}"); }
     }
 }
