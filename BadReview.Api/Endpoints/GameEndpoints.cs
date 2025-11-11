@@ -69,7 +69,7 @@ public static class GameEndpoints
 
         if ((bool)onlyReviewPage)
         {
-            var reviewsPage = await reviewService.GetBasicReviewsAsync(reviewsPag, false, GetReviewsOpt.REVIEWS, null, id);
+            var reviewsPage = await reviewService.GetDetailReviewsAsync(reviewsPag, false, GetReviewsOpt.REVIEWS, null, id);
 
             return Results.Ok(reviewsPage);
         }
@@ -101,7 +101,7 @@ public static class GameEndpoints
 
         if ((bool)onlyReviewPage)
         {
-            var reviewsPage = await reviewService.GetBasicReviewsAsync(reviewsPag, false, GetReviewsOpt.REVIEWS, null, id);
+            var reviewsPage = await reviewService.GetDetailReviewsAsync(reviewsPag, false, GetReviewsOpt.REVIEWS, null, id);
 
             return Results.Ok(reviewsPage);
         }

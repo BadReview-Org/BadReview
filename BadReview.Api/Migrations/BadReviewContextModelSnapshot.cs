@@ -151,6 +151,12 @@ namespace BadReview.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("PlatformType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlatformTypeName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Summary")
                         .HasColumnType("nvarchar(max)");
 
@@ -179,7 +185,7 @@ namespace BadReview.Api.Migrations
                     b.Property<bool>("IsReview")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("Rating")
+                    b.Property<int>("Rating")
                         .HasColumnType("int");
 
                     b.Property<string>("ReviewText")

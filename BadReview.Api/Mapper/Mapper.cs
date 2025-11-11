@@ -82,11 +82,11 @@ public static class Mapper
             p.Id, p.Name, p.Abbreviation,
             p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width);*/
     public static PlatformDto CreatePlatformDto(Platform p)
-        => new PlatformDto(p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
-            p.Logo?.ImageId, p.Logo?.ImageHeight, p.Logo?.ImageWidth, null);
+        => new PlatformDto(p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary, p.PlatformType,
+            p.PlatformTypeName, p.Logo?.ImageId, p.Logo?.ImageHeight, p.Logo?.ImageWidth, null);
     public static PlatformDto CreatePlatformDto(PlatformIgdbDto p) =>
         new PlatformDto(
-            p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary,
+            p.Id, p.Name, p.Abbreviation, p.Generation, p.Summary, p.Platform_type?.Id, p.Platform_type?.Name,
             p.Platform_logo?.Image_Id, p.Platform_logo?.Height, p.Platform_logo?.Width, null);
 
     public static Platform CreatePlatformEntity(PlatformIgdbDto p) =>
@@ -96,6 +96,8 @@ public static class Mapper
             Abbreviation = p.Abbreviation,
             Generation = p.Generation,
             Summary = p.Summary,
+            PlatformType = p.Platform_type?.Id,
+            PlatformTypeName = p.Platform_type?.Name,
             Logo = p.Platform_logo?.Image_Id is not null ?
                 new Image(p.Platform_logo.Image_Id, p.Platform_logo.Height, p.Platform_logo.Width) : null
         };
@@ -167,7 +169,7 @@ public static class Mapper
             0,
             0,
             g.Videos?.FirstOrDefault()?.Video_Id,
-            new PagedResult<BasicReviewDto>
+            new PagedResult<DetailReviewDto>
                 (new(), 0, reviewsPag.Page ?? CONSTANTS.DEF_PAGE, reviewsPag.PageSize ?? CONSTANTS.DEF_PAGESIZE),
             g.Genres is null ?
                 new List<GenreDto>() :
@@ -205,9 +207,10 @@ public static class Mapper
                 .OrderByDescending(r => r.Date.UpdatedAt)
                 .Skip(page * pageSize)
                 .Take(pageSize)
-                .Select(r => new BasicReviewDto(
+                .Select(r => new DetailReviewDto(
                 r.Id,
                 r.Rating,
+                r.StartDate, r.EndDate,
                 r.ReviewText,
                 r.StateEnum,
                 r.IsFavorite,
@@ -217,7 +220,7 @@ public static class Mapper
                     r.User.Username
                 ),
                 null,
-                r.Date.UpdatedAt
+                r.Date.CreatedAt, r.Date.UpdatedAt
             )).ToPagedResult
                 (reviewCount, page, pageSize),
             g.GameGenres.Select(gg => CreateGenreDto(gg.Genre)

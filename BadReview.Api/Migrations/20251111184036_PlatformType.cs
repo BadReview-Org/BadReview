@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BadReview.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class PlatformType : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,6 +71,8 @@ namespace BadReview.Api.Migrations
                     Abbreviation = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Generation = table.Column<int>(type: "int", nullable: true),
                     Summary = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PlatformType = table.Column<int>(type: "int", nullable: true),
+                    PlatformTypeName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Logo_ImageId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Logo_ImageHeight = table.Column<int>(type: "int", nullable: true),
                     Logo_ImageWidth = table.Column<int>(type: "int", nullable: true)
@@ -180,7 +182,7 @@ namespace BadReview.Api.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     GameId = table.Column<int>(type: "int", nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: true),
+                    Rating = table.Column<int>(type: "int", nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ReviewText = table.Column<string>(type: "nvarchar(max)", nullable: true),

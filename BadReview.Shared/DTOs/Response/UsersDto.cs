@@ -16,8 +16,8 @@ public record PublicUserDto(
     int Id,
     string Username,
     int? Country,
-    PagedResult<BasicReviewDto> Reviews,
-    PagedResult<BasicReviewDto> Favorites,
+    PagedResult<DetailReviewDto> Reviews,
+    PagedResult<DetailReviewDto> Favorites,
     DateTime CreatedAt
 );
 

@@ -11,7 +11,7 @@ public record DetailGameDto(
     long Count_RatingBadReview,
     long Count_FavoritesBadReview,
     string? Video,
-    PagedResult<BasicReviewDto> Reviews,
+    PagedResult<DetailReviewDto> Reviews,
     List<GenreDto> Genres,
     List<DetailDeveloperDto> Developers,
     List<PlatformDto> Platforms

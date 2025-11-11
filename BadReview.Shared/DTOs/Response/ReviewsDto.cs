@@ -6,7 +6,7 @@ namespace BadReview.Shared.DTOs.Response;
 
 public record DetailReviewDto(
     int Id,
-    int? Rating,
+    int Rating,
     DateTime? StartDate,
     DateTime? EndDate,
     string? ReviewText,
@@ -23,7 +23,7 @@ public record DetailReviewDto(
 
 public record BasicReviewDto(
     int Id,
-    int? Rating,
+    int Rating,
     string? ReviewText,
     ReviewState StateEnum,
     bool IsFavorite,

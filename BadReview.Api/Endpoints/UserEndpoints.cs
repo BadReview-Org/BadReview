@@ -176,11 +176,11 @@ public static class UserEndpoints
                     _ => Results.InternalServerError()
                 };
             case UserPaginationField.REVIEWS:
-                var reviewsPage = await reviewService.GetBasicReviewsAsync(pag, true, GetReviewsOpt.REVIEWS, id);
+                var reviewsPage = await reviewService.GetDetailReviewsAsync(pag, true, GetReviewsOpt.REVIEWS, id);
 
                 return Results.Ok(reviewsPage);
             case UserPaginationField.FAVORITES:
-                var favoritesPage = await reviewService.GetBasicReviewsAsync(pag, true, GetReviewsOpt.FAVORITES, id);
+                var favoritesPage = await reviewService.GetDetailReviewsAsync(pag, true, GetReviewsOpt.FAVORITES, id);
 
                 return Results.Ok(favoritesPage);
             default:

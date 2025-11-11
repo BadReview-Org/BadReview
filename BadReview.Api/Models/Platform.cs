@@ -9,6 +9,8 @@ public class Platform
     public string? Abbreviation { get; set; }
     public int? Generation { get; set; }
     public string? Summary { get; set; }
+    public int? PlatformType { get; set; }
+    public string? PlatformTypeName { get; set; }
     public Image? Logo { get; set; }
 
     public ICollection<GamePlatform> GamePlatforms { get; set; } = new List<GamePlatform>();
