@@ -1,6 +1,6 @@
 <MudLink Href="@($"/game/{game?.Id}")" Style="text-decoration: none; color: inherit;">
     <MudCard Class="mud-elevation-hover" 
-                Style="height: 100%; 
+                Style="height: 100%;
                     background: linear-gradient(145deg, #2a2a2a, #1a1a1a); 
                     border-radius: 12px; 
                     overflow: hidden;
@@ -25,17 +25,23 @@
                             font-size: 0.95rem;">
                 @game?.Name
             </MudText>
-            @if (game?.RatingIGDB != null && game.RatingIGDB.HasValue)
+            @if (ShowRatings)
             {
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
-                    <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
-                    <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
-                        @((game.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
-                    </MudText>
-                    <img src="icon-192_white.png" alt="BadReview" style="height: 24px; width: auto; opacity: 0.8;" />
-                    <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
-                        @((game?.Total_RatingBadReview ?? 0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
-                    </MudText>
+                    @if (game?.RatingIGDB != null && game.RatingIGDB.HasValue)
+                    {
+                        <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
+                        <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
+                            @((game.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
+                        </MudText>
+                        <img src="icon-192_white.png" alt="BadReview" style="height: 24px; width: auto; opacity: 0.8;" />
+                    }
+                    @if (game?.Total_RatingBadReview != null && game.Total_RatingBadReview > 0)
+                    {
+                        <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
+                            @((game?.Total_RatingBadReview ?? 0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
+                        </MudText>
+                    }
                 </MudStack>
             }
         </MudCardContent>
@@ -46,4 +52,5 @@
     // --- Parámetros personalizables --
     [Parameter] public BasicGameDto? game {get; set;}
 
+    [Parameter] public bool ShowRatings {get; set;} = true;
 }

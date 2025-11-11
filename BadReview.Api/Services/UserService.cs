@@ -139,7 +139,7 @@ public class UserService : IUserService
                         r.Game.Cover != null ? r.Game.Cover.ImageWidth : null,
                         r.Game.RatingIGDB, r.Game.Total_RatingBadReview, r.Game.Count_RatingBadReview),
                         r.Date.CreatedAt, r.Date.UpdatedAt
-                )).ToPagedResult(reviewCount, page, pageSize),
+                )).ToPagedResult(favoriteCount, page, pageSize),
                 u.Date.CreatedAt, u.Date.UpdatedAt
                 )
             )

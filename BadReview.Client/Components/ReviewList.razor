@@ -1,0 +1,95 @@
+@using System.Globalization
+
+@if (Reviews.Any())
+{
+    <MudStack Spacing="2">
+        @foreach (var review in Reviews.Take(5))
+{
+    <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
+        <MudStack Spacing="1">
+            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                    @(review.Game?.Name ?? "Unknown Game")
+                </MudText>
+                @if (review.Rating.HasValue)
+                {
+                    <MudRating SelectedValue="@review.Rating.Value" ReadOnly="true" Size="Size.Small" />
+                }
+            </MudStack>
+            @if (!string.IsNullOrEmpty(review.ReviewText))
+            {
+                <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
+                    @review.ReviewText
+                </MudText>
+            }
+            <MudStack Row="true" Spacing="1">
+                <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                    @review.StateEnum.ToString()
+                </MudChip>
+                <MudText Typo="Typo.caption" Style="color: #808080;">
+                    @review.CreatedAt.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)
+                </MudText>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+}
+    </MudStack>
+}
+
+else if (BasicReviews.Any())
+{
+<MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+    <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
+    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Class="mr-2" />
+        Reviews (@BasicReviews.Count)
+    </MudText>
+    <MudStack Spacing="2">
+    @foreach (BasicReviewDto review in BasicReviews.Take(5))
+    {
+        <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
+            <MudStack Spacing="1">
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudStack Row="true" Spacing="1">
+                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                        <MudLink Href="@($"/user/{review.User?.Id}")" Style="text-decoration: none; color: inherit;">
+                            @(review.User?.Username ?? "Unknown User")
+                        </MudLink>
+                        </MudText>
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                            @review.StateEnum.ToString()
+                        </MudChip>
+                    </MudStack>
+                    @if (review.Rating.HasValue)
+                    {
+                        <MudRating SelectedValue="@review.Rating.Value" ReadOnly="true" Size="Size.Small" />
+                    }
+                </MudStack>
+                @if (!string.IsNullOrEmpty(review.ReviewText))
+                {
+                    <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
+                        @review.ReviewText
+                    </MudText>
+                }
+                <MudStack Row="true" Spacing="1">
+                    <MudText Typo="Typo.caption" Style="color: #808080;">
+                        @review.UpdatedAt.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)
+                    </MudText>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    }
+    </MudStack>
+
+</MudPaper>
+}
+else
+{
+    <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #808080; padding: 40px 0;">
+        No reviews yet. Start reviewing games!
+    </MudText>
+}
+
+@code{
+    [Parameter] public List<DetailReviewDto> Reviews { get; set; } = new();
+    [Parameter] public List<BasicReviewDto> BasicReviews { get; set; } = new();
+}

@@ -40,8 +40,19 @@ public class CardContainer
 
 public class BasicGameCardStrat : ICardStrategy
 {
+    public bool ShowRatings { get; set; } = true;
+
+    public BasicGameCardStrat(bool showRatings = true)
+    {
+        ShowRatings = showRatings;
+    }
+
     public Type GetComponentType() => typeof(BasicGameCard);
-    public Dictionary<string, object> GetParameters(object element) => new() { ["game"] = element };
+    public Dictionary<string, object> GetParameters(object element) => new() 
+    { 
+        ["game"] = element,
+        ["ShowRatings"] = ShowRatings
+    };
 }
 
 public class DetailReviewCardStrat : ICardStrategy

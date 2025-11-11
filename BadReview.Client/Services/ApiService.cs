@@ -40,6 +40,7 @@ public class ApiService
         return response ?? new PagedResult<T>(new List<T>(), 0, 0, 0);
     }
 
+
     public async Task<T?> PublicGetByIdAsync<T>(string uri, int id)
     {
         return await _httpClient.GetFromJsonAsync<T>($"{uri}/{id}");;

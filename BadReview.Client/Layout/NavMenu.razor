@@ -7,7 +7,11 @@
         <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
         <MudNavLink Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
 </MudNavGroup> -->
-    <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+    <AuthorizeView>
+        <Authorized>
+                <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+        </Authorized>
+    </AuthorizeView>
     <MudNavLink Href="/about"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
     <MudNavLink Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
 </MudNavMenu>

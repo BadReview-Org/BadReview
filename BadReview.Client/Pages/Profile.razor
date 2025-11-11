@@ -137,55 +137,7 @@
                     <!-- Columna Derecha - Reviews y Favorites -->
                     <MudItem xs="12" md="8">
                         <MudStack Spacing="3">
-                            <!-- Recent Reviews -->
-                            <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                                <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
-                                    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Class="mr-2" />
-                                    Recent Reviews (@user.Reviews.TotalCount)
-                                </MudText>
-                                @if (user.Reviews.Data.Any())
-                                {
-                                    <MudStack Spacing="2">
-                                        @foreach (var review in user.Reviews.Data.Take(5))
-                                        {
-                                            <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
-                                                <MudStack Spacing="1">
-                                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                                                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
-                                                            @(review.Game?.Name ?? "Unknown Game")
-                                                        </MudText>
-                                                        @if (review.Rating.HasValue)
-                                                        {
-                                                            <MudRating SelectedValue="@review.Rating.Value" ReadOnly="true" Size="Size.Small" />
-                                                        }
-                                                    </MudStack>
-                                                    @if (!string.IsNullOrEmpty(review.ReviewText))
-                                                    {
-                                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
-                                                            @review.ReviewText
-                                                        </MudText>
-                                                    }
-                                                    <MudStack Row="true" Spacing="1">
-                                                        <MudChip T="string" Size="Size.Small" Color="Color.Info">
-                                                            @review.StateEnum.ToString()
-                                                        </MudChip>
-                                                        <MudText Typo="Typo.caption" Style="color: #808080;">
-                                                            @review.CreatedAt.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)
-                                                        </MudText>
-                                                    </MudStack>
-                                                </MudStack>
-                                            </MudPaper>
-                                        }
-                                    </MudStack>
-                                }
-                                else
-                                {
-                                    <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #808080; padding: 40px 0;">
-                                        No reviews yet. Start reviewing games!
-                                    </MudText>
-                                }
-                            </MudPaper>
-
+                            
                             <!-- Favorite Games -->
                             <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
                                 <MudText Typo="Typo.h5" Class="mb-3" Style="color: #764ba2;">
@@ -194,30 +146,8 @@
                                 </MudText>
                                 @if (user.Favorites.Data.Any())
                                 {
-                                    <MudStack Spacing="2">
-                                        @foreach (var favorite in user.Favorites.Data.Take(5))
-                                        {
-                                            <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
-                                                <MudStack Spacing="1">
-                                                    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                                                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
-                                                            @(favorite.Game?.Name ?? "Unknown Game")
-                                                        </MudText>
-                                                        <MudIcon Icon="@Icons.Material.Filled.Favorite" Color="Color.Error" />
-                                                    </MudStack>
-                                                    @if (!string.IsNullOrEmpty(favorite.ReviewText))
-                                                    {
-                                                        <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
-                                                            @favorite.ReviewText
-                                                        </MudText>
-                                                    }
-                                                    @if (favorite.Rating.HasValue)
-                                                    {
-                                                        <MudRating SelectedValue="@favorite.Rating.Value" ReadOnly="true" Size="Size.Small" />
-                                                    }
-                                                </MudStack>
-                                            </MudPaper>
-                                        }
+                                    <MudStack Spacing="1">
+                                        <CustomGridCard pageSize="6" CardHeight="225px" PageChanged="@OnPageFavoriteChanged" totalPages="totalPagesFavorite" arrayElement="favoriteGameCards" placeholderTitle="No favorite games found." placeholderBody="Add some games to your favorites!" />
                                     </MudStack>
                                 }
                                 else
@@ -226,6 +156,14 @@
                                         No favorite games yet. Add some favorites!
                                     </MudText>
                                 }
+                            </MudPaper>
+                            <!-- Recent Reviews -->
+                            <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                                <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
+                                    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Class="mr-2" />
+                                    Recent Reviews (@user.Reviews.TotalCount)
+                                </MudText>
+                                <ReviewList Reviews="user.Reviews.Data.ToList()" />
                             </MudPaper>
                         </MudStack>
                     </MudItem>
@@ -240,7 +178,8 @@
 
 @code {
     private PrivateUserDto? user;
-
+    private int totalPagesFavorite = 1;
+    private CardContainer[]? favoriteGameCards;
     protected override async Task OnInitializedAsync()
     {
         await LoadUserProfile();
@@ -252,6 +191,12 @@
         {
             // Obtener el perfil del usuario autenticado
             user = await ApiService.PrivateGetAsync<PrivateUserDto>(APIUTILS.URIS.PROFILE);
+            var favoritesDto = user?.Favorites;
+            favoriteGameCards = favoritesDto?.Data.Where(r => r.Game != null)
+                                                    .Select(r => new CardContainer(new BasicGameCardStrat(false), r.Game!))
+                                                    .ToArray();
+            totalPagesFavorite = (int)Math.Ceiling((double)(favoritesDto?.TotalCount ?? 0) / (favoritesDto?.PageSize ?? 1));
+            Console.WriteLine($"Total Pages for Favorites: {totalPagesFavorite}");
         }
         catch (Exception ex)
         {
@@ -264,5 +209,22 @@
         // Aquí podrías mapear el código de país a su nombre
         // Por ahora retorna el código
         return $"Country Code: {countryCode}";
+    }
+
+
+    private async Task OnPageFavoriteChanged(int page)
+    {
+        favoriteGameCards = null; // Mostrar skeleton mientras se carga la nueva página
+
+        try
+        {
+            var apiRequest = $"{APIUTILS.URIS.PROFILE}&page={page - 1}&field=1";
+            var response = await ApiService.PrivateGetAsync<PagedResult<DetailReviewDto>>(apiRequest);
+            favoriteGameCards = response?.Data.Select(r => new CardContainer(new BasicGameCardStrat(false), r.Game!)).ToArray();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading favorite games: {ex.Message}");
+        }
     }
 }
