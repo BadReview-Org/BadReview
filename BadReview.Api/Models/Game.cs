@@ -8,9 +8,9 @@ public class Game
     public string Name { get; set; } = null!;
     public long? Date { get; set; }
     public string? Summary { get; set; }
-    public double RatingIGDB { get; set; } = 0d;
-    public long Total_RatingBadReview { get; set; } = 0;
-    public long Count_RatingBadReview { get; set; } = 0;
+    public double RatingIGDB { get; set; } = 0d; // de 0 a 100
+    public long Total_RatingBadReview { get; set; } = 0; // no negativos
+    public long Count_RatingBadReview { get; set; } = 0; // no negativos
     public string? Video { get; set; }
     public Image? Cover { get; set; }
 

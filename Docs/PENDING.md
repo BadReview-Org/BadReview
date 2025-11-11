@@ -1,5 +1,7 @@
 # BACKEND
 
+## Permitir filtrar las reviews por ReviewState
+
 ## Concurrencia
 
 ### Verificar token invalido 
