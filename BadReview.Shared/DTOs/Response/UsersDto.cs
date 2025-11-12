@@ -14,6 +14,7 @@ public interface IUserDto
 public record PrivateUserDto(
     int Id,
     string Username,
+    string Email,
     string? FullName,
     DateTime? Birthday,
     int? Country,

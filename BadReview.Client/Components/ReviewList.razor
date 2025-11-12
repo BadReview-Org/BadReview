@@ -1,91 +1,122 @@
 @using System.Globalization
 @using MudBlazor.Utilities
 
-@if (Reviews.Any())
-{
-    <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-        <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
-        <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Class="mr-2" />
-            Reviews (@Reviews.Count)
-        </MudText>
+<MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+    <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
+    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Class="mr-2" />
+        Reviews (@totalCount)
+    </MudText>
+    <MudStack Spacing="2">
+
+    @if (Reviews.Count == 0)
+    {
         <MudStack Spacing="2">
-            @foreach (var review in Reviews.Take(5))
+            @for (int i = 0; i < 6; i++)
             {
-                <MudLink Href="@($"/game/{review.Game?.Id}")" Style="text-decoration: none; color: inherit;">
-                    <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
-                        <MudStack Row="true" Spacing="2" Style="flex: 1;">
-                            @if(!Style){
-                            <MudPaper Width="50px" Elevation="2" Style="height: 70px; background: rgba(255,255,255,0.05); padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-                                <img src="@ImageHelper.GetCoverUrl(review.Game?.CoverId)" 
-                                    alt="@review.Game?.Name"
-                                    style="max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s ease;"
-                                    class="game-cover" />
-                            </MudPaper>
-                            }
-                            <MudStack Spacing="1" Style="flex: 1;">
-                                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
-                                    <MudStack Row="true" Spacing="1">
-                                        @if (Style)
-                                        {
-                                        <MudLink Href="@($"/user/{review.User?.Id}")" Style="text-decoration: none; color: inherit;">
-                                            @(review.User?.Username ?? "Unknown User")
-                                        </MudLink>
-                                        }
-                                        else
-                                        {
-                                        <MudText Typo="Typo.subtitle1" Style="font-weight: 600;display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
-                                            @(review.Game?.Name ?? "Unknown Game")
-                                        </MudText>
-                                        }
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Info">
-                                            @review.StateEnum.ToString()
-                                        </MudChip>
-                                    </MudStack>
-                                    @if (review.Rating > 0)
-                                    {
-                                        <MudRating Disabled=true SelectedValue="@review.Rating" ReadOnly="true" Size="Size.Small" />
-                                    }
+                <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
+                    <MudStack Row="true" Spacing="2" Style="flex: 1;">
+                        @if(!Style)
+                        {
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="50px" Height="70px" />
+                        }
+                        <MudStack Spacing="1" Style="flex: 1;">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+                                <MudStack Row="true" Spacing="1" Style="flex: 1;">
+                                    <MudSkeleton SkeletonType="SkeletonType.Text" Width="60%" Height="24px" />
+                                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="80px" Height="24px" Style="border-radius: 12px;" />
                                 </MudStack>
-                                @if (!string.IsNullOrEmpty(review.ReviewText))
-                                {
-                                    <MudText Typo="Typo.body2" Style="color: #b0b0b0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
-                                        @review.ReviewText
-                                    </MudText>
-                                }
-                                <MudStack Row="true" Spacing="1">
-                                    <MudText Typo="Typo.caption" Style="color: #808080;">
-                                        @review.CreatedAt.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)
-                                    </MudText>
-                                </MudStack>
+                                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="120px" Height="20px" />
                             </MudStack>
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Width="100%" Height="18px" />
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Width="80%" Height="18px" />
+                            <MudSkeleton SkeletonType="SkeletonType.Text" Width="100px" Height="16px" Class="mt-1" />
                         </MudStack>
-                    </MudPaper>
-                </MudLink>
+                    </MudStack>
+                </MudPaper>
             }
         </MudStack>
+    }
+    else if (Reviews == null)
+    {
+        <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #808080; padding: 40px 0;">
+            No reviews yet. Start reviewing games!
+        </MudText>
+    }
+    else
+    {
+        @foreach (var review in Reviews)
+        {
+            <MudLink Href="@($"/game/{review.Game?.Id}")" Style="text-decoration: none; color: inherit;">
+                <MudPaper Class="pa-3" Elevation="2" Style="background: rgba(255,255,255,0.05);">
+                    <MudStack Row="true" Spacing="2" Style="flex: 1;">
+                        @if(!Style){ //cover image
+                        <MudPaper Width="50px" Elevation="2" Style="height: 70px; background: rgba(255,255,255,0.05); padding: 0; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                            <img src="@ImageHelper.GetCoverUrl(review.Game?.CoverId)" 
+                                alt="@review.Game?.Name"
+                                style="max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.3s ease;"
+                                class="game-cover" />
+                        </MudPaper>
+                        }
+                        <MudStack Spacing="1" Style="flex: 1;">
+                            <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+                                <MudStack Row="true" Spacing="1">
+                                    @if (Style)
+                                    {
+                                    <MudLink Href="@($"/user/{review.User?.Id}")" Style="text-decoration: none; color: inherit;">
+                                        @(review.User?.Username ?? "Unknown User")
+                                    </MudLink>
+                                    }
+                                    else
+                                    {
+                                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+                                        @(review.Game?.Name ?? "Unknown Game")
+                                    </MudText>
+                                    }
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                                        @review.StateEnum.ToString()
+                                    </MudChip>
+                                </MudStack>
+                                @if (review.Rating > 0)
+                                {
+                                    <MudRating Disabled=true SelectedValue="@review.Rating" ReadOnly="true" Size="Size.Small" />
+                                }
+                            </MudStack>
+                            @if (!string.IsNullOrEmpty(review.ReviewText))
+                            {
+                                <MudText Typo="Typo.body2" Style="color: #b0b0b0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+                                    @review.ReviewText
+                                </MudText>
+                            }
+                            <MudStack Row="true" Spacing="1">
+                                <MudText Typo="Typo.caption" Style="color: #808080;">
+                                    @review.CreatedAt.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture)
+                                </MudText>
+                            </MudStack>
+                        </MudStack>
+                    </MudStack>
+                </MudPaper>
+            </MudLink>
+        }
+    }
+    </MudStack>
     @if (totalPages > 1)
     {
     <div class="d-flex flex-column align-center">
         <MudPagination Color="Color.Dark" Class="mt-4" SelectedChanged="@OnPageChanged" BoundaryCount="5" Count="totalPages" Selected="@_selected" />
     </div>
     }
-    </MudPaper>
-
-}
-else
-{
-    <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #808080; padding: 40px 0;">
-        No reviews yet. Start reviewing games!
-    </MudText>
-}
+</MudPaper>
 
 @code{
     [Parameter] public List<DetailReviewDto> Reviews { get; set; } = new();
     [Parameter] public bool Style { get; set; } = true;
     [Parameter] public EventCallback<int> PageChanged { get; set; }
 
+    [Parameter] public int totalPages { get; set; } = 1;
+
+    [Parameter] public int totalCount { get; set; } = 0;
+
     private int _selected = 1;
-    private int totalPages = 1;
 
     private void OnPageChanged(int page)
     {

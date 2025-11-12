@@ -1,5 +1,6 @@
 @using System.Globalization
 @using BadReview.Shared.DTOs.Response
+@using BadReview.Shared.DTOs.Request
 @using BadReview.Shared.Utils
 @using BadReview.Client.Utils
 @inject ApiService ApiService
@@ -25,29 +26,36 @@ else
         <MudGrid Spacing="4">
             <!-- Header con información del usuario -->
             <MudItem xs="12">
-                <MudPaper Class="pa-6" Elevation="8" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
-                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
-                        <MudAvatar Size="Size.Large" Style="width: 100px; height: 100px; font-size: 2.5rem; background-color: rgba(255,255,255,0.2);">
-                            @user.Username[0].ToString().ToUpper()
-                        </MudAvatar>
-                        <MudStack Spacing="1">
-                            <MudText Typo="Typo.h3" Style="font-weight: 700; color: white;">
-                                @user.Username
-                            </MudText>
-                            @if (IsPrivateProfile && !string.IsNullOrEmpty(AsPrivate?.FullName))
-                            {
-                                <MudText Typo="Typo.h6" Style="color: rgba(255,255,255,0.9);">
-                                    @AsPrivate.FullName
-                                </MudText>
+                    <MudPaper Class="pa-6" Elevation="8" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px;">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Spacing="4">
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+                                <MudAvatar Size="Size.Large" Style="width: 100px; height: 100px; font-size: 2.5rem; background-color: rgba(255,255,255,0.2);">
+                                    @user.Username[0].ToString().ToUpper()
+                                </MudAvatar>
+                                <MudStack Spacing="1">
+                                    <MudText Typo="Typo.h3" Style="font-weight: 700; color: white;">
+                                        @user.Username
+                                    </MudText>
+                                    @if (IsPrivateProfile && !string.IsNullOrEmpty(AsPrivate?.FullName))
+                                    {
+                                        <MudText Typo="Typo.h6" Style="color: rgba(255,255,255,0.9);">
+                                            @AsPrivate.FullName
+                                        </MudText>
+                                    }
+                                    <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
+                                        Member since @user.CreatedAt.ToString("MMMM yyyy", CultureInfo.InvariantCulture)
+                                    </MudText>
+                                </MudStack>
+                            </MudStack>
+                            @if(IsPrivateProfile)
+                            { 
+                            <MudIcon @onclick="() => showSettings = !showSettings" Icon="@Icons.Material.Filled.Settings" Size="Size.Large" Style="color: white; cursor: pointer;" />
                             }
-                            <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.8);">
-                                Member since @user.CreatedAt.ToString("MMMM yyyy", CultureInfo.InvariantCulture)
-                            </MudText>
                         </MudStack>
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
-
+                    </MudPaper>
+                </MudItem>
+            @if(!showSettings)
+            {
             <!-- Columna Izquierda - Información Personal -->
             <MudItem xs="12" md="4">
                 <MudStack Spacing="3">
@@ -100,6 +108,7 @@ else
                     </MudPaper>
 
                     <!-- Activity Stats Card -->
+
                     <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
                             <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Medium" />
@@ -128,6 +137,7 @@ else
                             </MudStack>
                         </MudStack>
                     </MudPaper>
+                    
                 </MudStack>
             </MudItem>
 
@@ -157,9 +167,138 @@ else
                         }
                     </MudPaper>
                     <!--  Reviews -->
-                    <ReviewList PageChanged="@OnPageReviewsChanged" Style="false" Reviews="userReviews" />
+                    <ReviewList  totalCount="@user.Reviews.TotalCount" totalPages="@totalPagesReviews" PageChanged="@OnPageReviewsChanged" Style="false" Reviews="userReviews" />
                 </MudStack>
             </MudItem>
+            }
+            else{
+            <!-- Settings Panel -->
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
+                        <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Medium" />
+                        <MudText Typo="Typo.h5" Style="color: #764ba2;">
+                            User Settings
+                        </MudText>
+                    </MudStack>
+                    
+                    <MudForm @ref="settingsForm" Model="@settingsModel">
+                        <MudStack Spacing="3" Class="mt-4">
+                            <!-- Username -->
+                            <MudTextField @bind-Value="settingsModel.Username"
+                                          Label="Username"
+                                          Variant="Variant.Outlined"
+                                          Required="true"
+                                          RequiredError="Username is required"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.AccountCircle" />
+
+                            <!-- Full Name -->
+                            <MudTextField @bind-Value="settingsModel.FullName"
+                                          Label="Full Name"
+                                          Variant="Variant.Outlined"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Badge" />
+
+                            <!-- Email -->
+                            <MudTextField @bind-Value="settingsModel.Email"
+                                          Label="Email"
+                                          InputType="InputType.Email"
+                                          Variant="Variant.Outlined"
+                                          Required="true"
+                                          RequiredError="Email is required"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Email" />
+
+                            <!-- Birthday -->
+                            <MudDatePicker @bind-Date="settingsModel.Birthday"
+                                           Label="Birthday"
+                                           Variant="Variant.Outlined"
+                                           Editable="true"
+                                           DateFormat="dd/MM/yyyy"
+                                           MaxDate="@DateTime.Today"
+                                           Adornment="Adornment.Start"
+                                           AdornmentIcon="@Icons.Material.Filled.Cake" />
+
+                            <!-- Country -->
+                            <MudTextField @bind-Value="settingsModel.Country"
+                                          Label="Country Code"
+                                          Variant="Variant.Outlined"
+                                          HelperText="Enter country code (e.g., 1 for USA)"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Flag" />
+
+                        </MudStack>
+                    </MudForm>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                <MudStack Spacing="3">
+                    <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Password" Size="Size.Medium" />
+                            <MudText Typo="Typo.h5" Style="color: #764ba2;">
+                                Password Settings
+                            </MudText>
+                        </MudStack>
+                                                <!-- Password Section -->
+                                <MudText Typo="Typo.h6" Style="color: #667eea;">
+                                    Change Password 
+                                </MudText>
+                                
+                                <MudTextField @bind-Value="settingsModel.Password"
+                                            Label="New Password"
+                                            InputType="InputType.Password"
+                                            Variant="Variant.Outlined"
+                                            HelperText="Leave empty to keep current password"
+                                            Adornment="Adornment.Start"
+                                            AdornmentIcon="@Icons.Material.Filled.Lock" />
+
+                                <MudTextField @bind-Value="confirmPassword"
+                                            Label="Confirm New Password"
+                                            InputType="InputType.Password"
+                                            Variant="Variant.Outlined"
+                                            Error="@(!string.IsNullOrEmpty(settingsModel.Password) && settingsModel.Password != confirmPassword)"
+                                            ErrorText="Passwords don't match"
+                                            Adornment="Adornment.Start"
+                                            AdornmentIcon="@Icons.Material.Filled.Lock" />
+                    </MudPaper>
+
+                    <!-- Action Buttons -->
+                    <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
+                            <MudIcon Icon="@Icons.Material.Filled.Password" Size="Size.Medium" />
+                            <MudText Typo="Typo.h5" Style="color: #764ba2;">
+                                Action Buttons
+                            </MudText>
+                            <MudStack Row="true" Spacing="2" Class="mt-4">
+                                <MudButton Variant="Variant.Filled"
+                                            Color="Color.Primary"
+                                            StartIcon="@Icons.Material.Filled.Save"
+                                            OnClick="SaveSettings"
+                                            Disabled="@isSaving">
+                                    @(isSaving ? "Saving..." : "Save Changes")
+                                </MudButton>
+                                <MudButton Variant="Variant.Outlined"
+                                            Color="Color.Default"
+                                            StartIcon="@Icons.Material.Filled.Cancel"
+                                            OnClick="CancelSettings">
+                                    Cancel
+                                </MudButton>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </MudStack>
+            
+
+            @if (!string.IsNullOrEmpty(settingsMessage))
+            {
+                <MudAlert Severity="@settingsMessageSeverity" Class="mt-2">
+                    @settingsMessage
+                </MudAlert>
+            }
+            </MudItem>
+            }
         </MudGrid>
     </MudContainer>
 }
@@ -169,11 +308,136 @@ else
     [Parameter] public CardContainer[]? favoriteGameCards { get; set; }
     [Parameter] public int totalPagesFavorite { get; set; }
     [Parameter] public int totalPagesReviews { get; set; }
+    [Parameter] public EventCallback OnUserUpdated { get; set; }
+    
     private bool IsPrivateProfile => user is PrivateUserDto;
-    private PrivateUserDto? AsPrivate => user as PrivateUserDto; 
+    private bool showSettings = false;
+    private PrivateUserDto? AsPrivate => user as PrivateUserDto;
+    
+    // Settings form
+    private MudForm? settingsForm;
+    private UserSettingsModel settingsModel = new();
+    private string confirmPassword = "";
+    private bool isSaving = false;
+    private string settingsMessage = "";
+    private Severity settingsMessageSeverity = Severity.Info;
+    
     private string GetCountryName(int countryCode)
     {
         return $"Country Code: {countryCode}";
+    }
+
+    private void InitializeSettingsModel()
+    {
+        if (AsPrivate != null)
+        {
+            settingsModel = new UserSettingsModel
+            {
+                Username = AsPrivate.Username,
+                FullName = AsPrivate.FullName ?? "",
+                Email = AsPrivate.Email,
+                Birthday = AsPrivate.Birthday,
+                Country = AsPrivate.Country,
+                Password = ""
+            };
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (showSettings && AsPrivate != null && string.IsNullOrEmpty(settingsModel.Username))
+        {
+            InitializeSettingsModel();
+        }
+    }
+
+    private async Task SaveSettings()
+    {
+        if (settingsForm == null || AsPrivate == null) return;
+
+        // Validar formulario
+        await settingsForm.Validate();
+        if (!settingsForm.IsValid)
+        {
+            settingsMessage = "Please fix the errors in the form.";
+            settingsMessageSeverity = Severity.Error;
+            return;
+        }
+
+        // Validar contraseñas si se proporcionó una
+        if (!string.IsNullOrEmpty(settingsModel.Password) && settingsModel.Password != confirmPassword)
+        {
+            settingsMessage = "Passwords don't match.";
+            settingsMessageSeverity = Severity.Error;
+            return;
+        }
+
+        isSaving = true;
+        settingsMessage = "";
+
+        try
+        {
+            var updateRequest = new CreateUserRequest(
+                Username: settingsModel.Username,
+                Email: settingsModel.Email,
+                Password: string.IsNullOrEmpty(settingsModel.Password) ? null : settingsModel.Password,
+                FullName: string.IsNullOrEmpty(settingsModel.FullName) ? null : settingsModel.FullName,
+                Birthday: settingsModel.Birthday,
+                Country: settingsModel.Country
+            );
+
+            var response = await ApiService.PutAsync<CreateUserRequest, BasicUserDto>(
+                APIUTILS.URIS.UPDATEPROFILE, 
+                updateRequest
+            );
+
+            if (response != null)
+            {
+                settingsMessage = "Settings saved successfully!";
+                settingsMessageSeverity = Severity.Success;
+                confirmPassword = "";
+                settingsModel.Password = "";
+                
+                // Notificar al componente padre que se actualizó el usuario
+                await OnUserUpdated.InvokeAsync();
+                
+                // Volver a la vista principal después de 2 segundos
+                await Task.Delay(2000);
+                showSettings = false;
+            }
+            else
+            {
+                settingsMessage = "Failed to save settings. Please try again.";
+                settingsMessageSeverity = Severity.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            settingsMessage = $"Error: {ex.Message}";
+            settingsMessageSeverity = Severity.Error;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void CancelSettings()
+    {
+        showSettings = false;
+        settingsMessage = "";
+        confirmPassword = "";
+        InitializeSettingsModel();
+    }
+
+    private class UserSettingsModel
+    {
+        public string Username { get; set; } = "";
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public DateTime? Birthday { get; set; }
+        public int? Country { get; set; }
+        public string Password { get; set; } = "";
     }
 
     private async Task OnPageReviewsChanged(int page)

@@ -41,9 +41,9 @@ public class ApiService
     }
 
 
-    public async Task<T?> PublicGetByIdAsync<T>(string uri, int id)
+    public async Task<T?> PublicGetByIdAsync<T>(string uri, int id, string extra = "")
     {
-        return await _httpClient.GetFromJsonAsync<T>($"{uri}/{id}");;
+        return await _httpClient.GetFromJsonAsync<T>($"api/{uri}/{id}{extra}");;
     }
 
     public async Task<T?> PrivateGetByIdAsync<T>(string uri, int id)
@@ -97,13 +97,12 @@ public class ApiService
 
                 if (refreshed)
                 {
-                    // 5. Reintentar el request original con nuevo token
+                    // 5. Crear un NUEVO request con el nuevo token
                     var newToken = await _authService.GetTokenAsync(AuthService.AccessKey);
-                    request.Headers.Remove("Authorization");
-                    request.Headers.Authorization =
-                        new AuthenticationHeaderValue("Bearer", newToken);
+                    var retryRequest = new HttpRequestMessage(method, $"api/{uri}");
+                    retryRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
 
-                    response = await _httpClient.SendAsync(request);
+                    response = await _httpClient.SendAsync(retryRequest);
                 }
             }
             finally
@@ -145,15 +144,15 @@ public class ApiService
 
                 if (refreshed)
                 {
-                    // 5. Reintentar el request original con nuevo token
-
-
+                    // 5. Crear un NUEVO request con el nuevo token
                     var newToken = await _authService.GetTokenAsync(AuthService.AccessKey);
-                    request.Headers.Remove("Authorization");
-                    request.Headers.Authorization =
-                        new AuthenticationHeaderValue("Bearer", newToken);
+                    var retryRequest = new HttpRequestMessage(method ?? HttpMethod.Post, $"api/{uri}");
+                    retryRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
+                    
+                    if (data != null)
+                        retryRequest.Content = JsonContent.Create(data);
 
-                    response = await _httpClient.SendAsync(request);
+                    response = await _httpClient.SendAsync(retryRequest);
                     if (!response.IsSuccessStatusCode)
                     {
                         throw new Exception($"Error after refreshing token: {response.StatusCode}");

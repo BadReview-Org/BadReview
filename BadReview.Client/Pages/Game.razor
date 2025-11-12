@@ -65,13 +65,17 @@ else
                                 @((gameDetails.Total_RatingBadReview / gameDetails.Count_RatingBadReview).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
                             </MudText>
                             }
-                        <MudToggleIconButton Toggled="@(userReview?.IsFavorite ?? false)"
-                            Icon="@Icons.Material.Filled.FavoriteBorder"
-                            Color="@Color.Error"
-                            ToggledIcon="@Icons.Material.Filled.Favorite"
-                            ToggledColor="@Color.Error"
+                        <AuthorizeView>
+                            <Authorized>
+                                <MudToggleIconButton Toggled="@(userReview?.IsFavorite ?? false)"
+                                    Icon="@Icons.Material.Filled.FavoriteBorder"
+                                    Color="@Color.Error"
+                                    ToggledIcon="@Icons.Material.Filled.Favorite"
+                                    ToggledColor="@Color.Error"
                             ToggledChanged="@OnFavoriteChanged"
                             />
+                            </Authorized>
+                        </AuthorizeView>
                         </MudStack>
                               
                         
@@ -257,7 +261,16 @@ else
     private JWTAuthStateProvider AuthStateProvider = null!;
     private string reviewText = "";
     private CustomDialog? popupReview;
-    private void OpenDialog() => popupReview?.Open();
+    private void OpenDialog()
+    {
+        // Sincronizar valores del userReview al abrir el diálogo
+        currentRating = userReview?.Rating ?? 0;
+        reviewText = userReview?.ReviewText ?? "";
+        reviewState = userReview?.StateEnum ?? ReviewState.NONE;
+        _buttonText = reviewState == ReviewState.NONE ? "Select Action" : reviewState.ToString();
+        
+        popupReview?.Open();
+    }
 
     private void SetButtonText(ReviewState option)
     {
@@ -301,7 +314,7 @@ else
             userReview = await ApiService.PostAsync<CreateReviewRequest,DetailReviewDto>(APIUTILS.URIS.REVIEWS, reviewData);
         else
             userReview = await ApiService.PutAsync<CreateReviewRequest,DetailReviewDto>($"{APIUTILS.URIS.REVIEWS}/{userReview.Id}", reviewData);
-        
+        await OnPageReviewsChanged(1);
     }
 
 
@@ -320,6 +333,9 @@ else
             var response = await ApiService.PrivateGetByIdAsync<PrivateDetailGameDto>(APIUTILS.URIS.PRIVATEGAME, id);
             gameDetails = response?.game;
             userReview = response?.userReview;
+            currentRating = userReview?.Rating ?? 0;
+            reviewText = userReview?.ReviewText ?? "";
+            _buttonText = userReview?.StateEnum.ToString() ?? "Select Action";
         }
         else
         {
@@ -427,9 +443,9 @@ else
 
         try
         {
-            var apiRequest = $"{APIUTILS.URIS.PUBLICGAME}&pagesize=10&page={page - 1}&onlyreviewpage=true";
+            var apiRequest = $"?pagesize=10&page={page - 1}&onlyreviewpage=true";
 
-            var response = await ApiService.PublicGetByIdAsync<PagedResult<DetailReviewDto>>(apiRequest, id);
+            var response = await ApiService.PublicGetByIdAsync<PagedResult<DetailReviewDto>>(APIUTILS.URIS.PUBLICGAME, id, apiRequest);
             reviews = response?.Data.ToList() ?? new List<DetailReviewDto>();
         }
         catch (Exception ex)

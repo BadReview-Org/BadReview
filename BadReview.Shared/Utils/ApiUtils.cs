@@ -18,6 +18,7 @@ public static class APIUTILS
         public const string REVIEWS = "reviews";
         public const string USERS = "users";
         public const string PROFILE = "profile?pagesize=6";
+        public const string UPDATEPROFILE = "profile";
     }
 }
 

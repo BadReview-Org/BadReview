@@ -15,7 +15,7 @@
 {
     <AuthorizeView>
         <Authorized>
-            <UserPage user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards" totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" />
+            <UserPage user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards" totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" OnUserUpdated="@ReloadUserData" />
         </Authorized>
         <NotAuthorized>
             @{ Navigation.NavigateTo("/login", true); }
@@ -39,6 +39,11 @@ else
     
     protected override async Task OnInitializedAsync()
     {
+        await LoadUserData();
+    }
+
+    private async Task LoadUserData()
+    {
         if (IsOwnProfile)
         {
             // Cargar perfil privado
@@ -47,7 +52,7 @@ else
         else
         {
             // Cargar perfil público usando el Id
-            user = await ApiService.PublicGetByIdAsync<PublicUserDto>($"api/{APIUTILS.URIS.USERS}", Id ?? 0);
+            user = await ApiService.PublicGetByIdAsync<PublicUserDto>(APIUTILS.URIS.USERS, Id ?? 0);
         }
         userReviews = user?.Reviews.Data.ToList() ?? new List<DetailReviewDto>();
         totalPagesFavorite = (int)Math.Ceiling((double)(user?.Favorites.TotalCount ?? 0) / (user?.Favorites.PageSize ?? 1));
@@ -56,5 +61,11 @@ else
                                                 .Select(r => new CardContainer(new BasicGameCardStrat(false), r.Game!))
                                                 .ToArray();
         Console.WriteLine($"Profile initialized, user: {user?.Username}, reviews loaded: {userReviews.Count}, favorite games loaded: {favoriteGameCards?.Length}, totalPagesFavorite: {totalPagesFavorite}, totalPagesReviews: {totalPagesReviews}, pagesizeFavorite: {user?.Favorites.PageSize}, pagesizeReviews: {user?.Reviews.PageSize}, totalCountFavorite: {user?.Favorites.TotalCount}, totalCountReviews: {user?.Reviews.TotalCount}");
+    }
+
+    private async Task ReloadUserData()
+    {
+        await LoadUserData();
+        StateHasChanged();
     }
 }
