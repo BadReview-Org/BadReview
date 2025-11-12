@@ -16,12 +16,14 @@ namespace BadReview.Api.Endpoints;
 
 public static class DeveloperEndpoints
 {
-    public static void MapDeveloperEndpoints(this WebApplication app)
+    public static WebApplication MapDeveloperEndpoints(this WebApplication app)
     {
         // GET: /api/genres - Obtener todos los developers
         app.MapGet("/api/developers", GetDevelopers);
 
         app.MapGet("/api/developer/{id}", GetDeveloperById);
+
+        return app;
     }
 
     static async Task<IResult> GetDevelopers

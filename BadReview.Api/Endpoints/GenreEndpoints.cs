@@ -16,12 +16,14 @@ namespace BadReview.Api.Endpoints;
 
 public static class GenreEndpoints
 {
-    public static void MapGenreEndpoints(this WebApplication app)
+    public static WebApplication MapGenreEndpoints(this WebApplication app)
     {
         // GET: /api/genres - Obtener todos los generos
         app.MapGet("/api/genres", GetGenres);
 
         app.MapGet("/api/genres/{id}", GetGenreById);
+
+        return app;
     }
 
     static async Task<IResult> GetGenres

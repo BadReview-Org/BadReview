@@ -1,3 +1,7 @@
+## Swagger UI
+
+https://swagger.io
+
 ## IGDB API DOCUMENTATION
 
 https://api-docs.igdb.com/

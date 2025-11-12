@@ -19,7 +19,7 @@ namespace BadReview.Api.Endpoints;
 
 public static class ReviewEndpoints
 {
-    public static void MapReviewEndpoints(this WebApplication app)
+    public static WebApplication MapReviewEndpoints(this WebApplication app)
     {
         // GET: /api/reviews - Obtener todas las reseñas
         app.MapGet("/api/reviews", GetReviews);
@@ -35,6 +35,8 @@ public static class ReviewEndpoints
 
         // POST: /api/reviews - Crear una nueva reseña
         app.MapPost("/api/reviews", CreateReview).RequireAuthorization("AccessTokenPolicy").WithName("ReviewEndpoints");
+
+        return app;
     }
 
     private static async Task<IResult> GetReviews

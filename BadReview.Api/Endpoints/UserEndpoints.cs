@@ -20,7 +20,7 @@ namespace BadReview.Api.Endpoints;
 
 public static class UserEndpoints
 {
-    public static void MapUserEndpoints(this IEndpointRouteBuilder app)
+    public static WebApplication MapUserEndpoints(this WebApplication app)
     {
         app.MapPost("/api/login", LoginUser);
 
@@ -42,6 +42,8 @@ public static class UserEndpoints
 
         // GET: /api/users - Obtener todos los usuarios (solo para debugging)
         //app.MapGet("/api/users", GetUsers).WithName("GetUsers");
+
+        return app;
     }
 
 
