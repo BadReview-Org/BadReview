@@ -231,7 +231,7 @@ else
             </MudItem>
             <MudItem xs="12" md="12" lg="12">
             <!-- Reviews -->
-                <ReviewList Style = "true" Reviews="gameDetails.Reviews.Data" />
+                <ReviewList PageChanged="@OnPageReviewsChanged" Style="true" Reviews="reviews" />
             </MudItem>
         </MudGrid>
     </MudContainer>
@@ -242,7 +242,7 @@ else
     public int id { get; set; }
     private DetailGameDto? gameDetails;
 
-    private CardContainer[]? reviewCards;
+    private List<DetailReviewDto> reviews = new();
     private string primaryColor = "#667eea";
     private string secondaryColor = "#764ba2";
 
@@ -317,14 +317,14 @@ else
         if (isAuthenticated)
         {
             // Usuario autenticado - usar endpoint privado (sin /public)
-            var response = await ApiService.PrivateGetByIdAsync<PrivateDetailGameDto>("games/private", id);
+            var response = await ApiService.PrivateGetByIdAsync<PrivateDetailGameDto>(APIUTILS.URIS.PRIVATEGAME, id);
             gameDetails = response?.game;
             userReview = response?.userReview;
         }
         else
         {
             // Usuario NO autenticado - endpoint público
-            gameDetails = await ApiService.PublicGetByIdAsync<DetailGameDto>("games/public", id);
+            gameDetails = await ApiService.PublicGetByIdAsync<DetailGameDto>(APIUTILS.URIS.PUBLICGAME, id);
         }
         
         if (gameDetails == null)
@@ -334,8 +334,7 @@ else
         }  
         
         // Cargar reviews
-        reviewCards = gameDetails.Reviews.Data
-            .Select(r => new CardContainer(new DetailReviewCardStrat(), r)).ToArray();
+        reviews = gameDetails.Reviews.Data.ToList();
 
         // Extract colors from cover image
         await ExtractColorsFromCover();
@@ -422,6 +421,23 @@ else
         StateHasChanged();
     }
 
+    private async Task OnPageReviewsChanged(int page)
+    {
+        reviews = new(); // Mostrar skeleton mientras se carga la nueva página
+
+        try
+        {
+            var apiRequest = $"{APIUTILS.URIS.PUBLICGAME}&pagesize=10&page={page - 1}&onlyreviewpage=true";
+
+            var response = await ApiService.PublicGetByIdAsync<PagedResult<DetailReviewDto>>(apiRequest, id);
+            reviews = response?.Data.ToList() ?? new List<DetailReviewDto>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user reviews: {ex.Message}");
+        }
+        
+    }
     private class ColorPalette
     {
         public string? Primary { get; set; }

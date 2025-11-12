@@ -63,10 +63,14 @@
                 </MudLink>
             }
         </MudStack>
+    @if (totalPages > 1)
+    {
     <div class="d-flex flex-column align-center">
         <MudPagination Color="Color.Dark" Class="mt-4" SelectedChanged="@OnPageChanged" BoundaryCount="5" Count="totalPages" Selected="@_selected" />
     </div>
+    }
     </MudPaper>
+
 }
 else
 {

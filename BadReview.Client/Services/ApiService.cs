@@ -48,9 +48,9 @@ public class ApiService
 
     public async Task<T?> PrivateGetByIdAsync<T>(string uri, int id)
     {
-        return await RefreshTokenRequestAsync<T,T>($"{uri}/{id}", default, HttpMethod.Get);
+        return await RefreshTokenRequestAsync<T, T>($"{uri}/{id}", default, HttpMethod.Get);
     }
-
+    
     public async Task<T?> PrivateGetAsync<T>(string uri)
     {
         return await RefreshTokenRequestAsync<T,T>(uri, default, HttpMethod.Get);
