@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using System.Text;
+using FluentValidation;
 
 using BadReview.Api.Data;
 using BadReview.Api.Endpoints;
 using BadReview.Api.Services;
+using BadReview.Shared.DTOs.Request;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -100,6 +102,11 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDeveloperService, DeveloperService>();
 builder.Services.AddScoped<IPlatformService, PlatformService>();
+
+// Validators
+builder.Services.AddScoped<IValidator<LoginUserRequest>, LoginUserRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();
+builder.Services.AddScoped<IValidator<CreateReviewRequest>, CreateReviewRequestValidator>();
 
 var app = builder.Build();
 

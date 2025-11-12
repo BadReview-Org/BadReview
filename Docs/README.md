@@ -2,6 +2,10 @@
 
 https://api-docs.igdb.com/
 
+## Fluent Validation
+
+https://docs.fluentvalidation.net/en/latest/index.html
+
 ## URL ENCODING
 
 https://www.url-encode-decode.com/

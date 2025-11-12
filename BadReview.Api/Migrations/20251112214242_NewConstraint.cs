@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BadReview.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class FluentApi : Migration
+    public partial class NewConstraint : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -209,6 +209,7 @@ namespace BadReview.Api.Migrations
                     table.PrimaryKey("PK_Reviews", x => x.Id);
                     table.CheckConstraint("CK_Reviews_Dates", "([StartDate] IS NULL OR [EndDate] IS NULL OR [EndDate] >= [StartDate])");
                     table.CheckConstraint("CK_Reviews_Rating", "[Rating] >= 0 AND [Rating] <= 5");
+                    table.CheckConstraint("CK_Reviews_ReviewFlags", "([IsReview] = 1 OR [IsFavorite] = 1)");
                     table.CheckConstraint("CK_Reviews_StateDates", "([StateEnum] = 1 AND [EndDate] IS NULL) OR\n            ([StateEnum] = 2 AND [StartDate] IS NULL AND [EndDate] IS NULL) OR\n            ([StateEnum] IN (0,3))");
                     table.ForeignKey(
                         name: "FK_Reviews_Games_GameId",

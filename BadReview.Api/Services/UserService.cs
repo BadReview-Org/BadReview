@@ -113,7 +113,7 @@ public class UserService : IUserService
         PrivateUserDto? userDto = await _db.Users
             .Where(u => u.Id == userId)
             .Select(u => new PrivateUserDto(
-                u.Id, u.Username, u.FullName, u.Birthday, u.Country,
+                u.Id, u.Username, u.Email, u.FullName, u.Birthday, u.Country,
                 u.Reviews
                     .Where(r => r.IsReview)
                     .OrderByDescending(r => r.Date.UpdatedAt)

@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using FluentValidation;
+using FluentValidation.Results;
 
 using BadReview.Api.Data;
 using BadReview.Api.Models;
@@ -57,8 +59,12 @@ public static class ReviewEndpoints
     }
 
     private static async Task<IResult> UpdateReviewWithId
-    (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview, IReviewService reviewService)
+    (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview,
+    IReviewService reviewService, IValidator<CreateReviewRequest> validator)
     {
+        ValidationResult validation = await validator.ValidateAsync(updatedReview);
+        if (!validation.IsValid) return Results.BadRequest(validation.ToDictionary());
+
         string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
         if (claimUserId is null) return Results.Forbid();
 
@@ -111,8 +117,12 @@ public static class ReviewEndpoints
     }
 
     private static async Task<IResult> CreateReview
-    (CreateReviewRequest newReview, ClaimsPrincipal user, IReviewService reviewService, IUserService userService)
+    (CreateReviewRequest newReview, ClaimsPrincipal user, IReviewService reviewService,
+    IUserService userService, IValidator<CreateReviewRequest> validator)
     {
+        ValidationResult validation = await validator.ValidateAsync(newReview);
+        if (!validation.IsValid) return Results.BadRequest(validation.ToDictionary());
+
         string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
         if (claimUserId is null) return Results.Forbid();
 

@@ -42,6 +42,10 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.Property(g => g.IsReview)
             .HasDefaultValue(false);
 
+        // Condicion sobre IsReview/IsFavorite: no pueden ser ambos false a la vez
+        builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_ReviewFlags",
+            "([IsReview] = 1 OR [IsFavorite] = 1)"));
+
         // Condiciones de Start/EndDate
         // Si ninguno es null, EndDate >= StartDate
         builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_Dates",

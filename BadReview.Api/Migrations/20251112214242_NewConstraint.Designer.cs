@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BadReview.Api.Migrations
 {
     [DbContext(typeof(BadReviewContext))]
-    [Migration("20251112001719_FluentApi")]
-    partial class FluentApi
+    [Migration("20251112214242_NewConstraint")]
+    partial class NewConstraint
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -263,6 +263,8 @@ namespace BadReview.Api.Migrations
                             t.HasCheckConstraint("CK_Reviews_Dates", "([StartDate] IS NULL OR [EndDate] IS NULL OR [EndDate] >= [StartDate])");
 
                             t.HasCheckConstraint("CK_Reviews_Rating", "[Rating] >= 0 AND [Rating] <= 5");
+
+                            t.HasCheckConstraint("CK_Reviews_ReviewFlags", "([IsReview] = 1 OR [IsFavorite] = 1)");
 
                             t.HasCheckConstraint("CK_Reviews_StateDates", "([StateEnum] = 1 AND [EndDate] IS NULL) OR\n            ([StateEnum] = 2 AND [StartDate] IS NULL AND [EndDate] IS NULL) OR\n            ([StateEnum] IN (0,3))");
                         });

@@ -261,6 +261,8 @@ namespace BadReview.Api.Migrations
 
                             t.HasCheckConstraint("CK_Reviews_Rating", "[Rating] >= 0 AND [Rating] <= 5");
 
+                            t.HasCheckConstraint("CK_Reviews_ReviewFlags", "([IsReview] = 1 OR [IsFavorite] = 1)");
+
                             t.HasCheckConstraint("CK_Reviews_StateDates", "([StateEnum] = 1 AND [EndDate] IS NULL) OR\n            ([StateEnum] = 2 AND [StartDate] IS NULL AND [EndDate] IS NULL) OR\n            ([StateEnum] IN (0,3))");
                         });
                 });

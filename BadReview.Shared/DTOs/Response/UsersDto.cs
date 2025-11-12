@@ -3,6 +3,7 @@ namespace BadReview.Shared.DTOs.Response;
 public record PrivateUserDto(
     int Id,
     string Username,
+    string Email,
     string? FullName,
     DateTime? Birthday,
     int? Country,
