@@ -19,7 +19,7 @@ namespace BadReview.Api.Endpoints;
 
 public static class GameEndpoints
 {
-    public static void MapGameEndpoints(this WebApplication app)
+    public static WebApplication MapGameEndpoints(this WebApplication app)
     {
         // GET: /api/games - Obtener todos los juegos
         app.MapGet("/api/games", GetGames);
@@ -32,6 +32,8 @@ public static class GameEndpoints
 
         // GET: /api/games/private/{id} - Añadir la review del usuario a la información del juego por ID
         app.MapGet("/api/games/private/{id}", GetGameAndUserDataById).RequireAuthorization("AccessTokenPolicy");
+
+        return app;
     }
 
     // Handlers

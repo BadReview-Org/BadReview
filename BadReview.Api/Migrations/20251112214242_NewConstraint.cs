@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BadReview.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class PlatformType : Migration
+    public partial class NewConstraint : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,17 +16,19 @@ namespace BadReview.Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Country = table.Column<int>(type: "int", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Country = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    Description = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     StartDate = table.Column<long>(type: "bigint", nullable: true),
-                    Logo_ImageId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Logo_ImageId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Logo_ImageHeight = table.Column<int>(type: "int", nullable: true),
                     Logo_ImageWidth = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Developers", x => x.Id);
+                    table.CheckConstraint("CK_Developers_Country", "[Country] >= 0");
+                    table.CheckConstraint("CK_Developers_StartDate", "[StartDate] >= 0");
                 });
 
             migrationBuilder.CreateTable(
@@ -34,20 +36,23 @@ namespace BadReview.Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Date = table.Column<long>(type: "bigint", nullable: true),
-                    Summary = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RatingIGDB = table.Column<double>(type: "float", nullable: false),
-                    Total_RatingBadReview = table.Column<long>(type: "bigint", nullable: false),
-                    Count_RatingBadReview = table.Column<long>(type: "bigint", nullable: false),
-                    Video = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Cover_ImageId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Summary = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    RatingIGDB = table.Column<double>(type: "float(5)", precision: 5, scale: 2, nullable: false, defaultValue: 0.0),
+                    Total_RatingBadReview = table.Column<long>(type: "bigint", nullable: false, defaultValue: 0L),
+                    Count_RatingBadReview = table.Column<long>(type: "bigint", nullable: false, defaultValue: 0L),
+                    Video = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Cover_ImageId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Cover_ImageHeight = table.Column<int>(type: "int", nullable: true),
                     Cover_ImageWidth = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Games", x => x.Id);
+                    table.CheckConstraint("CK_Games_Count_RatingBadReview", "[Count_RatingBadReview] >= 0");
+                    table.CheckConstraint("CK_Games_RatingIGDB", "[RatingIGDB] >= 0 AND [RatingIGDB] <= 100");
+                    table.CheckConstraint("CK_Games_Total_RatingBadReview", "[Total_RatingBadReview] >= 0");
                 });
 
             migrationBuilder.CreateTable(
@@ -55,7 +60,7 @@ namespace BadReview.Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -67,19 +72,21 @@ namespace BadReview.Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Abbreviation = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Generation = table.Column<int>(type: "int", nullable: true),
-                    Summary = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PlatformType = table.Column<int>(type: "int", nullable: true),
-                    PlatformTypeName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Logo_ImageId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Abbreviation = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Generation = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    Summary = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
+                    PlatformType = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
+                    PlatformTypeName = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Logo_ImageId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     Logo_ImageHeight = table.Column<int>(type: "int", nullable: true),
                     Logo_ImageWidth = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Platforms", x => x.Id);
+                    table.CheckConstraint("CK_Platforms_Generation", "[Generation] >= 0");
+                    table.CheckConstraint("CK_Platforms_PlatformType", "[PlatformType] >= 0");
                 });
 
             migrationBuilder.CreateTable(
@@ -88,18 +95,23 @@ namespace BadReview.Api.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Username = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FullName = table.Column<string>(type: "nvarchar(60)", maxLength: 60, nullable: true),
                     Birthday = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Country = table.Column<int>(type: "int", nullable: true),
+                    Country = table.Column<int>(type: "int", nullable: true, defaultValue: 0),
                     Date_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "getdate()"),
                     Date_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "getdate()")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                    table.CheckConstraint("CK_Users_Birthday_MinAge", "Birthday IS NULL OR DATEDIFF(YEAR, Birthday, GETDATE()) >= 12");
+                    table.CheckConstraint("CK_Users_Country", "[Country] >= 0");
+                    table.CheckConstraint("CK_Users_Email_Format", "Email NOT LIKE '% %' AND Email LIKE '___%@__%._%'AND (LEN(Email) - LEN(REPLACE(Email, '@', ''))) = 1AND Email NOT LIKE '%[^a-zA-Z0-9@._-]%'");
+                    table.CheckConstraint("CK_Users_FullName_AlphaSpace", "FullName IS NULL OR FullName NOT LIKE '%[^a-zA-Z ]%'");
+                    table.CheckConstraint("CK_Users_Username_ValidChars", "Username NOT LIKE '%[^a-zA-Z0-9._-]%'");
                 });
 
             migrationBuilder.CreateTable(
@@ -182,19 +194,23 @@ namespace BadReview.Api.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     GameId = table.Column<int>(type: "int", nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ReviewText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReviewText = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
                     StateEnum = table.Column<int>(type: "int", nullable: false),
-                    IsFavorite = table.Column<bool>(type: "bit", nullable: false),
-                    IsReview = table.Column<bool>(type: "bit", nullable: false),
+                    IsFavorite = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    IsReview = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     Date_CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "getdate()"),
                     Date_UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "getdate()")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.CheckConstraint("CK_Reviews_Dates", "([StartDate] IS NULL OR [EndDate] IS NULL OR [EndDate] >= [StartDate])");
+                    table.CheckConstraint("CK_Reviews_Rating", "[Rating] >= 0 AND [Rating] <= 5");
+                    table.CheckConstraint("CK_Reviews_ReviewFlags", "([IsReview] = 1 OR [IsFavorite] = 1)");
+                    table.CheckConstraint("CK_Reviews_StateDates", "([StateEnum] = 1 AND [EndDate] IS NULL) OR\n            ([StateEnum] = 2 AND [StartDate] IS NULL AND [EndDate] IS NULL) OR\n            ([StateEnum] IN (0,3))");
                     table.ForeignKey(
                         name: "FK_Reviews_Games_GameId",
                         column: x => x.GameId,
@@ -230,9 +246,10 @@ namespace BadReview.Api.Migrations
                 column: "GameId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reviews_UserId",
+                name: "UX_Reviews_UserId_GameId",
                 table: "Reviews",
-                column: "UserId");
+                columns: new[] { "UserId", "GameId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",

@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using FluentValidation;
+using FluentValidation.Results;
 
 using BadReview.Api.Data;
 using BadReview.Api.Models;
@@ -17,7 +19,7 @@ namespace BadReview.Api.Endpoints;
 
 public static class ReviewEndpoints
 {
-    public static void MapReviewEndpoints(this WebApplication app)
+    public static WebApplication MapReviewEndpoints(this WebApplication app)
     {
         // GET: /api/reviews - Obtener todas las reseñas
         app.MapGet("/api/reviews", GetReviews);
@@ -33,6 +35,8 @@ public static class ReviewEndpoints
 
         // POST: /api/reviews - Crear una nueva reseña
         app.MapPost("/api/reviews", CreateReview).RequireAuthorization("AccessTokenPolicy").WithName("ReviewEndpoints");
+
+        return app;
     }
 
     private static async Task<IResult> GetReviews
@@ -57,8 +61,12 @@ public static class ReviewEndpoints
     }
 
     private static async Task<IResult> UpdateReviewWithId
-    (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview, IReviewService reviewService)
+    (int id, ClaimsPrincipal user, CreateReviewRequest updatedReview,
+    IReviewService reviewService, IValidator<CreateReviewRequest> validator)
     {
+        ValidationResult validation = await validator.ValidateAsync(updatedReview);
+        if (!validation.IsValid) return Results.BadRequest(validation.ToDictionary());
+
         string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
         if (claimUserId is null) return Results.Forbid();
 
@@ -111,8 +119,12 @@ public static class ReviewEndpoints
     }
 
     private static async Task<IResult> CreateReview
-    (CreateReviewRequest newReview, ClaimsPrincipal user, IReviewService reviewService, IUserService userService)
+    (CreateReviewRequest newReview, ClaimsPrincipal user, IReviewService reviewService,
+    IUserService userService, IValidator<CreateReviewRequest> validator)
     {
+        ValidationResult validation = await validator.ValidateAsync(newReview);
+        if (!validation.IsValid) return Results.BadRequest(validation.ToDictionary());
+
         string? claimUserId = user.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
         if (claimUserId is null) return Results.Forbid();
 

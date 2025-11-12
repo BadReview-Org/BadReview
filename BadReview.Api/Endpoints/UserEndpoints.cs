@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
+using FluentValidation;
+using FluentValidation.Results;
 
 using BadReview.Api.Data;
 using BadReview.Api.Models;
@@ -18,7 +20,7 @@ namespace BadReview.Api.Endpoints;
 
 public static class UserEndpoints
 {
-    public static void MapUserEndpoints(this IEndpointRouteBuilder app)
+    public static WebApplication MapUserEndpoints(this WebApplication app)
     {
         app.MapPost("/api/login", LoginUser);
 
@@ -40,6 +42,8 @@ public static class UserEndpoints
 
         // GET: /api/users - Obtener todos los usuarios (solo para debugging)
         //app.MapGet("/api/users", GetUsers).WithName("GetUsers");
+
+        return app;
     }
 
 
@@ -60,8 +64,11 @@ public static class UserEndpoints
     }
 
     private static async Task<IResult> LoginUser
-    (LoginUserRequest req, IUserService userService)
+    (LoginUserRequest req, IUserService userService, IValidator<LoginUserRequest> validator)
     {
+        ValidationResult validation = await validator.ValidateAsync(req);
+        if (!validation.IsValid) return Results.BadRequest(validation.ToDictionary());
+
         (UserCode code, UserTokensDto? dto) = await userService.LoginUserAsync(req);
 
         var response = code switch
@@ -76,8 +83,11 @@ public static class UserEndpoints
     }
 
     private static async Task<IResult> RegisterUser
-    (CreateUserRequest req, IUserService userService)
+    (CreateUserRequest req, IUserService userService, IValidator<CreateUserRequest> validator)
     {
+        ValidationResult validation = await validator.ValidateAsync(req);
+        if (!validation.IsValid) return Results.BadRequest(validation.ToDictionary());
+
         try
         {
             (UserCode code, RegisterUserDto? dto) = await userService.CreateUserAsync(req);
@@ -100,8 +110,11 @@ public static class UserEndpoints
     }
 
     private static async Task<IResult> UpdateUser
-    (ClaimsPrincipal claims, CreateUserRequest req, IUserService userService)
+    (ClaimsPrincipal claims, CreateUserRequest req, IUserService userService, IValidator<CreateUserRequest> validator)
     {
+        ValidationResult validation = await validator.ValidateAsync(req);
+        if (!validation.IsValid) return Results.BadRequest(validation.ToDictionary());
+        
         try
         {
             (UserCode code, BasicUserDto? dto) = await userService.UpdateUserAsync(claims, req);

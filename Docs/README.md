@@ -1,6 +1,14 @@
+## Swagger UI
+
+https://swagger.io
+
 ## IGDB API DOCUMENTATION
 
 https://api-docs.igdb.com/
+
+## Fluent Validation
+
+https://docs.fluentvalidation.net/en/latest/index.html
 
 ## URL ENCODING
 

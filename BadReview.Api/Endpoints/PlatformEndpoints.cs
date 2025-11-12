@@ -16,12 +16,14 @@ namespace BadReview.Api.Endpoints;
 
 public static class PlatformEndpoints
 {
-    public static void MapPlatformEndpoints(this WebApplication app)
+    public static WebApplication MapPlatformEndpoints(this WebApplication app)
     {
         // GET: /api/genres - Obtener todas las plataformas
         app.MapGet("/api/platforms", GetPlatforms);
 
         app.MapGet("/api/platforms/{id}", GetPlatformById);
+
+        return app;
     }
 
     static async Task<IResult> GetPlatforms
