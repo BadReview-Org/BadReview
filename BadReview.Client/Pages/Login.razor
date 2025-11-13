@@ -15,16 +15,17 @@
         </MudCardHeader>
 
         <MudCardContent>
-            <MudForm Model="@model" @ref="@form" Validation="@(ValidateState)" ValidationDelay="0" Spacing="4">
-                <MudTextField 
-                    @bind-Value="model.Username" For="@(() => model.Username)"
-                    Label="Username" />
+            <MudForm Model="@model" @ref="@form" Validation="@(ValidateState)" Spacing="4">
+
+                <MudTextField @bind-Value="model.Username"
+                    For="@(() => model.Username)" Label="Username" />
 
                 <MudTextField @bind-Value="model.Password" For="@(() => model.Password)"
                     InputType="InputType.Password" Label="Password" />
 
                 <MudPaper MaxWidth="25%" Elevation=0>
-                    <MudButton Disabled="!enableFormButton" Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="LoginAsync"> Log in </MudButton>
+                    <MudButton Disabled="!enableFormButton" Class="mt-8" Size="Size.Large"
+                        Variant="Variant.Filled" Color="Color.Primary" OnClick="LoginAsync"> Log in </MudButton>
                 </MudPaper>
                 <MudLink Href="/register">Don't have an account yet? Register.</MudLink>
             </MudForm>
@@ -38,6 +39,15 @@
     {
         var validation = await validator.ValidateAsync((LoginForm)model);
         enableFormButton = validation.IsValid;
+
+        if (!validation.IsValid)
+        {
+            var dict = validation.ToDictionary();
+            foreach (var kv in dict)
+            {
+                Console.WriteLine($"- {kv.Key}: {string.Join("\n    ", kv.Value)}");
+            }
+        }
 
         if (validation.IsValid) return Array.Empty<string>();
 
@@ -57,13 +67,11 @@
 
     MudForm form = null!;
     LoginForm model = new ();
-
     bool enableFormButton = false;
-
     LoginFormValidator validator = new();
 
     async Task LoginAsync() {
-        Console.WriteLine("Now login...");
+        Console.WriteLine("Now logging in...");
 
         LoginUserRequest request = new (model.Username, model.Password);
 

@@ -1,4 +1,6 @@
-﻿@page "/register"
+﻿@using FluentValidation
+
+@page "/register"
 
 @inject ILogger<Login> Logger
 @inject HttpClient Client
@@ -13,18 +15,32 @@
         </MudCardHeader>
 
         <MudCardContent>
-            <MudForm Spacing="4">
-                <MudTextField @bind-Value="form.Username" Label="Username" HelperText="*Required" />
-                <MudTextField @bind-Value="form.Password" InputType="InputType.Password" Label="Password" HelperText="*Required" />
-                <MudTextField @bind-Value="form.RepeatPassword" InputType="InputType.Password" Label="Repeat Password" HelperText="*Required" />
-                <MudTextField @bind-Value="form.Email" Label="Email" HelperText="*Required" />
+            <MudForm Model="@model" @ref="@form" Validation="@(ValidateState)" Spacing="4">
 
-                <MudTextField @bind-Value="form.FullName" Label="Full Name" HelperText="Optional" />
-                <MudDatePicker @bind-Date="form.Birthday" Label="Birthday" HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" />
-                <MudTextField @bind-Value="form.Country" Label="Country" HelperText="Optional" />
+                <MudTextField @bind-Value="model.Username" Label="Username"
+                    For="@(() => model.Username)" HelperText="*Required" />
+
+                <MudTextField @bind-Value="model.Password" InputType="InputType.Password"
+                    For="@(() => model.Password)" Label="Password" HelperText="*Required" />
+
+                <MudTextField @bind-Value="model.RepeatPassword" InputType="InputType.Password"
+                    For="@(() => model.RepeatPassword)" Label="Repeat Password" HelperText="*Required" />
+
+                <MudTextField @bind-Value="model.Email" Label="Email"
+                    For="@(() => model.Email)" HelperText="*Required" />
+
+                <MudTextField @bind-Value="model.FullName" Label="Full Name"
+                    For="@(() => model.FullName)" HelperText="Optional" />
+
+                <MudDatePicker @bind-Date="model.Birthday" Label="Birthday" For="@(() => model.Birthday)"
+                    HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" />
+
+                <MudTextField @bind-Value="model.Country" Label="Country"
+                    For="@(() => model.Country)" HelperText="Optional" />
 
                 <MudPaper MaxWidth="25%" Elevation=0>
-                    <MudButton Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await RegisterAsync())"> Register </MudButton>
+                    <MudButton Disabled="!enableFormButton" Class="mt-8" Size="Size.Large" Variant="Variant.Filled"
+                        Color="Color.Primary" OnClick="RegisterAsync"> Register </MudButton>
                 </MudPaper>
                 <MudLink Href="/login">Already have an account? Log in.</MudLink>
             </MudForm>
@@ -34,6 +50,33 @@
 
 @code {
 
+    private Func<object, string, Task<IEnumerable<string>>> ValidateState => async (model, propertyName) =>
+    {
+        var validation = await validator.ValidateAsync((RegisterForm)model);
+        enableFormButton = validation.IsValid;
+        StateHasChanged();
+        Console.WriteLine("-------------------Validation-------------------------");
+        if (!validation.IsValid)
+        {
+            Console.WriteLine($"Form validation failed. validation.IsValid: {validation.IsValid}");
+            var dict = validation.ToDictionary();
+            foreach (var kv in dict)
+            {
+                Console.WriteLine($"- {kv.Key}: {string.Join("\n    ", kv.Value)}");
+            }
+        }
+        else Console.WriteLine($"Form validation passed! validation.IsValid: {validation.IsValid}");
+        Console.WriteLine("------------------------------------------------------");
+
+        if (validation.IsValid) return Array.Empty<string>();
+
+        var propertyErrors = validation.Errors
+            .Where(e => e.PropertyName == propertyName)
+            .Select(e => e.ErrorMessage);
+
+        return propertyErrors;
+    };
+
     [CascadingParameter]
     public AuthenticationStateProvider _provider { get; set; } = null!;
     JWTAuthStateProvider provider = null!;
@@ -41,18 +84,17 @@
     [CascadingParameter]
     public AuthService authS { get; set;} = null!;
 
-    RegisterForm form = new ();
+    MudForm form = null!;
+    RegisterForm model = new ();
+    bool enableFormButton = false;
+    RegisterFormValidator validator = new();
 
     async Task RegisterAsync() {
-        if (string.IsNullOrWhiteSpace(form.Username) || string.IsNullOrWhiteSpace(form.Password) || string.IsNullOrWhiteSpace(form.Email))
-        {
-            Console.WriteLine("Can't register. Fill in the obligatory fields.");
-            return;
-        }
 
         Console.WriteLine("Registering a new account...");
 
-        CreateUserRequest request = new (form.Username, form.Email, form.Password, form.FullName, form.Birthday, form.Country);
+        CreateUserRequest request = new
+            (model.Username, model.Email, model.Password, model.FullName, model.Birthday, model.Country);
 
         bool registered = await authS.RegisterAsync(provider, request);
 
