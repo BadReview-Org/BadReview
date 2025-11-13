@@ -29,21 +29,36 @@ public class ApiService
         _authService = authService;
     }
 
-    public async Task<PagedResult<T>> GetManyAsync<T>(ApiRequest request)
+    public async Task<PagedResult<T>?> GetManyAsync<T>(ApiRequest request)
     {
         request.SetDefaults();
         string orderby = Uri.EscapeDataString(request.OrderBy ?? "");
         string filters = Uri.EscapeDataString(request.Filters ?? "");
 
         string queryString = $"?filters={filters}&orderby={orderby}&order={request.Order}&page={request.Page}&pageSize={request.PageSize}";
-        var response = await _httpClient.GetFromJsonAsync<PagedResult<T>>($"api/{request.URI}{queryString}");
-        return response ?? new PagedResult<T>(new List<T>(), 0, 0, 0);
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<PagedResult<T>>($"api/{request.URI}{queryString}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception on GetFromJsonAsync method: {ex.Message}");
+            return null;
+        }
     }
 
 
     public async Task<T?> PublicGetByIdAsync<T>(string uri, int id, string extra = "")
     {
-        return await _httpClient.GetFromJsonAsync<T>($"api/{uri}/{id}{extra}");;
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<T>($"api/{uri}/{id}{extra}");;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception on GetFromJsonAsync method: {ex.Message}");
+            return default;
+        }
     }
 
     public async Task<T?> PrivateGetByIdAsync<T>(string uri, int id)

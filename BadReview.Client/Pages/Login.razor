@@ -1,4 +1,6 @@
-﻿@page "/login"
+﻿@using FluentValidation
+
+@page "/login"
 
 @inject ILogger<Login> Logger
 @inject HttpClient Client
@@ -13,13 +15,16 @@
         </MudCardHeader>
 
         <MudCardContent>
-            <MudForm Spacing="4">
-                <MudTextField @bind-Value="form.Username" Label="Username" />
+            <MudForm Model="@model" @ref="@form" Validation="@(ValidateState)" ValidationDelay="0" Spacing="4">
+                <MudTextField 
+                    @bind-Value="model.Username" For="@(() => model.Username)"
+                    Label="Username" />
 
-                <MudTextField @bind-Value="form.Password" InputType="InputType.Password" Label="Password" />
+                <MudTextField @bind-Value="model.Password" For="@(() => model.Password)"
+                    InputType="InputType.Password" Label="Password" />
 
                 <MudPaper MaxWidth="25%" Elevation=0>
-                    <MudButton Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="LoginAsync"> Log in </MudButton>
+                    <MudButton Disabled="!enableFormButton" Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="LoginAsync"> Log in </MudButton>
                 </MudPaper>
                 <MudLink Href="/register">Don't have an account yet? Register.</MudLink>
             </MudForm>
@@ -29,6 +34,20 @@
 
 @code {
 
+    private Func<object, string, Task<IEnumerable<string>>> ValidateState => async (model, propertyName) =>
+    {
+        var validation = await validator.ValidateAsync((LoginForm)model);
+        enableFormButton = validation.IsValid;
+
+        if (validation.IsValid) return Array.Empty<string>();
+
+        var propertyErrors = validation.Errors
+            .Where(e => e.PropertyName == propertyName)
+            .Select(e => e.ErrorMessage);
+
+        return propertyErrors;
+    };
+    
     [CascadingParameter]
     public AuthenticationStateProvider _provider { get; set; } = null!;
     JWTAuthStateProvider provider = null!;
@@ -36,18 +55,17 @@
     [CascadingParameter]
     public AuthService authS { get; set;} = null!;
 
-    LoginForm form = new ();
+    MudForm form = null!;
+    LoginForm model = new ();
+
+    bool enableFormButton = false;
+
+    LoginFormValidator validator = new();
 
     async Task LoginAsync() {
-        if (string.IsNullOrWhiteSpace(form.Username) || string.IsNullOrWhiteSpace(form.Password))
-        {
-            Console.WriteLine("Can't login, username or password are nulls");
-            return;
-        }
-        
         Console.WriteLine("Now login...");
 
-        LoginUserRequest request = new (form.Username, form.Password);
+        LoginUserRequest request = new (model.Username, model.Password);
 
         bool login = await authS.LoginAsync(provider, request);
 

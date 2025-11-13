@@ -272,7 +272,7 @@ else
                 PageSize = 5
             };
             var trendingResult = await ApiService.GetManyAsync<BasicGameDto>(trendingRequest);
-            trendingGames = trendingResult.Data.ToList();
+            trendingGames = trendingResult?.Data.ToList() ?? new List<BasicGameDto>();
 
             // Cargar platforms
             var platformRequest = new ApiRequest
@@ -283,7 +283,7 @@ else
                 Filters = "platform_logo != null"
             };
             var platformResult = await ApiService.GetManyAsync<PlatformDto>(platformRequest);
-            platforms = platformResult.Data.ToList();
+            platforms = platformResult?.Data.ToList() ?? new List<PlatformDto>();
 
             // Cargar genres
             var genreRequest = new ApiRequest
@@ -293,7 +293,7 @@ else
                 PageSize = 20
             };
             var genreResult = await ApiService.GetManyAsync<GenreDto>(genreRequest);
-            genres = genreResult.Data.ToList();
+            genres = genreResult?.Data.ToList() ?? new List<GenreDto>();
 
             // Cargar developers
             var developerRequest = new ApiRequest
@@ -304,7 +304,7 @@ else
                 Filters = "logo != null"
             };
             var developerResult = await ApiService.GetManyAsync<BasicDeveloperDto>(developerRequest);
-            developers = developerResult.Data.ToList();
+            developers = developerResult?.Data.ToList() ?? new List<BasicDeveloperDto>();
         }
         catch (Exception ex)
         {
