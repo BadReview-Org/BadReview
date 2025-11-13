@@ -31,7 +31,7 @@
         </MudText>
     </MudPaper>
     <MudPaper Class="pa-4 mb-4" Elevation="6">
-        <CustomFilter @bind-extraFilters="@extraFilters" ClickApplyFilters="OnFilterChanged" SearchDevelopers="OnSearchDevelopersAsync" SearchGenres="OnSearchGenresAsync" SearchPlatforms="OnSearchPlatformAsync" Developers="@Developers" Platforms="@Platforms" Genres="@Genres" @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
+        <CustomFilter Dropdown="false" @bind-extraFilters="@extraFilters" ClickApplyFilters="OnFilterChanged" SearchDevelopers="OnSearchDevelopersAsync" SearchGenres="OnSearchGenresAsync" SearchPlatforms="OnSearchPlatformAsync" Developers="@Developers" Platforms="@Platforms" Genres="@Genres" @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
     </MudPaper>
     <CustomGridCard CardHeight="350" totalPages="@totalPages" arrayElement="gameCards" PageChanged="OnPageChanged" placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
 </MudContainer>

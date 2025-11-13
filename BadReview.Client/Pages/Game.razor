@@ -235,7 +235,7 @@ else
             </MudItem>
             <MudItem xs="12" md="12" lg="12">
             <!-- Reviews -->
-                <ReviewList PageChanged="@OnPageReviewsChanged" Style="true" Reviews="reviews" />
+                <ReviewList totalCount="ReviewTotalCount" PageChanged="@OnPageReviewsChanged" Style="true" Reviews="reviews" />
             </MudItem>
         </MudGrid>
     </MudContainer>
@@ -247,6 +247,8 @@ else
     private DetailGameDto? gameDetails;
 
     private List<DetailReviewDto>? reviews = null;
+
+    private int ReviewTotalCount = 0;
     private string primaryColor = "#667eea";
     private string secondaryColor = "#764ba2";
 
@@ -321,8 +323,24 @@ else
     protected override async Task OnInitializedAsync()
     {
         AuthStateProvider = (JWTAuthStateProvider) _AuthStateProvider;
-        // Verificar si el usuario está autenticado
+        await LoadGameData();
+    }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        // Este método se llama cuando cambian los parámetros de ruta (como el id)
+        await LoadGameData();
+    }
+
+    private async Task LoadGameData()
+    {
+        // Limpiar datos anteriores
+        gameDetails = null;
+        reviews = new List<DetailReviewDto>();
+        userReview = null;
+        StateHasChanged(); // Mostrar skeleton mientras carga
+        
+        // Verificar si el usuario está autenticado
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
         
@@ -351,9 +369,12 @@ else
         
         // Cargar reviews
         reviews = gameDetails.Reviews.Data.ToList();
+        ReviewTotalCount = gameDetails.Reviews.TotalCount;
 
         // Extract colors from cover image
         await ExtractColorsFromCover();
+        
+        StateHasChanged(); // Forzar actualización de la UI
     }
 
     private async Task ExtractColorsFromCover()

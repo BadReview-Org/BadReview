@@ -1,5 +1,6 @@
 ﻿@using System.Threading.Tasks
 @using BadReview.Shared.DTOs.Request
+@using BadReview.Shared.Utils
 @inherits LayoutComponentBase
 @* Required *@
 <MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme"/>
@@ -15,17 +16,23 @@
 @inject ILogger<MainLayout> Logger
 @inject AuthService AuthService
 @inject AuthenticationStateProvider _provider
+
+@inject IJSRuntime js
+
+@inject ApiService ApiService
 @inject NavigationManager Navigation
 
 <MudLayout>
     <MudAppBar>
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle" />
 
-        
-        <MudImage Src="icon-192.png" Alt="BadReview Logo" Height="100" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
-        
-        
-        <CustomFilter @bind-Value="_searchText" OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
+        @if(!_isDarkMode){
+            <MudImage Src="icon-192.png" Alt="BadReview Logo" Height="100" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
+        }
+        else{
+            <MudImage Src="icon-192_white.png" Alt="BadReview Logo Dark" Height="100" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
+        }
+        <CustomFilter @bind-Value="_searchText" SearchGames="OnSearchGames" Placeholder="Search for games..." />
 
         <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" AriaLabel="Open user menu" Dense="true">
             <AuthorizeView>
@@ -71,10 +78,29 @@
 @code {
     private string _searchText = string.Empty;
 
-    private void OnSearchAsync(string searchText)
-    {
-        Console.WriteLine($"Searching for: {searchText}");
-        // You can implement additional logic here if needed
+    private async Task<IEnumerable<BasicGameDto>> OnSearchGames(string searchText)
+    {    
+        ApiRequest apiRequest = new ApiRequest{
+            URI = APIUTILS.URIS.GAMES, 
+            PageSize = 30,
+            OrderBy = "total_rating_count",
+            Order = SortOrder.DSC,
+            Page = 0 };
+
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            // Retornar todos los juegos
+            var allGames = await ApiService.GetManyAsync<BasicGameDto>(apiRequest);
+            return allGames?.Data ?? Enumerable.Empty<BasicGameDto>();
+        }
+        apiRequest.Filters = $"@name ~ *\"{searchText}\"*";
+        Console.WriteLine($"🔍 Buscando juegos con filtro: {apiRequest.Filters}");
+        PagedResult<BasicGameDto>? responseDto = await ApiService.GetManyAsync<BasicGameDto>(apiRequest);
+        if (responseDto != null)
+        {
+            return responseDto?.Data ?? Enumerable.Empty<BasicGameDto>();
+        }
+        return Enumerable.Empty<BasicGameDto>();
     }
 
     [CascadingParameter]
@@ -91,6 +117,7 @@
         if (!disableDarkModeToggle)
         {
             _isDarkMode = !_isDarkMode;
+            await js.InvokeVoidAsync("localStorage.setItem", "isDarkMode", _isDarkMode);
             Console.WriteLine("DarkModeToogle");
             disableDarkModeToggle = true;
             await Task.Delay(500);
@@ -110,5 +137,13 @@
     {
         authState = await authStateTask!;
         stateProvider = (JWTAuthStateProvider)_provider;
+        try{
+            var darkModeValue = await js.InvokeAsync<string>("localStorage.getItem", "isDarkMode");
+            _isDarkMode = darkModeValue == "true";
+        }
+        catch{
+             _isDarkMode = false;
+        }
+
     }
 }

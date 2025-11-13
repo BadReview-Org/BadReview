@@ -1,0 +1,63 @@
+@typeparam T
+@inject NavigationManager Navigation
+
+<MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icon" Color="Color.Primary" Size="Size.Large" />
+            <MudText Typo="Typo.h4" Style="font-weight: 600; color: #667eea;">
+                @Title
+            </MudText>
+        </MudStack>
+        <MudStack Row="true" Spacing="1">
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
+                          Color="Color.Primary" 
+                          OnClick="() => Scroll(-1)" />
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
+                          Color="Color.Primary" 
+                          OnClick="() => Scroll(1)" />
+        </MudStack>
+    </MudStack>
+    <div style="overflow: hidden;">
+        <MudStack Row="true" Spacing="3" Style="@GetScrollStyle(scrollPosition)">
+            @foreach (var item in Items)
+            {
+                <MudCard Class="carousel-card" 
+                        Style="min-width: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;"
+                        @onclick="@(() => OnItemClick.InvokeAsync(item))">
+                    <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
+                        @ItemTemplate(item)
+                    </MudCardContent>
+                </MudCard>
+            }
+        </MudStack>
+    </div>
+</MudPaper>
+
+@code {
+    [Parameter] public List<T> Items { get; set; } = new();
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Category;
+    [Parameter] public RenderFragment<T> ItemTemplate { get; set; } = null!;
+    [Parameter] public EventCallback<T> OnItemClick { get; set; }
+    
+    private int scrollPosition = 0;
+
+    private void Scroll(int direction)
+    {
+        scrollPosition += direction * 220;
+        
+        var maxScroll = -(Items.Count * 220);
+        if (scrollPosition < maxScroll)
+            scrollPosition = 0;
+        else if (scrollPosition > 0)
+            scrollPosition = maxScroll;
+            
+        StateHasChanged();
+    }
+
+    private string GetScrollStyle(int position)
+    {
+        return $"transform: translateX({position}px); transition: transform 0.5s ease;";
+    }
+}

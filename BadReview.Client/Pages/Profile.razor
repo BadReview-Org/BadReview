@@ -53,11 +53,11 @@ else
             var privateuser = user as PrivateUserDto;
             settingsModel = new RegisterForm
             {
-                Username = privateuser.Username,
-                FullName = privateuser.FullName ?? "",
-                Email = privateuser.Email,
-                Birthday = privateuser.Birthday,
-                Country = privateuser.Country,
+                Username = privateuser?.Username ?? "",
+                FullName = privateuser?.FullName ?? "",
+                Email = privateuser?.Email,
+                Birthday = privateuser?.Birthday,
+                Country = privateuser?.Country,
                 Password = ""
             };
         }

@@ -353,12 +353,12 @@ else
         try
         {
             var updateRequest = new CreateUserRequest(
-                Username: settingsModel.Username,
-                Email: settingsModel.Email,
-                Password: string.IsNullOrEmpty(settingsModel.Password) ? null : settingsModel.Password,
-                FullName: string.IsNullOrEmpty(settingsModel.FullName) ? null : settingsModel.FullName,
-                Birthday: settingsModel.Birthday,
-                Country: settingsModel.Country
+                Username: settingsModel.Username ?? "",
+                Email: settingsModel.Email ?? "",
+                Password: string.IsNullOrEmpty(settingsModel?.Password) ? "" : settingsModel.Password,
+                FullName: string.IsNullOrEmpty(settingsModel?.FullName) ? null : settingsModel.FullName,
+                Birthday: settingsModel?.Birthday,
+                Country: settingsModel?.Country
             );
 
             var response = await ApiService.PutAsync<CreateUserRequest, BasicUserDto>(
@@ -371,7 +371,10 @@ else
                 settingsMessage = "Settings saved successfully!";
                 settingsMessageSeverity = Severity.Success;
                 confirmPassword = "";
-                settingsModel.Password = "";
+                if (settingsModel != null)
+                {
+                    settingsModel.Password = "";
+                }
                 
                 // Notificar al componente padre que se actualizó el usuario
                 await OnUserUpdated.InvokeAsync();
