@@ -15,7 +15,7 @@
 {
     <AuthorizeView>
         <Authorized>
-            <UserPage user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards" totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" OnUserUpdated="@ReloadUserData" />
+            <UserPage settingsModel="settingsModel" user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards" totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" OnUserUpdated="@ReloadUserData" />
         </Authorized>
         <NotAuthorized>
             @{ Navigation.NavigateTo("/login", true); }
@@ -36,6 +36,8 @@ else
     private CardContainer[]? favoriteGameCards;
     private int totalPagesFavorite = 1;
     private int totalPagesReviews = 1;
+
+    private RegisterForm settingsModel = new();
     
     protected override async Task OnInitializedAsync()
     {
@@ -48,6 +50,16 @@ else
         {
             // Cargar perfil privado
             user = await ApiService.PrivateGetAsync<PrivateUserDto>(APIUTILS.URIS.PROFILE);
+            var privateuser = user as PrivateUserDto;
+            settingsModel = new RegisterForm
+            {
+                Username = privateuser.Username,
+                FullName = privateuser.FullName ?? "",
+                Email = privateuser.Email,
+                Birthday = privateuser.Birthday,
+                Country = privateuser.Country,
+                Password = ""
+            };
         }
         else
         {
@@ -60,6 +72,7 @@ else
         favoriteGameCards = user?.Favorites.Data.Where(r => r.Game != null)
                                                 .Select(r => new CardContainer(new BasicGameCardStrat(false), r.Game!))
                                                 .ToArray();
+
         Console.WriteLine($"Profile initialized, user: {user?.Username}, reviews loaded: {userReviews.Count}, favorite games loaded: {favoriteGameCards?.Length}, totalPagesFavorite: {totalPagesFavorite}, totalPagesReviews: {totalPagesReviews}, pagesizeFavorite: {user?.Favorites.PageSize}, pagesizeReviews: {user?.Reviews.PageSize}, totalCountFavorite: {user?.Favorites.TotalCount}, totalCountReviews: {user?.Reviews.TotalCount}");
     }
 

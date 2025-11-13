@@ -8,7 +8,7 @@
     </MudText>
     <MudStack Spacing="2">
 
-    @if (Reviews.Count == 0)
+    @if (Reviews == null)
     {
         <MudStack Spacing="2">
             @for (int i = 0; i < 6; i++)
@@ -36,7 +36,7 @@
             }
         </MudStack>
     }
-    else if (Reviews == null)
+    else if (Reviews.Count == 0)
     {
         <MudText Typo="Typo.body2" Align="Align.Center" Style="color: #808080; padding: 40px 0;">
             No reviews yet. Start reviewing games!

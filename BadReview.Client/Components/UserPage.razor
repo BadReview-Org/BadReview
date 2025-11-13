@@ -267,10 +267,6 @@ else
                     <!-- Action Buttons -->
                     <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
-                            <MudIcon Icon="@Icons.Material.Filled.Password" Size="Size.Medium" />
-                            <MudText Typo="Typo.h5" Style="color: #764ba2;">
-                                Action Buttons
-                            </MudText>
                             <MudStack Row="true" Spacing="2" Class="mt-4">
                                 <MudButton Variant="Variant.Filled"
                                             Color="Color.Primary"
@@ -309,6 +305,9 @@ else
     [Parameter] public int totalPagesFavorite { get; set; }
     [Parameter] public int totalPagesReviews { get; set; }
     [Parameter] public EventCallback OnUserUpdated { get; set; }
+
+    [Parameter] public RegisterForm settingsModel { get; set; } = new();
+
     
     private bool IsPrivateProfile => user is PrivateUserDto;
     private bool showSettings = false;
@@ -316,7 +315,6 @@ else
     
     // Settings form
     private MudForm? settingsForm;
-    private UserSettingsModel settingsModel = new();
     private string confirmPassword = "";
     private bool isSaving = false;
     private string settingsMessage = "";
@@ -327,29 +325,6 @@ else
         return $"Country Code: {countryCode}";
     }
 
-    private void InitializeSettingsModel()
-    {
-        if (AsPrivate != null)
-        {
-            settingsModel = new UserSettingsModel
-            {
-                Username = AsPrivate.Username,
-                FullName = AsPrivate.FullName ?? "",
-                Email = AsPrivate.Email,
-                Birthday = AsPrivate.Birthday,
-                Country = AsPrivate.Country,
-                Password = ""
-            };
-        }
-    }
-
-    protected override void OnParametersSet()
-    {
-        if (showSettings && AsPrivate != null && string.IsNullOrEmpty(settingsModel.Username))
-        {
-            InitializeSettingsModel();
-        }
-    }
 
     private async Task SaveSettings()
     {
@@ -427,7 +402,6 @@ else
         showSettings = false;
         settingsMessage = "";
         confirmPassword = "";
-        InitializeSettingsModel();
     }
 
     private class UserSettingsModel
@@ -438,11 +412,11 @@ else
         public DateTime? Birthday { get; set; }
         public int? Country { get; set; }
         public string Password { get; set; } = "";
-    }
+    }   
 
     private async Task OnPageReviewsChanged(int page)
     {
-        userReviews = new(); // Mostrar skeleton mientras se carga la nueva página
+        userReviews = null; // Mostrar skeleton mientras se carga la nueva página
 
         try
         {
