@@ -5,6 +5,18 @@ namespace BadReview.Client.Utils;
 
 public static class IconsMap
 {
+    public static Genres ToGenres(this int id)
+    {
+        try { return (Genres)id; }
+        catch { return Genres.DEFAULT; }
+    }
+
+    public static PlatformTypes ToPlatformTypes(this int id)
+    {
+        try { return (PlatformTypes)id; }
+        catch { return PlatformTypes.DEFAULT; }
+    }
+
     public enum Genres
     {
         ADVENTURE = 31, RPG = 12, STRATEGY = 15,
@@ -14,18 +26,20 @@ public static class IconsMap
         BEATEMUP = 25, INDIE = 32, MOBA = 36,
         MUSIC = 7, PINBALL = 30, POINTANDCLICK = 2,
         QUIZTRIVIA = 26, TACTICAL = 24, VISUALNOVEL = 34,
-        TURNBASEDSTRATEGY = 16, REALTIMESTRATEGY = 11
+        TURNBASEDSTRATEGY = 16, REALTIMESTRATEGY = 11,
+        DEFAULT = -1
     };
 
     public enum PlatformTypes
     {
         CONSOLE = 1, ARCADE = 2, PLATFORM = 3,
         OPERATINGSYSTEM = 4, PORTABLECONSOLE = 5, COMPUTER = 6,
+        DEFAULT = -1
     }
 
     public static readonly Dictionary<Genres, string> GenreIcon = new()
     {
-        [Genres.ADVENTURE] = Material.Filled.Explore,
+        [Genres.ADVENTURE] = Explore,
         [Genres.RPG] = Castle,
         [Genres.STRATEGY] = Psychology,
         [Genres.SHOOTER] = GpsFixed,
@@ -48,6 +62,8 @@ public static class IconsMap
         [Genres.VISUALNOVEL] = MenuBook,
         [Genres.TURNBASEDSTRATEGY] = HourglassBottom,
         [Genres.REALTIMESTRATEGY] = Festival,
+
+        [Genres.DEFAULT] = QuestionMark
     };
 
     public static readonly Dictionary<PlatformTypes, string> PlatformTypeIcon = new()
@@ -57,7 +73,9 @@ public static class IconsMap
         [PlatformTypes.PLATFORM] = QuestionMark,
         [PlatformTypes.OPERATINGSYSTEM] = Custom.Brands.Linux,
         [PlatformTypes.PORTABLECONSOLE] = TabletMac,
-        [PlatformTypes.COMPUTER] = Computer
+        [PlatformTypes.COMPUTER] = Computer,
+
+        [PlatformTypes.DEFAULT] = QuestionMark
     };
 
 }
