@@ -18,25 +18,37 @@
             <MudForm Model="@model" @ref="@form" Validation="@(ValidateState)" Spacing="4">
 
                 <MudTextField @bind-Value="model.Username" Label="Username"
-                    For="@(() => model.Username)" HelperText="*Required" />
+                    For="@(() => model.Username)" HelperText="*Required"/>
 
                 <MudTextField @bind-Value="model.Password" InputType="InputType.Password"
-                    For="@(() => model.Password)" Label="Password" HelperText="*Required" />
+                    For="@(() => model.Password)" Label="Password" HelperText="*Required"/>
 
                 <MudTextField @bind-Value="model.RepeatPassword" InputType="InputType.Password"
-                    For="@(() => model.RepeatPassword)" Label="Repeat Password" HelperText="*Required" />
+                    For="@(() => model.RepeatPassword)" Label="Repeat Password" HelperText="*Required"/>
 
                 <MudTextField @bind-Value="model.Email" Label="Email"
-                    For="@(() => model.Email)" HelperText="*Required" />
+                    For="@(() => model.Email)" HelperText="*Required"/>
 
                 <MudTextField @bind-Value="model.FullName" Label="Full Name"
-                    For="@(() => model.FullName)" HelperText="Optional" />
+                    For="@(() => model.FullName)" HelperText="Optional"/>
 
                 <MudDatePicker @bind-Date="model.Birthday" Label="Birthday" For="@(() => model.Birthday)"
-                    HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" />
+                    HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" Clearable="true"/>
 
+<!--
                 <MudTextField @bind-Value="model.Country" Label="Country"
                     For="@(() => model.Country)" HelperText="Optional" />
+-->
+                <MudAutocomplete T="IsoCountry" @bind-Value="model.Country"
+                                SearchFunc="SearchCountry"
+                                Variant="Variant.Outlined"
+                                Label="Country"
+                                HelperText="Optional"
+                                Clearable="true">
+                    <ItemTemplate Context="c">
+                        <MudText>@($"{c.Name} ({c.Alpha_3})")</MudText>
+                    </ItemTemplate>
+                </MudAutocomplete>
 
                 <MudPaper MaxWidth="25%" Elevation=0>
                     <MudButton Disabled="!enableFormButton" Class="mt-8" Size="Size.Large" Variant="Variant.Filled"
@@ -49,6 +61,23 @@
 </MudContainer>
 
 @code {
+
+    private async Task<IEnumerable<IsoCountry>> SearchCountry(string value, CancellationToken token)
+    {
+        if (!countriesFetched)
+        {
+            var url = Navigation.BaseUri + "iso3166.json";
+            countries = await Client.GetFromJsonAsync<IsoCountry[]>(url, token);
+            countriesFetched = true;
+        }
+
+        if (countries is null) return [];
+
+        if (string.IsNullOrEmpty(value)) return countries;
+
+        return countries
+            .Where(c => c.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
 
     private Func<object, string, Task<IEnumerable<string>>> ValidateState => async (model, propertyName) =>
     {
@@ -89,12 +118,16 @@
     bool enableFormButton = false;
     RegisterFormValidator validator = new();
 
+    bool countriesFetched = false;
+    IsoCountry[]? countries = null;
+
     async Task RegisterAsync() {
 
         Console.WriteLine("Registering a new account...");
 
         CreateUserRequest request = new
-            (model.Username, model.Email, model.Password, model.FullName, model.Birthday, model.Country);
+            (model.Username, model.Email, model.Password, model.FullName,
+            model.Birthday, model.Country?.Country_code);
 
         bool registered = await authS.RegisterAsync(provider, request);
 

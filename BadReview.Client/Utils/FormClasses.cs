@@ -18,7 +18,7 @@ public class RegisterForm
     public string Email { get; set; } = null!;
     public string? FullName { get; set; } = null;
     public DateTime? Birthday { get; set; } = null;
-    public int? Country { get; set; } = null;
+    public IsoCountry? Country { get; set; } = null;
 }
 
 public class LoginFormValidator : AbstractValidator<LoginForm>
@@ -73,9 +73,9 @@ public class RegisterFormValidator : AbstractValidator<RegisterForm>
                 .WithMessage("User must be at least 12 years old.");
 
         // Country (>= 0)
-        RuleFor(x => x.Country)
+        /*RuleFor(x => x.Country?.Country_code)
             .GreaterThanOrEqualTo(0)
-                .When(x => x.Country.HasValue)
-                .WithMessage("Country code can't be negative.");
+                .When(x => x.Country)
+                .WithMessage("Country code can't be negative.");*/
     }
 }

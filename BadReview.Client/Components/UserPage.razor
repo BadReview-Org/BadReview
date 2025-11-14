@@ -358,7 +358,7 @@ else
                 Password: string.IsNullOrEmpty(settingsModel?.Password) ? "" : settingsModel.Password,
                 FullName: string.IsNullOrEmpty(settingsModel?.FullName) ? null : settingsModel.FullName,
                 Birthday: settingsModel?.Birthday,
-                Country: settingsModel?.Country
+                Country: settingsModel?.Country?.Country_code
             );
 
             var response = await ApiService.PutAsync<CreateUserRequest, BasicUserDto>(

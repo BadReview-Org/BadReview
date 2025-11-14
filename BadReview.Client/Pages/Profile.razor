@@ -57,7 +57,7 @@ else
                 FullName = privateuser?.FullName ?? "",
                 Email = privateuser?.Email,
                 Birthday = privateuser?.Birthday,
-                Country = privateuser?.Country,
+                Country = new IsoCountry("", "", privateuser?.Country ?? 0),
                 Password = ""
             };
         }
