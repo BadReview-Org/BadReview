@@ -7,14 +7,18 @@ public static class IconsMap
 {
     public static Genres ToGenres(this int id)
     {
-        try { return (Genres)id; }
-        catch { return Genres.DEFAULT; }
+        if (Enum.IsDefined(typeof(Genres), id))
+            return (Genres)id;
+        else
+            return Genres.DEFAULT;
     }
 
     public static PlatformTypes ToPlatformTypes(this int id)
     {
-        try { return (PlatformTypes)id; }
-        catch { return PlatformTypes.DEFAULT; }
+        if (Enum.IsDefined(typeof(PlatformTypes), id))
+            return (PlatformTypes)id;
+        else
+            return PlatformTypes.DEFAULT;
     }
 
     public enum Genres
