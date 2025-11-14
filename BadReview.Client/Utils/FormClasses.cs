@@ -1,4 +1,4 @@
-using System.Security.Cryptography.X509Certificates;
+using BadReview.Client.Services;
 using BadReview.Shared.DTOs.Request;
 using FluentValidation;
 
@@ -12,10 +12,20 @@ public class LoginForm
 
 public class RegisterForm
 {
+    public RegisterFirstStep First { get; set; } = null!;
+    public RegisterSecondStep Second { get; set; } = null!;
+}
+
+public class RegisterFirstStep
+{
     public string Username { get; set; } = null!;
     public string Password { get; set; } = null!;
     public string RepeatPassword { get; set; } = null!;
     public string Email { get; set; } = null!;
+}
+
+public class RegisterSecondStep
+{
     public string? FullName { get; set; } = null;
     public DateTime? Birthday { get; set; } = null;
     public IsoCountry? Country { get; set; } = null;
@@ -33,9 +43,9 @@ public class LoginFormValidator : AbstractValidator<LoginForm>
     }
 }
 
-public class RegisterFormValidator : AbstractValidator<RegisterForm>
+public class RegisterFirstStepValidator : AbstractValidator<RegisterFirstStep>
 {
-    public RegisterFormValidator()
+    public RegisterFirstStepValidator()
     {
         // Username
         RuleFor(x => x.Username).Cascade(CascadeMode.Stop).UsernameRule();
@@ -46,7 +56,7 @@ public class RegisterFormValidator : AbstractValidator<RegisterForm>
 
         /*RuleFor(x => x)
             .Must(x => x.Password is null || x.RepeatPassword is null ||
-                  x.Password == x.RepeatPassword);*/
+                    x.Password == x.RepeatPassword);*/
 
         // Email
         RuleFor(x => x.Email).Cascade(CascadeMode.Stop)
@@ -58,7 +68,13 @@ public class RegisterFormValidator : AbstractValidator<RegisterForm>
                 .WithMessage("Invalid email format (correct example: user@domain.com).")
             .Must(email => email.Count(c => c == '@') == 1)
                 .WithMessage("Email must contain exactly one '@' character.");
+    }
+}
 
+public class RegisterSecondStepValidator : AbstractValidator<RegisterSecondStep>
+{
+    public RegisterSecondStepValidator(IsoCountryMap countries)
+    {
         // FullName (solo letras y espacios, 40 caracteres máx)
         RuleFor(x => x.FullName)
             .MaximumLength(40)
@@ -72,10 +88,10 @@ public class RegisterFormValidator : AbstractValidator<RegisterForm>
                 .When(x => x.Birthday.HasValue)
                 .WithMessage("User must be at least 12 years old.");
 
-        // Country (>= 0)
-        /*RuleFor(x => x.Country?.Country_code)
-            .GreaterThanOrEqualTo(0)
-                .When(x => x.Country)
-                .WithMessage("Country code can't be negative.");*/
+        // Country (debe coincidir con los paises del ISO 3166)
+        RuleFor(x => x.Country)
+            .Must(c => countries.GetAsync(c!.Country_code) is not null)
+                .When(x => x.Country is not null)
+                .WithMessage("Country code is invalid.");
     }
 }

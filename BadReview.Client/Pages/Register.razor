@@ -35,19 +35,16 @@
                 <MudDatePicker @bind-Date="model.Birthday" Label="Birthday" For="@(() => model.Birthday)"
                     HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" Clearable="true"/>
 
-<!--
-                <MudTextField @bind-Value="model.Country" Label="Country"
-                    For="@(() => model.Country)" HelperText="Optional" />
--->
                 <MudAutocomplete T="IsoCountry" @bind-Value="model.Country"
+                                ToStringFunc="@(c => c == null ? null : $"{c.Name} ({c.Alpha_3})")"
                                 SearchFunc="SearchCountry"
                                 Variant="Variant.Outlined"
                                 Label="Country"
                                 HelperText="Optional"
                                 Clearable="true">
-                    <ItemTemplate Context="c">
-                        <MudText>@($"{c.Name} ({c.Alpha_3})")</MudText>
-                    </ItemTemplate>
+                    <NoItemsTemplate>
+                        <MudText Align="Align.Center"> No country matching your search... </MudText>
+                    </NoItemsTemplate>
                 </MudAutocomplete>
 
                 <MudPaper MaxWidth="25%" Elevation=0>
@@ -64,6 +61,7 @@
 
     private async Task<IEnumerable<IsoCountry>> SearchCountry(string value, CancellationToken token)
     {
+        var m = IconsMap.GenreIcon[(IconsMap.Genres)5];
         if (!countriesFetched)
         {
             var url = Navigation.BaseUri + "iso3166.json";

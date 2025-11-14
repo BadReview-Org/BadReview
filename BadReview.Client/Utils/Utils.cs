@@ -60,5 +60,3 @@ public class DetailReviewCardStrat : ICardStrategy
     public Type GetComponentType() => typeof(DetailReviewCard);
     public Dictionary<string, object> GetParameters(object element) => new() { ["review"] = element };
 }
-
-public record IsoCountry(string Name, string Alpha_3, int Country_code);

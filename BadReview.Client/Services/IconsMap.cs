@@ -1,26 +1,29 @@
 using static MudBlazor.Icons;
 using static MudBlazor.Icons.Material.Filled;
 
-namespace BadReview.Client.Utils;
+namespace BadReview.Client.Services;
 
-public static class IconsMap
+public static class IconsMethods
 {
-    public static Genres ToGenres(this int id)
+    public static IconsMap.Genres ToGenres(this int id)
     {
-        if (Enum.IsDefined(typeof(Genres), id))
-            return (Genres)id;
+        if (Enum.IsDefined(typeof(IconsMap.Genres), id))
+            return (IconsMap.Genres)id;
         else
-            return Genres.DEFAULT;
+            return IconsMap.Genres.DEFAULT;
     }
 
-    public static PlatformTypes ToPlatformTypes(this int id)
+    public static IconsMap.PlatformTypes ToPlatformTypes(this int id)
     {
-        if (Enum.IsDefined(typeof(PlatformTypes), id))
-            return (PlatformTypes)id;
+        if (Enum.IsDefined(typeof(IconsMap.PlatformTypes), id))
+            return (IconsMap.PlatformTypes)id;
         else
-            return PlatformTypes.DEFAULT;
+            return IconsMap.PlatformTypes.DEFAULT;
     }
+}
 
+public class IconsMap
+{
     public enum Genres
     {
         ADVENTURE = 31, RPG = 12, STRATEGY = 15,

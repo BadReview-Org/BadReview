@@ -11,6 +11,9 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+// Servicios requeridos por MudBlazor
+builder.Services.AddMudServices();
+
 // Crear un HttpClient temporal para leer el appsettings.json
 using var httpClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };
 
@@ -22,10 +25,14 @@ string apiUri = apiSettings.Api?.URI
 
 // Configurar el HttpClient para la aplicación con la URI de la API
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUri) });
-builder.Services.AddMudServices();
+// Scoped services
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider, JWTAuthStateProvider>();
+// Singletons
+builder.Services.AddSingleton<IsoCountryMap>();
+builder.Services.AddSingleton<IconsMap>();
+
 builder.Services.AddAuthorizationCore();
 
 await builder.Build().RunAsync();
