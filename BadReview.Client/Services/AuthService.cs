@@ -2,10 +2,13 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.JSInterop;
-using BadReview.Shared.DTOs.Request;
-using BadReview.Shared.DTOs.Response;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
+
+using BadReview.Shared.DTOs.Request;
+using BadReview.Shared.DTOs.Response;
+
+namespace BadReview.Client.Services;
 
 public class AuthService
 {

@@ -34,7 +34,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_Rating", "[Rating] >= 0 AND [Rating] <= 5"));
 
         builder.Property(g => g.ReviewText)
-            .HasMaxLength(2000);
+            .HasMaxLength(3000);
 
         builder.Property(g => g.IsFavorite)
             .HasDefaultValue(false);

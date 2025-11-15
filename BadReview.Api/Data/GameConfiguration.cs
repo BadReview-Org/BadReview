@@ -9,13 +9,13 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
         // NO usar IDENTITY para mantener IDs de IGDB
         builder.Property(e => e.Id).ValueGeneratedNever();
 
-        builder.OwnsOne(e => e.Cover).Property(c => c.ImageId).HasMaxLength(100);         
+        builder.OwnsOne(e => e.Cover).Property(c => c.ImageId).HasMaxLength(200);         
 
         builder.Property(g => g.Name)
-            .HasMaxLength(200);
+            .HasMaxLength(400);
 
         builder.Property(g => g.Summary)
-            .HasMaxLength(2000);
+            .HasMaxLength(10000);
 
         builder.Property(g => g.RatingIGDB)
             .HasDefaultValue(0)
@@ -31,6 +31,6 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
         builder.ToTable(t => t.HasCheckConstraint("CK_Games_Count_RatingBadReview", "[Count_RatingBadReview] >= 0"));
 
         builder.Property(g => g.Video)
-            .HasMaxLength(100);
+            .HasMaxLength(200);
     }
 }

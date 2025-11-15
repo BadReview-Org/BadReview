@@ -5,7 +5,7 @@ using BadReview.Client;
 using System.Net.Http.Json;
 using MudBlazor.Services;
 using BadReview.Client.Services;
-
+using BadReview.Client.Utils;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -25,13 +25,19 @@ string apiUri = apiSettings.Api?.URI
 
 // Configurar el HttpClient para la aplicación con la URI de la API
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUri) });
+
 // Scoped services
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider, JWTAuthStateProvider>();
-// Singletons
-builder.Services.AddSingleton<IsoCountryMap>();
-builder.Services.AddSingleton<IconsMap>();
+builder.Services.AddScoped<IsoCountryMap>();
+builder.Services.AddScoped<IconsMap>();
+
+// Fluent Validation
+builder.Services.AddScoped<LoginFormValidator>();
+builder.Services.AddScoped<RegisterFirstStepValidator>();
+builder.Services.AddScoped<RegisterSecondStepValidator>();
+builder.Services.AddScoped<RegisterFormValidator>();
 
 builder.Services.AddAuthorizationCore();
 

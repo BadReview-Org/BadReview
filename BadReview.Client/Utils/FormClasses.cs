@@ -10,6 +10,18 @@ public class LoginForm
     public string Password { get; set; } = null!;
 }
 
+public class LoginFormValidator : AbstractValidator<LoginForm>
+{
+    public LoginFormValidator()
+    {
+        // Username
+        RuleFor(x => x.Username).Cascade(CascadeMode.Stop).UsernameRule();
+
+        // Password
+        RuleFor(x => x.Password).Cascade(CascadeMode.Stop).PasswordRule();
+    }
+}
+
 public class RegisterForm
 {
     public RegisterFirstStep First { get; set; } = null!;
@@ -29,18 +41,6 @@ public class RegisterSecondStep
     public string? FullName { get; set; } = null;
     public DateTime? Birthday { get; set; } = null;
     public IsoCountry? Country { get; set; } = null;
-}
-
-public class LoginFormValidator : AbstractValidator<LoginForm>
-{
-    public LoginFormValidator()
-    {
-        // Username
-        RuleFor(x => x.Username).Cascade(CascadeMode.Stop).UsernameRule();
-
-        // Password
-        RuleFor(x => x.Password).Cascade(CascadeMode.Stop).PasswordRule();
-    }
 }
 
 public class RegisterFirstStepValidator : AbstractValidator<RegisterFirstStep>
@@ -90,8 +90,18 @@ public class RegisterSecondStepValidator : AbstractValidator<RegisterSecondStep>
 
         // Country (debe coincidir con los paises del ISO 3166)
         RuleFor(x => x.Country)
-            .Must(c => countries.GetAsync(c!.Country_code) is not null)
+            .MustAsync(async (c, ct) => await countries.GetAsync(c!.Country_code) is not null)
                 .When(x => x.Country is not null)
                 .WithMessage("Country code is invalid.");
+    }
+}
+
+public class RegisterFormValidator : AbstractValidator<RegisterForm>
+{
+    public RegisterFormValidator(RegisterFirstStepValidator validator1,
+                                 RegisterSecondStepValidator validator2)
+    {
+        RuleFor(x => x.First).SetValidator(validator1);
+        RuleFor(x => x.Second).SetValidator(validator2);
     }
 }

@@ -10,6 +10,6 @@ public class GenreConfiguration : IEntityTypeConfiguration<Genre>
         builder.Property(e => e.Id).ValueGeneratedNever();  
 
         builder.Property(e => e.Name)
-            .HasMaxLength(200);
+            .HasMaxLength(400);
     }
 }
