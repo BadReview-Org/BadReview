@@ -78,7 +78,7 @@ public static class ReviewEndpoints
             IResult response = code switch
             {
                 ReviewCode.REVIEWNOTFOUND => Results.NotFound($"No review matching the id {id}"),
-                ReviewCode.USERNOTMATCH => Results.BadRequest($"Review does not match with the user credentials"),
+                ReviewCode.USERNOTMATCH => Results.Forbid(),
                 ReviewCode.OK => Results.Ok(reviewDto),
                 _ => Results.InternalServerError()
             };
@@ -105,7 +105,7 @@ public static class ReviewEndpoints
             IResult response = code switch
             {
                 ReviewCode.REVIEWNOTFOUND => Results.NotFound($"No review matching the id {id}"),
-                ReviewCode.USERNOTMATCH => Results.BadRequest($"Review does not match with the user credentials"),
+                ReviewCode.USERNOTMATCH => Results.Forbid(),
                 ReviewCode.OK => Results.NoContent(),
                 _ => Results.InternalServerError()
             };

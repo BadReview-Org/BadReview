@@ -280,4 +280,14 @@ public class UserService : IUserService
         
         return (UserCode.OK, new UserTokensDto(newAccessToken, newRefreshToken));
     }
+
+    public Task<bool> UsernameExists(string username)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> EmailExists(string email)
+    {
+        throw new NotImplementedException();
+    }
 }

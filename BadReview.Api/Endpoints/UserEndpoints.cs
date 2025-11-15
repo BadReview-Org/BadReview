@@ -40,6 +40,10 @@ public static class UserEndpoints
 
         app.MapPost("/api/refresh", RefreshUserTokens).RequireAuthorization("RefreshTokenPolicy");
 
+        app.MapPost("/api/usernameavailable", IsUsernameAvailable);
+
+        app.MapPost("/api/emailavailable", IsEmailAvailable);
+
         // GET: /api/users - Obtener todos los usuarios (solo para debugging)
         //app.MapGet("/api/users", GetUsers).WithName("GetUsers");
 
@@ -220,5 +224,21 @@ public static class UserEndpoints
             default:
                 return Results.BadRequest("Pagination field is incorrect.");
         }
+    }
+
+    private static async Task<IResult> IsUsernameAvailable
+    (string username, IUserService userService)
+    {
+        bool exists = await userService.UsernameExists(username);
+
+        return exists ? Results.Conflict(username) : Results.Ok(username);
+    }
+
+    private static async Task<IResult> IsEmailAvailable
+    (string email, IUserService userService)
+    {
+        bool exists = await userService.EmailExists(email);
+
+        return exists ? Results.Conflict(email) : Results.Ok(email);
     }
 }
