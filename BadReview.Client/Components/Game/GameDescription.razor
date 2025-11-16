@@ -1,0 +1,13 @@
+<MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+    <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
+        <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Medium" Class="mr-2" />
+        About This Game
+    </MudText>
+    <MudText Typo="Typo.body1" Style="line-height: 1.8; color: #e0e0e0;">
+        @Summary
+    </MudText>
+</MudPaper>
+
+@code{
+    [Parameter] public string Summary { get; set; } = "";
+}

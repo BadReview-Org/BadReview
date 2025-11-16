@@ -1,4 +1,4 @@
-using static MudBlazor.Icons;
+using static MudBlazor.Icons.Custom.Brands;
 using static MudBlazor.Icons.Material.Filled;
 
 namespace BadReview.Client.Utils;
@@ -25,7 +25,7 @@ public static class IconsMap
 
     public static readonly Dictionary<Genres, string> GenreIcon = new()
     {
-        [Genres.ADVENTURE] = Material.Filled.Explore,
+        [Genres.ADVENTURE] = Explore,
         [Genres.RPG] = Castle,
         [Genres.STRATEGY] = Psychology,
         [Genres.SHOOTER] = GpsFixed,
@@ -55,7 +55,7 @@ public static class IconsMap
         [PlatformTypes.CONSOLE] = VideogameAsset,
         [PlatformTypes.ARCADE] = Gamepad,
         [PlatformTypes.PLATFORM] = QuestionMark,
-        [PlatformTypes.OPERATINGSYSTEM] = Custom.Brands.Linux,
+        [PlatformTypes.OPERATINGSYSTEM] = Linux,
         [PlatformTypes.PORTABLECONSOLE] = TabletMac,
         [PlatformTypes.COMPUTER] = Computer
     };

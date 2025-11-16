@@ -22,7 +22,13 @@
             <MudStack Spacing="1">
                 <MudText Typo="Typo.subtitle1">@game.Name</MudText>
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                    <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
+                    @if(isDarkMode)
+                    {
+                        <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
+                    }
+                    else{
+                        <img src="IGDB_logo.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
+                    }
                     <MudText Typo="Typo.subtitle2">@(((double)(game?.RatingIGDB ?? 0) / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))</MudText>
                 </MudStack>
             </MudStack>
@@ -174,6 +180,8 @@ else{
 
     [Parameter] public EventCallback<string> ClickApplyFilters { get; set; }
     
+    [CascadingParameter(Name = "IsDarkMode")]
+    public bool isDarkMode { get; set; }
     // Platform and Genre specific filters
     
     
@@ -186,9 +194,7 @@ else{
     }
 
     private async Task<IEnumerable<BasicGameDto>> OnSearchGames(string value, CancellationToken token)
-    {
-        Console.WriteLine($"🔍 OnSearchGames llamado con: '{value}'");
- 
+    { 
         // Si hay un callback definido, se busca en la API
         if (SearchGames != null)
         {

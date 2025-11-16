@@ -82,54 +82,9 @@ else
  
                     </MudPaper>
                     <!-- User Review Section -->
-                    <MudPaper Elevation ="6" Class="pa-3" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                    <AuthorizeView>
-                        <Authorized>
-                            <div class="d-flex">
-                                <MudButton OnClick="OpenDialog" FullWidth=true Variant="Variant.Filled" Color="Color.Primary">
-                                    @(userReview is null || userReview.Rating == 0 ? "Rate" : "Edit rating")
-                                </MudButton>
-                                @if (userReview != null && userReview.Rating > 0){
-                                    <MudRating Color=Color.Warning SelectedValue="@(userReview?.Rating ?? 0)" Disabled="true" Class="mt-1 ml-3" />
-                                }
-                            </div>
-                            
-                        </Authorized>
-                        <NotAuthorized>
-                            <p>Create an account or log in to register your activity!</p>
-                        </NotAuthorized>
-                    </AuthorizeView>
-                    </MudPaper>
-
-                    <CustomDialog @ref="popupReview"
-                                            Title="Create a review"
-                                            Icon="@Icons.Material.Filled.Star"
-                                            OnConfirm = "PostReview">
-                        <MudStack Spacing="3">
-                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                <MudText Typo="Typo.body1">Rating:</MudText>
-                                <MudRating @bind-SelectedValue="currentRating" MaxValue="5" ReadOnly="false" />
-                            </MudStack>
-                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                <MudText Typo="Typo.body1">Status:</MudText>
-                                <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
-                                    <MudButton>@_buttonText</MudButton>
-                                    <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-                                        <MudMenuItem OnClick="() => SetButtonText(ReviewState.NONE)">None</MudMenuItem>
-                                        <MudMenuItem OnClick="() => SetButtonText(ReviewState.PLAYED)">Played</MudMenuItem>
-                                        <MudMenuItem OnClick="() => SetButtonText(ReviewState.PLAYING)">Playing</MudMenuItem>
-                                        <MudMenuItem OnClick="() => SetButtonText(ReviewState.WISHLIST)">Wishlist</MudMenuItem>
-                                    </MudMenu>
-                                </MudButtonGroup>
-                            </MudStack>
-                            <MudTextField @bind-Value="reviewText" 
-                                          Label="Comment" 
-                                          Variant="Variant.Outlined" 
-                                          Lines="5" 
-                                          Placeholder="Write your review here..." />
-                        </MudStack>
-                    </CustomDialog>
-                    
+                    <UserReviewSection GameId="@id"
+                                       UserReview="@userReview"
+                                       OnReviewSubmit="PostReview" />
 
                     
                 </MudStack>
@@ -140,38 +95,14 @@ else
                 <MudStack Spacing="4">
 
                     <!-- Description -->
-                    <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                        <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
-                            <MudIcon Icon="@Icons.Material.Filled.Description" Size="Size.Medium" Class="mr-2" />
-                            About This Game
-                        </MudText>
-                        <MudText Typo="Typo.body1" Style="line-height: 1.8; color: #e0e0e0;">
-                            @gameDetails.Summary
-                        </MudText>
-                    </MudPaper>
+                    <GameDescription Summary="@gameDetails.Summary" />
                     <!-- Video Trailer -->
                     @if (!string.IsNullOrEmpty(gameDetails.Video))
                     {
-                        <MudPaper Class="pa-4" Elevation="8" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                            <MudText Typo="Typo.h5" Class="mb-3" Style="color: #764ba2;">
-                                <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Size="Size.Medium" Class="mr-2" />
-                                Game Trailer
-                            </MudText>
-                            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
-                                <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
-                                        src="https://www.youtube.com/embed/@(gameDetails.Video)?autoplay=1&mute=0"
-                                        title="YouTube video player"
-                                        frameborder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowfullscreen>
-                                </iframe>
-                            </div>
-                        </MudPaper>
+                        <GameTrailer videoUrl="@gameDetails.Video" />
                     }
                 </MudStack>
             </MudItem>
-
-
             
             <!-- Tercera Columna - Genres y Platforms -->
             <MudItem xs="12" md="12" lg="3">
@@ -179,57 +110,40 @@ else
                     <!-- Genres -->
                     @if (gameDetails.Genres?.Any() == true)
                     {
-                        <MudPaper Class="pa-3" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                            <MudText Typo="Typo.h6" Class="mb-2">
-                                <MudIcon Icon="@Icons.Material.Filled.Category" Size="Size.Small" Class="mr-2" />
-                                Genres
-                            </MudText>
-                            <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap">
-                                @foreach (var genre in gameDetails.Genres)
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled">
-                                        @genre.Name
-                                    </MudChip>
-                                }
-                            </MudStack>
-                        </MudPaper>
+                    <GameInfoSection TItem="GenreDto"
+                                     Title="Genres"
+                                     Icon="@Icons.Material.Filled.Category"
+                                     Items="@gameDetails.Genres"
+                                     ChipColor="Color.Primary"
+                                     GetItemText="@(g => g.Name)" />
                     }
 
                     <!-- Platforms -->
                     @if (gameDetails.Platforms?.Any() == true)
                     {
-                        <MudPaper Class="pa-3" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                            <MudText Typo="Typo.h6" Class="mb-2">
-                                <MudIcon Icon="@Icons.Material.Filled.Devices" Size="Size.Small" Class="mr-2" />
-                                Platforms
-                            </MudText>
-                            <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap">
-                                @foreach (var platform in gameDetails.Platforms)
-                                {
-                                    <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Filled">
-                                        @platform.Name
-                                    </MudChip>
-                                }
-                            </MudStack>
-                        </MudPaper>
+                    <GameInfoSection TItem="PlatformDto"
+                                     Title="Platforms"
+                                     Icon="@Icons.Material.Filled.Devices"
+                                     Items="@gameDetails.Platforms"
+                                     ChipColor="Color.Secondary"
+                                     GetItemText="@(p => p.Name)" />
                     }
 
                     <!-- Developers -->
                     @if (gameDetails.Developers?.Any() == true)
                     {
-                        <MudPaper Class="pa-3" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-                            <MudText Typo="Typo.h6" Class="mb-2">
-                                <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" Class="mr-2" />
-                                Developers
-                            </MudText>
-                            @foreach (DetailDeveloperDto developer in gameDetails.Developers)
-                            {
+                        <GameInfoSection TItem="DetailDeveloperDto"
+                                         Title="Developers"
+                                         Icon="@Icons.Material.Filled.Code"
+                                         Items="@gameDetails.Developers"
+                                         RenderAsChips="false">
+                            <ItemTemplate Context="developer">
                                 <MudText Typo="Typo.body2" Color="Color.Default">
-                                <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" Alt="@developer.Name" Width="32" Height="32" Class="ml-2" Style="vertical-align: middle; border-radius: 4px;" />
+                                    <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" Alt="@developer.Name" Width="32" Height="32" Class="ml-2" Style="vertical-align: middle; border-radius: 4px;" />
                                     @developer.Name                     
                                 </MudText>
-                            }
-                        </MudPaper>
+                            </ItemTemplate>
+                        </GameInfoSection>
                     }
                 </MudStack>
             </MudItem>
@@ -251,67 +165,12 @@ else
     private int ReviewTotalCount = 0;
     private string primaryColor = "#667eea";
     private string secondaryColor = "#764ba2";
-
-    private string _buttonText = "Select Action";
-
-    int currentRating = 0;
-
-    private ReviewState reviewState = ReviewState.NONE;
-
+    private int currentRating = 0;
     private DetailReviewDto? userReview;
-
     private JWTAuthStateProvider AuthStateProvider = null!;
-    private string reviewText = "";
-    private CustomDialog? popupReview;
-    private void OpenDialog()
-    {
-        // Sincronizar valores del userReview al abrir el diálogo
-        currentRating = userReview?.Rating ?? 0;
-        reviewText = userReview?.ReviewText ?? "";
-        reviewState = userReview?.StateEnum ?? ReviewState.NONE;
-        _buttonText = reviewState == ReviewState.NONE ? "Select Action" : reviewState.ToString();
-        
-        popupReview?.Open();
-    }
-
-    private void SetButtonText(ReviewState option)
-    {
-        switch (option)
-        {
-            case ReviewState.NONE:
-                reviewState = ReviewState.NONE;
-                _buttonText = "None";
-                break;
-            case ReviewState.PLAYED:
-                reviewState = ReviewState.PLAYED;
-                _buttonText = "Played";
-                break;
-            case ReviewState.PLAYING:
-                reviewState = ReviewState.PLAYING;
-                _buttonText = "Playing";
-                break;
-            case ReviewState.WISHLIST:
-                reviewState = ReviewState.WISHLIST;
-                _buttonText = "Wishlist";
-                break;
-            default:
-                _buttonText = "Select Action";
-                break;
-        }
-    }
     
-    protected async Task PostReview()
+    protected async Task PostReview(CreateReviewRequest reviewData)
     {
-        var reviewData = new CreateReviewRequest(
-                Rating: currentRating,
-                StartDate: DateTime.UtcNow,
-                EndDate: DateTime.UtcNow,
-                ReviewText: reviewText,
-                StateEnum: reviewState,
-                IsFavorite: userReview?.IsFavorite ?? false,
-                IsReview: true,
-                GameId: id
-            );
         if(userReview is null)
             userReview = await ApiService.PostAsync<CreateReviewRequest,DetailReviewDto>(APIUTILS.URIS.REVIEWS, reviewData);
         else
@@ -352,8 +211,6 @@ else
             gameDetails = response?.game;
             userReview = response?.userReview;
             currentRating = userReview?.Rating ?? 0;
-            reviewText = userReview?.ReviewText ?? "";
-            _buttonText = userReview?.StateEnum.ToString() ?? "Select Action";
         }
         else
         {
@@ -401,56 +258,29 @@ else
     }
     private async Task OnFavoriteChanged(bool isFavorite)
     {
+         var favoriteData = new CreateReviewRequest(
+                    Rating: userReview != null ? userReview.Rating : 0,
+                    StartDate: userReview != null ? userReview.StartDate : null,
+                    EndDate: userReview != null ? userReview.EndDate : null,
+                    ReviewText: userReview != null ? userReview.ReviewText : null,
+                    StateEnum: userReview != null ? userReview.StateEnum : ReviewState.NONE,
+                    IsFavorite: isFavorite,
+                    IsReview: userReview != null ? userReview.IsReview : false,
+                    GameId: id
+            );
         if(isFavorite == true){
             if(userReview == null)
-            {
-                var favoriteData = new CreateReviewRequest(
-                    Rating: 0,
-                    StartDate: null,
-                    EndDate: null,
-                    ReviewText: null,
-                    StateEnum: ReviewState.NONE,
-                    IsFavorite: isFavorite,
-                    IsReview: false,
-                    GameId: id
-                );
-                userReview = await ApiService.PostAsync<CreateReviewRequest,DetailReviewDto>(APIUTILS.URIS.REVIEWS, favoriteData);
-            }
-            else{
-                var updateData = new CreateReviewRequest(
-                    Rating: userReview.Rating,
-                    StartDate: userReview.StartDate,
-                    EndDate: userReview.EndDate,
-                    ReviewText: userReview.ReviewText,
-                    StateEnum: userReview.StateEnum,
-                    IsFavorite: isFavorite,
-                    IsReview: userReview.IsReview,
-                    GameId: id
-                );
-                userReview = await ApiService.PutAsync<CreateReviewRequest,DetailReviewDto>($"{APIUTILS.URIS.REVIEWS}/{userReview.Id}", updateData);
-            }
+                userReview = await ApiService.PostAsync<CreateReviewRequest,DetailReviewDto>(APIUTILS.URIS.REVIEWS, favoriteData); 
+            else
+                userReview = await ApiService.PutAsync<CreateReviewRequest,DetailReviewDto>($"{APIUTILS.URIS.REVIEWS}/{userReview.Id}", favoriteData);    
         }
         else{
             if(userReview?.IsReview == true)
-            {
-                var exfavorite = new CreateReviewRequest(
-                    Rating: userReview.Rating,
-                    StartDate: userReview.StartDate,
-                    EndDate: userReview.EndDate,
-                    ReviewText: userReview.ReviewText,
-                    StateEnum: userReview.StateEnum,
-                    IsFavorite: isFavorite,
-                    IsReview: userReview.IsReview,
-                    GameId: id
-                );
-                userReview = await ApiService.PutAsync<CreateReviewRequest,DetailReviewDto>($"{APIUTILS.URIS.REVIEWS}/{userReview.Id}", exfavorite);
-            }
+                userReview = await ApiService.PutAsync<CreateReviewRequest,DetailReviewDto>($"{APIUTILS.URIS.REVIEWS}/{userReview.Id}", favoriteData);
             else{
                 var deleted = await ApiService.DeleteAsync($"{APIUTILS.URIS.REVIEWS}/{userReview?.Id}");
                 if (deleted)
-                {
                     userReview = null;
-                }
             }
         }
         

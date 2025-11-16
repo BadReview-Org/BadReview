@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 
-using BadReview.Client.Components;
+using BadReview.Client.Components.Review;
+using BadReview.Client.Components.Game;
 
 namespace BadReview.Client.Utils;
 

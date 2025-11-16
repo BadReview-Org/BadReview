@@ -12,19 +12,49 @@
         <MudStack Row="true" Spacing="1">
             <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
                           Color="Color.Primary" 
-                          OnClick="() => Scroll(-1)" />
+                          OnClick="() => Scroll(1)" />
             <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
                           Color="Color.Primary" 
-                          OnClick="() => Scroll(1)" />
+                          OnClick="() => Scroll(-1)" />
         </MudStack>
     </MudStack>
     <div style="overflow: hidden;">
         <MudStack Row="true" Spacing="3" Style="@GetScrollStyle(scrollPosition)">
+            @* Duplicar items al inicio para scroll infinito *@
             @foreach (var item in Items)
             {
                 <MudCard Class="carousel-card" 
                         Style="min-width: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;"
-                        @onclick="@(() => OnItemClick.InvokeAsync(item))">
+                        @onclick="@(() => OnItemClick.InvokeAsync(item))"
+                        @onmouseenter="() => {_open = true;}"
+                        @onmouseleave="() => {_open = false;}"
+                        >
+                    <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
+                        @ItemTemplate(item)
+                    </MudCardContent>
+                </MudCard>
+            }
+            @* Items originales *@
+            @foreach (var item in Items)
+            {
+                <MudCard Class="carousel-card mud-elevation-hover" 
+                        Style="min-width: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;"
+                        @onclick="@(() => OnItemClick.InvokeAsync(item))"
+                        @onmouseenter="() => {_open = true;}"
+                        @onmouseleave="() => {_open = false;}"
+                        >
+                    <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
+                        @ItemTemplate(item)
+                    </MudCardContent>
+                </MudCard>
+            }
+            @* Duplicar items al final para scroll infinito *@
+            @foreach (var item in Items)
+            {
+                <MudCard Class="carousel-card mud-elevation-hover" 
+                        Style="min-width: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;"
+                        @onclick="@(() => OnItemClick.InvokeAsync(item))"
+                        >
                     <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
                         @ItemTemplate(item)
                     </MudCardContent>
@@ -42,22 +72,52 @@
     [Parameter] public EventCallback<T> OnItemClick { get; set; }
     
     private int scrollPosition = 0;
+    private const int cardWidth = 220; // ancho de card + spacing
+    private bool isTransitioning = true;
+    private bool _open = false;
+    protected override void OnInitialized()
+    {
+        // Empezar en la posición del primer set de items (después de los duplicados iniciales)
+        scrollPosition = -(Items.Count * cardWidth);
+    }
 
     private void Scroll(int direction)
     {
-        scrollPosition += direction * 220;
+        isTransitioning = true;
+        scrollPosition += direction * cardWidth;
         
-        var maxScroll = -(Items.Count * 220);
-        if (scrollPosition < maxScroll)
-            scrollPosition = 0;
-        else if (scrollPosition > 0)
-            scrollPosition = maxScroll;
-            
         StateHasChanged();
+        
+        // Después de la animación, verificar si necesitamos "saltar" sin animación
+        _ = Task.Delay(500).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                var totalWidth = Items.Count * cardWidth;
+                var minPosition = -(totalWidth * 2); // Límite izquierdo (final del segundo set)
+                var maxPosition = 0; // Límite derecho (inicio del primer set)
+                
+                // Si llegamos al final (scroll izquierda), saltar al inicio del set original
+                if (scrollPosition <= minPosition)
+                {
+                    isTransitioning = false;
+                    scrollPosition = -(Items.Count * cardWidth);
+                    StateHasChanged();
+                }
+                // Si llegamos al inicio (scroll derecha), saltar al final del set original
+                else if (scrollPosition >= maxPosition)
+                {
+                    isTransitioning = false;
+                    scrollPosition = -(Items.Count * cardWidth);
+                    StateHasChanged();
+                }
+            });
+        });
     }
 
     private string GetScrollStyle(int position)
     {
-        return $"transform: translateX({position}px); transition: transform 0.5s ease;";
+        var transition = isTransitioning ? "transition: transform 0.5s ease;" : "";
+        return $"transform: translateX({position}px); {transition}";
     }
 }

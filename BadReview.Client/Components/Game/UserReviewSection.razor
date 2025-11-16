@@ -1,0 +1,140 @@
+@using BadReview.Shared.Utils
+
+<MudPaper Elevation ="6" Class="pa-3" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+    <AuthorizeView>
+        <Authorized>
+            <div class="d-flex">
+                <MudButton OnClick="OpenDialog" FullWidth=true Variant="Variant.Filled" Color="Color.Primary">
+                    @(UserReview is null || UserReview.IsReview == false ? "Add a review" : "Edit review")
+                </MudButton>
+                @if (UserReview != null && UserReview.Rating > 0){
+                    <MudRating Color=Color.Warning SelectedValue="@(UserReview?.Rating ?? 0)" Disabled="true" Class="mt-1 ml-3" />
+                }
+            </div>
+            
+        </Authorized>
+        <NotAuthorized>
+            <p>Create an account or log in to register your activity!</p>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudPaper>
+<!-- Dialog to create/edit review -->
+<CustomDialog @ref="popupReview"
+                        Title="Create a review"
+                        Icon="@Icons.Material.Filled.Star"
+                        OnConfirm = "PostReview">
+    <MudStack Spacing="3">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudText Typo="Typo.body1">Rating:</MudText>
+            <MudRating @bind-SelectedValue="currentRating" MaxValue="5" ReadOnly="false" />
+        </MudStack>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudText Typo="Typo.body1">Status:</MudText>
+            <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+                <MudButton>@_buttonText</MudButton>
+                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                    <MudMenuItem OnClick="() => SetButtonText(ReviewState.NONE)">None</MudMenuItem>
+                    <MudMenuItem OnClick="() => SetButtonText(ReviewState.PLAYED)">Played</MudMenuItem>
+                    <MudMenuItem OnClick="() => SetButtonText(ReviewState.PLAYING)">Playing</MudMenuItem>
+                    <MudMenuItem OnClick="() => SetButtonText(ReviewState.WISHLIST)">Wishlist</MudMenuItem>
+                </MudMenu>
+            </MudButtonGroup>   
+        </MudStack>
+            @if(reviewState != ReviewState.PLAYING && reviewState != ReviewState.WISHLIST){
+                <MudDateRangePicker @ref="_picker" Label="Start date and End date" @bind-DateRange="_dateRange" 
+                            AutoClose="true" PickerVariant="PickerVariant.Dialog">
+                    <PickerActions>
+                        <MudButton Class="mr-auto align-self-start" OnClick="@(() => _picker?.ClearAsync())">Clear</MudButton>
+                        <MudButton OnClick="@(() => _picker?.CloseAsync(false))">Cancel</MudButton>
+                        <MudButton Color="Color.Primary" OnClick="@(() => _picker.CloseAsync())">OK</MudButton>
+                    </PickerActions>
+                </MudDateRangePicker>
+            }
+            else if(reviewState == ReviewState.PLAYING){
+                <MudDatePicker Label="Start date" @bind-Date="_dateRange.Start"/>
+            }
+
+        <MudTextField @bind-Value="reviewText" 
+                        Label="Comment" 
+                        Variant="Variant.Outlined" 
+                        Lines="5" 
+                        Placeholder="Write your review here..." />
+    </MudStack>
+</CustomDialog>
+
+@code {
+    [Parameter] public DetailReviewDto? UserReview { get; set; }
+    [Parameter] public EventCallback<CreateReviewRequest> OnReviewSubmit { get; set; }
+    
+    [Parameter] public int GameId { get; set; }
+    private int currentRating = 0;
+    private MudDateRangePicker? _picker;
+
+    private DateRange _dateRange = new DateRange(DateTime.Now.Date, null);
+    private string reviewText = "";
+    private ReviewState reviewState = ReviewState.NONE;
+    private string _buttonText = "Select Action";
+    private CustomDialog? popupReview;
+
+    protected override void OnParametersSet()
+    {
+        // Sincronizar con UserReview cuando cambie
+        currentRating = UserReview?.Rating ?? 0;
+        reviewText = UserReview?.ReviewText ?? "";
+        reviewState = UserReview?.StateEnum ?? ReviewState.NONE;
+        _buttonText = reviewState == ReviewState.NONE ? "Select Action" : reviewState.ToString();
+    }
+
+    private void OpenDialog()
+    {
+        currentRating = UserReview?.Rating ?? 0;
+        reviewText = UserReview?.ReviewText ?? "";
+        reviewState = UserReview?.StateEnum ?? ReviewState.NONE;
+        _buttonText = reviewState == ReviewState.NONE ? "Select Action" : reviewState.ToString();
+        popupReview?.Open();
+    }
+
+    private async Task PostReview()
+    {
+        var reviewData = new CreateReviewRequest(
+            Rating: currentRating,
+            StartDate: _dateRange.Start,
+            EndDate: _dateRange.End,
+            ReviewText: reviewText,
+            StateEnum: reviewState,
+            IsFavorite: UserReview?.IsFavorite ?? false,
+            IsReview: true,
+            GameId: GameId
+        );
+        
+        await OnReviewSubmit.InvokeAsync(reviewData);
+    }
+
+        private void SetButtonText(ReviewState option)
+    {
+        _dateRange.Start = null;
+        _dateRange.End = null;
+        switch (option)
+        {
+            case ReviewState.NONE:
+                reviewState = ReviewState.NONE;
+                _buttonText = "None";
+                break;
+            case ReviewState.PLAYED:
+                reviewState = ReviewState.PLAYED;
+                _buttonText = "Played";
+                break;
+            case ReviewState.PLAYING:
+                reviewState = ReviewState.PLAYING;
+                _buttonText = "Playing";
+                break;
+            case ReviewState.WISHLIST:
+                reviewState = ReviewState.WISHLIST;
+                _buttonText = "Wishlist";
+                break;
+            default:
+                _buttonText = "Select Action";
+                break;
+        }
+    }
+}

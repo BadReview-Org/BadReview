@@ -32,6 +32,7 @@ else
     [Parameter] public int? Id { get; set; } 
     private bool IsOwnProfile => Id == null; // Si no hay Id, es /profile
 
+
     private List<DetailReviewDto> userReviews = new();
     private CardContainer[]? favoriteGameCards;
     private int totalPagesFavorite = 1;

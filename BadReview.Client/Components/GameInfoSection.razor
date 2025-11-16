@@ -1,0 +1,40 @@
+@typeparam TItem
+
+<MudPaper Class="pa-3" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+    <MudText Typo="Typo.h6" Class="mb-2">
+        <MudIcon Icon="@Icon" Size="Size.Small" Class="mr-2" />
+        @Title
+    </MudText>
+    
+    @if (RenderAsChips)
+    {
+        <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap">
+            @foreach (var item in Items)
+            {
+                <MudChip T="string" Size="Size.Small" Color="@ChipColor" Variant="Variant.Filled">
+                    @(GetItemText?.Invoke(item) ?? item?.ToString())
+                </MudChip>
+            }
+        </MudStack>
+    }
+    else
+    {
+        @if (ItemTemplate != null)
+        {
+            @foreach (var item in Items)
+            {
+                @ItemTemplate(item)
+            }
+        }
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Category;
+    [Parameter] public List<TItem> Items { get; set; } = new();
+    [Parameter] public bool RenderAsChips { get; set; } = true;
+    [Parameter] public Color ChipColor { get; set; } = Color.Primary;
+    [Parameter] public Func<TItem, string>? GetItemText { get; set; }
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
+}

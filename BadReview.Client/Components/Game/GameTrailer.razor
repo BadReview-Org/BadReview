@@ -1,0 +1,19 @@
+<MudPaper Class="pa-4" Elevation="8" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+    <MudText Typo="Typo.h5" Class="mb-3" Style="color: #764ba2;">
+        <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Size="Size.Medium" Class="mr-2" />
+        Game Trailer
+    </MudText>
+    <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+                src="https://www.youtube.com/embed/@(videoUrl)?autoplay=1&mute=0"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+        </iframe>
+    </div>
+</MudPaper>
+
+@code{
+    [Parameter] public string videoUrl { get; set; } = "";
+}

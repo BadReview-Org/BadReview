@@ -146,7 +146,7 @@
                     Page = page-1 };
 
         PagedResult<BasicGameDto>? responseDto = await ApiService.GetManyAsync<BasicGameDto>(apiRequest);
-        totalPages = (responseDto?.TotalCount ?? 0 )/ (responseDto?.PageSize ?? 1);
+        totalPages = (int)Math.Ceiling((double)(responseDto?.TotalCount ?? 0 )/ (responseDto?.PageSize ?? 1));
         gameCards = responseDto?.Data.Select(g => new CardContainer(new BasicGameCardStrat(), g)).ToArray();
     }
 

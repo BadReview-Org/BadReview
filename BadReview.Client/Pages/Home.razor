@@ -9,8 +9,12 @@
 @inject ApiService ApiService
 @inject NavigationManager Navigation
 
-<PageTitle>BadReview - Home</PageTitle>
 
+<PageTitle>BadReview - Home</PageTitle>
+<MudPaper Style="background: rgba(0,0,0,0)" Elevation="2" Width="100%">
+Test
+
+</MudPaper>
 @if (isLoading)
 {
     <!-- Loading Skeleton -->
@@ -68,126 +72,70 @@ else
         </MudPaper>
 
         <!-- Platforms Section -->
-        <MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                    <MudIcon Icon="@Icons.Material.Filled.Devices" Color="Color.Primary" Size="Size.Large" />
-                    <MudText Typo="Typo.h4" Style="font-weight: 600; color: #667eea;">
-                        Platforms
-                    </MudText>
-                </MudStack>
-                <MudStack Row="true" Spacing="1">
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
-                                   Color="Color.Primary" 
-                                   OnClick="() => ScrollPlatforms(-1)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
-                                   Color="Color.Primary" 
-                                   OnClick="() => ScrollPlatforms(1)" />
-                </MudStack>
-            </MudStack>
-            <div style="overflow: hidden;">
-                <MudStack Row="true" Spacing="3" Style="@GetScrollStyle(platformScrollPosition)">
-                    @foreach (var platform in platforms)
-                    {
-                        <MudCard Class="platform-card" 
-                                 Style="min-width: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;"
-                                 @onclick="@(() => Navigation.NavigateTo($"/explore?platform={platform.Id}"))">>
-                            <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
-                                @if (!string.IsNullOrEmpty(platform.LogoId))
-                                {
-                                    <MudImage Src="@ImageHelper.GetCoverUrl(platform.LogoId)" 
-                                              Alt="@platform.Name" 
-                                              Style="max-height: 80px; max-width: 150px; object-fit: contain;" />
-                                }
-                                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white; font-weight: 600;">
-                                    @platform.Name
-                                </MudText>
-                            </MudCardContent>
-                        </MudCard>
-                    }
-                </MudStack>
-            </div>
-        </MudPaper>
+        <CustomCarrousel T="PlatformDto" 
+                 Items="platforms" 
+                 Title="Platforms"
+                 Icon="@Icons.Material.Filled.Devices"
+                 OnItemClick="@(platform => Navigation.NavigateTo($"/explore?platform={platform.Id}"))">
+            <ItemTemplate Context="platform">
+                <MudIcon Icon="@IconsMap.PlatformTypeIcon[(IconsMap.PlatformTypes)(platform.PlatformType ?? 0)]" 
+                         Size="Size.Large" 
+                         Style="color: white;"/>
+                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white;
+                                            display: -webkit-box; 
+                                            -webkit-line-clamp: 1; 
+                                            -webkit-box-orient: vertical; 
+                                            overflow: hidden;;">
+                    @platform.Name
+                </MudText>
+
+            </ItemTemplate>
+        </CustomCarrousel>
 
         <!-- Genres Section -->
-        <MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                    <MudIcon Icon="@Icons.Material.Filled.Category" Color="Color.Secondary" Size="Size.Large" />
-                    <MudText Typo="Typo.h4" Style="font-weight: 600; color: #764ba2;">
-                        Genres
-                    </MudText>
+        <CustomCarrousel T="GenreDto" 
+                        Items="genres" 
+                        Title="Genres"
+                        Icon="@Icons.Material.Filled.Category"
+                        OnItemClick="@(genre => Navigation.NavigateTo($"/explore?genre={genre.Id}"))">
+            <ItemTemplate Context="genre">
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center"
+                          >
+                <MudIcon Icon="@IconsMap.GenreIcon[(IconsMap.Genres)genre.Id]" 
+                         Size="Size.Large" 
+                         Style="color: white;" />
+                <MudText Typo="Typo.h6" Align="Align.Center" Style="color: white;
+                            display: -webkit-box; 
+                            -webkit-line-clamp: 1; 
+                            -webkit-box-orient: vertical; 
+                            overflow: hidden;;">
+                    @genre.Name
+                </MudText>
                 </MudStack>
-                <MudStack Row="true" Spacing="1">
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
-                                   Color="Color.Secondary" 
-                                   OnClick="() => ScrollGenres(-1)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
-                                   Color="Color.Secondary" 
-                                   OnClick="() => ScrollGenres(1)" />
-                </MudStack>
-            </MudStack>
-            <div style="overflow: hidden;">
-                <MudStack Row="true" Spacing="3" Style="@GetScrollStyle(genreScrollPosition)">
-                    @foreach (var (genre, index) in genres.Select((g, i) => (g, i)))
-                    {
-                        var gradientColor = GetGenreGradient(index);
-                        <MudCard Class="genre-card" 
-                                 Style="@($"min-width: 200px; background: {gradientColor}; cursor: pointer;")"
-                                 @onclick="@(() => Navigation.NavigateTo($"/explore?genre={genre.Id}"))">>
-                            <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
-                                <MudIcon Icon="@GetGenreIcon(genre.Name)" Size="Size.Large" Style="color: white; font-size: 3rem;" />
-                                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white; font-weight: 600;">
-                                    @genre.Name
-                                </MudText>
-                            </MudCardContent>
-                        </MudCard>
-                    }
-                </MudStack>
-            </div>
-        </MudPaper>
+                
+            </ItemTemplate>
+        </CustomCarrousel>
 
         <!-- Developers Section -->
-        <MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
-            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                    <MudIcon Icon="@Icons.Material.Filled.Code" Color="Color.Tertiary" Size="Size.Large" />
-                    <MudText Typo="Typo.h4" Style="font-weight: 600; color: #f093fb;">
-                        Developers
-                    </MudText>
-                </MudStack>
-                <MudStack Row="true" Spacing="1">
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
-                                   Color="Color.Tertiary" 
-                                   OnClick="() => ScrollDevelopers(-1)" />
-                    <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" 
-                                   Color="Color.Tertiary" 
-                                   OnClick="() => ScrollDevelopers(1)" />
-                </MudStack>
-            </MudStack>
-            <div style="overflow: hidden;">
-                <MudStack Row="true" Spacing="3" Style="@GetScrollStyle(developerScrollPosition)">
-                    @foreach (var developer in developers)
+        <CustomCarrousel T="BasicDeveloperDto" 
+                 Items="developers" 
+                 Title="Developers"
+                 Icon="@Icons.Material.Filled.Code"
+                 OnItemClick="@(dev => Navigation.NavigateTo($"/explore?developer={dev.Id}"))"
+                 >
+                <ItemTemplate Context="dev">
+                    @if (!string.IsNullOrEmpty(dev.LogoId))
                     {
-                        <MudCard Class="developer-card" 
-                                 Style="min-width: 200px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); cursor: pointer;"
-                                 @onclick="@(() => Navigation.NavigateTo($"/explore?developer={developer.Id}"))">>
-                            <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
-                                @if (!string.IsNullOrEmpty(developer.LogoId))
-                                {
-                                    <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" 
-                                              Alt="@developer.Name" 
-                                              Style="max-height: 80px; max-width: 150px; object-fit: contain" />
-                                }
-                                <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white; font-weight: 600;">
-                                    @developer.Name
-                                </MudText>
-                            </MudCardContent>
-                        </MudCard>
+                        <MudImage Src="@ImageHelper.GetCoverUrl(dev.LogoId)" 
+                                Alt="@dev.Name" 
+                                Style="max-height: 80px; max-width: 150px;" />
                     }
-                </MudStack>
-            </div>
-        </MudPaper>
+                    <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white;"
+                    >
+                        @dev.Name
+                    </MudText>
+    </ItemTemplate>
+</CustomCarrousel>
     </MudContainer>
 }
 
@@ -203,6 +151,7 @@ else
 </style>
 
 @code {
+    private bool _open = false;
     private bool isLoading = true;
     private List<BasicGameDto> trendingGames = new();
     private List<PlatformDto> platforms = new();

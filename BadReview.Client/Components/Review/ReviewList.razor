@@ -59,7 +59,7 @@
                         }
                         <MudStack Spacing="1" Style="flex: 1;">
                             <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
-                                <MudStack Row="true" Spacing="1">
+                                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
                                     @if (Style)
                                     {
                                     <MudLink Href="@($"/user/{review.User?.Id}")" Style="text-decoration: none; color: inherit;">
@@ -75,6 +75,12 @@
                                     <MudChip T="string" Size="Size.Small" Color="Color.Info">
                                         @review.StateEnum.ToString()
                                     </MudChip>
+                                    @if (review.StartDate.HasValue || review.EndDate.HasValue)
+                                    {
+                                        <MudText Typo="Typo.subtitle2" Style="color: #808080;">
+                                            @(review.StartDate?.ToString("MMM dd, yyyy") ?? "?") - @(review.EndDate?.ToString("MMM dd, yyyy") ?? "?")
+                                        </MudText>
+                                    }
                                 </MudStack>
                                 @if (review.Rating > 0)
                                 {
@@ -94,7 +100,7 @@
                             </MudStack>
                         </MudStack>
                     </MudStack>
-                </MudPaper>
+                </MudPaper> 
             </MudLink>
         }
     }

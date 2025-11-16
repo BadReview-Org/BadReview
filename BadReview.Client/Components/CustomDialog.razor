@@ -1,14 +1,16 @@
 @implements IDisposable
 
-<MudDialog @bind-Visible="_visible" Options="_dialogOptions">
+<MudDialog Class="pa-4" @bind-Visible="_visible" Options="_dialogOptions">
     <TitleContent>
-        <MudText Typo="Typo.h6">
+        <MudStack Spacing="2" Row="true" AlignItems="AlignItems.Center">
             @if (!string.IsNullOrWhiteSpace(Icon))
-            {
-                <MudIcon Icon="@Icon" Class="mr-3" />
-            }
-            @Title
-        </MudText>
+                {
+                    <MudIcon Icon="@Icon" />
+                }
+            <MudText Typo="Typo.h6">
+                @Title
+            </MudText>
+        </MudStack>
     </TitleContent>
 
     <DialogContent>
@@ -23,15 +25,19 @@
     </DialogContent>
 
     <DialogActions>
-        @if (ShowCancelButton)
-        {
-            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
-                @CancelText
+        <MudStack Class="mb-3 mr-3" Spacing="2" Row="true" AlignItems="AlignItems.Center">
+            @if (ShowCancelButton)
+            {
+                <MudButton Class="mud-elevation-hover" Variant="Variant.Outlined" Color="Color.Secondary" OnClick="Cancel">
+                    <MudIcon Icon="@Icons.Material.Outlined.Clear" Class="mr-2" />
+                    @CancelText
+                </MudButton>
+            }
+            <MudButton Class="mud-elevation-hover" Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm">
+                <MudIcon Icon="@Icons.Material.Outlined.Check" Class="mr-2" />
+                @ConfirmText
             </MudButton>
-        }
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Confirm">
-            @ConfirmText
-        </MudButton>
+        </MudStack>
     </DialogActions>
 </MudDialog>
 
@@ -41,12 +47,12 @@
 
 
     // --- Parámetros personalizables ---
-    [Parameter] public string? Title { get; set; } = "Confirmar acción";
+    [Parameter] public string? Title { get; set; } = "Confirm action";
     [Parameter] public string? Message { get; set; }
     [Parameter] public string? Icon { get; set; } = Icons.Material.Filled.Info;
 
-    [Parameter] public string ConfirmText { get; set; } = "Aceptar";
-    [Parameter] public string CancelText { get; set; } = "Cancelar";
+    [Parameter] public string ConfirmText { get; set; } = "Accept";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
     [Parameter] public bool ShowCancelButton { get; set; } = true;
 
     [Parameter] public RenderFragment? ChildContent { get; set; }
