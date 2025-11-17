@@ -12,6 +12,7 @@ public static class APIUTILS
         public const string GENRES = "genres";
         public const string PLATFORMS = "platforms";
         public const string DEVELOPERS = "developers";
+        public const string DEVELOPER = "developer";
         public const string TRENDING = "games/trending";
         public const string PUBLICGAME = "games/public";
         public const string PRIVATEGAME = "games/private";

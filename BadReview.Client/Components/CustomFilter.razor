@@ -1,44 +1,6 @@
 @using BadReview.Shared.DTOs.Response
-
 @inject NavigationManager Navigation
 
-@if(Dropdown){
-<MudAutocomplete T="BasicGameDto" 
-                            Label="Game Name" 
-                            Value="SelectedGame"
-                            SearchFunc="@OnSearchGames"
-                            ToStringFunc="@(g => g?.Name ?? "")"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Dense"
-                            AdornmentIcon="@Icons.Material.Filled.Search"
-                            Adornment="Adornment.Start"
-                            Clearable="true"
-                            ValueChanged ="OnValueChanged"
-                             >
-    <ItemTemplate Context="game">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-            <img src="@ImageHelper.GetCoverUrl(game.CoverId)" 
-                 style="width: auto; height: 60px; object-fit: cover; border-radius: 4px;" />
-            <MudStack Spacing="1">
-                <MudText Typo="Typo.subtitle1">@game.Name</MudText>
-                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                    @if(isDarkMode)
-                    {
-                        <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
-                    }
-                    else{
-                        <img src="IGDB_logo.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
-                    }
-                    <MudText Typo="Typo.subtitle2">@(((double)(game?.RatingIGDB ?? 0) / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))</MudText>
-                </MudStack>
-            </MudStack>
-        </MudStack>
-    </ItemTemplate>
-    
-</MudAutocomplete>
-
-}
-else{
 <MudTextField Class="flex-grow-1 mx-4" @bind-Value="Value" 
                 Placeholder="@Placeholder" 
                 Adornment="Adornment.Start" 
@@ -49,7 +11,7 @@ else{
                 OnDebounceIntervalElapsed="OnSearchAsyncInternal"
                 Margin="Margin.Dense"
                     />
-}
+
 @if (SetChips)
 {   
     <MudButton Variant="Variant.Text"
@@ -141,11 +103,9 @@ else{
     private PlatformDto? SelectedPlatform { get; set; }
     private GenreDto? SelectedGenre { get; set; }
 
-    private BasicGameDto? SelectedGame { get; set; }
-
     private BasicDeveloperDto? SelectedDeveloper { get; set; }
     //--------------- Public Parameters ----------------
-
+    // Dropdown 
     [Parameter] public bool Dropdown {get; set; } = true;
 
     [Parameter] public List<PlatformDto> Platforms { get; set; } = new();
@@ -170,8 +130,6 @@ else{
 
     [Parameter] public EventCallback<string> OnSearchAsync { get; set; }
 
-    [Parameter] public Func<string, Task<IEnumerable<BasicGameDto>>>? SearchGames { get; set; }
-
     [Parameter] public Func<string, Task<IEnumerable<GenreDto>>>? SearchGenres { get; set; }
 
     [Parameter] public Func<string, Task<IEnumerable<PlatformDto>>>? SearchPlatforms { get; set; }
@@ -188,23 +146,7 @@ else{
 //    [Parameter] public EventCallback<PlatformDto?> OnPlatformChanged { get; set; }
 //    [Parameter] public EventCallback<GenreDto?> OnGenreChanged { get; set; }
 
-    private void OnValueChanged(BasicGameDto game){
-        SelectedGame = null;
-        Navigation.NavigateTo($"/game/{game.Id}");
-    }
 
-    private async Task<IEnumerable<BasicGameDto>> OnSearchGames(string value, CancellationToken token)
-    { 
-        // Si hay un callback definido, se busca en la API
-        if (SearchGames != null)
-        {
-            var games = await SearchGames(value);
-            return games ?? Enumerable.Empty<BasicGameDto>();
-        }
-        
-
-        return Enumerable.Empty<BasicGameDto>();
-    }
     private async Task OnSelectedFilterChangedInternal(string value)
     {
         SelectedFilter = value;

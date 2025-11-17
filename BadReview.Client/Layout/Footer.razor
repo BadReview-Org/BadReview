@@ -1,0 +1,73 @@
+<footer class="mud-theme-dark" style="margin-top: auto;">
+    <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
+        <MudGrid Spacing="4">
+            <!-- Logo y descripción -->
+            <MudItem xs="12" md="4">
+                <MudStack Spacing="2">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                        <img src="icon-192_white.png" alt="BadReview" style="width: 40px; height: 40px;" />
+                        <MudText Typo="Typo.h5" Style="font-weight: 700; color: white;">
+                            BadReview
+                        </MudText>
+                    </MudStack>
+                    <MudText Typo="Typo.body2" Style="color: #b0b0b0; line-height: 1.6;">
+                        Your platform to discover, rate, and review video games. Join the community and share your gaming journey.
+                    </MudText>
+                </MudStack>
+            </MudItem>
+
+            <!-- Links rápidos -->
+            <MudItem xs="12" sm="6" md="4">
+                <MudStack Spacing="1">
+                    <MudLink Href="/about" Style="color: #e0e0e0; text-decoration: none;" Class="footer-link">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Class="mr-1" /> 
+                            About
+                        </MudStack>
+                    </MudLink>
+                </MudStack>
+            </MudItem>
+
+            <!-- Info del proyecto -->
+            <MudItem xs="12" sm="6" md="4">
+                <MudText Typo="Typo.h6" Class="mb-3" Style="color: #764ba2; font-weight: 600;">
+                    Project Info
+                </MudText>
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
+                        <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" Class="mr-1" />
+                        Built with ASP.NET Core & Blazor
+                    </MudText>
+                    <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
+                        <MudIcon Icon="@Icons.Material.Filled.Api" Size="Size.Small" Class="mr-1" />
+                        Powered by IGDB API
+                    </MudText>
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+
+        <!-- Copyright -->
+        <MudDivider Class="my-4" Style="background-color: rgba(102, 126, 234, 0.2);" />
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="flex-wrap">
+            <MudText Typo="Typo.body2" Style="color: #808080;">
+                © @DateTime.Now.Year BadReview. All rights reserved.
+            </MudText>
+            <MudStack Row="true" Spacing="2">
+                <MudIconButton Icon="@Icons.Custom.Brands.GitHub" 
+                               Color="Color.Default" 
+                               Size="Size.Small"
+                               Href="https://github.com/lautaroperalta/APINet" 
+                               Target="_blank"
+                               Style="color: #b0b0b0;" />
+            </MudStack>
+        </MudStack>
+    </MudContainer>
+</footer>
+
+<style>
+    .footer-link:hover {
+        color: #667eea !important;
+        transform: translateX(4px);
+        transition: all 0.3s ease;
+    }
+</style>

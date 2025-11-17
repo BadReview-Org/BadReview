@@ -1,0 +1,41 @@
+@typeparam T
+<MudAutocomplete T="T" 
+                            Label="@Label" 
+                            SearchFunc="@OnSearchElements"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense"
+                            AdornmentIcon="@Icons.Material.Filled.Search"
+                            Adornment="Adornment.Start"
+                            Clearable="true"
+                            ValueChanged="@OnDropdownChanged"
+                            ResetValueOnEmptyText="true"
+                            CoerceText="false"
+                             >
+    <ItemTemplate Context="element">
+        @(ItemTemplate?.Invoke(element))
+    </ItemTemplate>
+    
+</MudAutocomplete>
+
+@code{
+    [Parameter] public string Label { get; set; } = "Search...";
+    [Parameter] public EventCallback<T?> DropdownChanged { get; set; }
+    [Parameter] public Func<string, Task<IEnumerable<T>>>? SearchElements { get; set; }
+    [Parameter] public RenderFragment<T>? ItemTemplate { get; set; }
+
+    private async Task<IEnumerable<T>> OnSearchElements(string value, CancellationToken token)
+    { 
+        // Si hay un callback definido, se busca en la API
+        if (SearchElements != null)
+        {
+            var elements = await SearchElements(value);
+            return elements ?? Enumerable.Empty<T>();
+        }
+        
+        return Enumerable.Empty<T>();
+    }
+
+    private void OnDropdownChanged(T element){
+        DropdownChanged.InvokeAsync(element);
+    }
+}

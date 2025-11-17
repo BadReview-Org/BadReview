@@ -1,0 +1,117 @@
+@page "/genre/{id:int}"
+@using BadReview.Shared.DTOs.Response
+@using BadReview.Client.Utils
+@using BadReview.Shared.Utils
+@using Microsoft.JSInterop
+@inject HttpClient Client
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject ApiService ApiService
+@inject AuthenticationStateProvider _AuthStateProvider
+
+<PageTitle>@genre?.Name</PageTitle>
+
+@if (genre == null)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+        <MudGrid>
+            <MudItem xs="12" md="4">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="600px" />
+            </MudItem>
+            <MudItem xs="12" md="8">
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="100px" Class="mb-4" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Class="mb-4" />
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="400px" />
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge" Class="mt-6">
+        <MudGrid Spacing="4">
+            <MudItem xs="12" md="12" lg="12">
+            <!-- Título con Gradient dinámico basado en la cover -->
+                <MudPaper Class="pa-4" Elevation="8" Style="@($"background: linear-gradient(135deg, {primaryColor} 0%, {secondaryColor} 100%); border-radius: 12px; transition: background 0.5s ease;")">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center">
+                        <MudIcon Icon="@IconsMap.GenreIcon[(IconsMap.Genres)genre.Id]"  Style="margin-right: 10px;height: 70px;width: 70px;color: white;" />
+                        <MudText Align="Align.Center" Typo="Typo.h2" Style="margin-top:8px ; font-weight: 700; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                            @genre.Name 
+                        </MudText>
+                    </MudStack>
+                </MudPaper>
+            </MudItem>
+            
+            
+            <!-- genre's Games -->
+            <MudItem xs="12" md="12" lg="12">
+                <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
+                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
+                        <MudText Typo="Typo.h5" Style="color: #764ba2;">
+                            <MudIcon Icon="@Icons.Material.Filled.Games" Size="Size.Medium" />
+                            @genre.Name Games
+                        </MudText>
+                    </MudStack>
+
+                    <MudStack Spacing="1">
+                        <CustomGridCard  pageSize="12" CardHeight="350" PageChanged="@OngenresGameChanged" totalPages="totalPagesGames" arrayElement="genreGames" placeholderTitle="No games found." placeholderBody="This company has no games." />
+                    </MudStack>     
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudContainer>
+}
+
+@code{
+    [Parameter] public int id { get; set; }
+    private GenreDto? genre { get; set; }
+    private int totalPagesGames = 1;
+    private CardContainer[]? genreGames { get; set; }
+    protected override async Task OnInitializedAsync(){
+        genre = await ApiService.PublicGetByIdAsync<GenreDto>(APIUTILS.URIS.GENRES, id);
+        var GameRequest = new ApiRequest{
+            URI = APIUTILS.URIS.GAMES,
+            Filters = $"genres = [{id}]",
+            PageSize = 12,
+            OrderBy = "total_rating_count",
+            Order = SortOrder.DSC,
+            Page = 0
+        };
+        PagedResult<BasicGameDto>? games = await ApiService.GetManyAsync<BasicGameDto>(GameRequest);
+        genreGames = games?.Data.Select(g => new CardContainer(new BasicGameCardStrat(true), g)).ToArray();
+        totalPagesGames = (int)Math.Ceiling((double)(games?.TotalCount ?? 0) / (games?.PageSize ?? 1));
+    }
+
+    private string primaryColor = "#667eea";
+    private string secondaryColor = "#764ba2";
+
+        private class ColorPalette
+    {
+        public string? Primary { get; set; }
+        public string? Secondary { get; set; }
+    }
+    private async Task OngenresGameChanged(int page)
+    {
+        genreGames = null; // Mostrar skeleton mientras se carga la nueva página
+
+        try
+        {
+                var GameRequest = new ApiRequest{
+                    URI = APIUTILS.URIS.GAMES,
+                    Filters = $"genres = [{id}]",
+                    PageSize = 12,
+                    OrderBy = "total_rating_count",
+                    Order = SortOrder.DSC,
+                    Page = page - 1
+                };
+                PagedResult<BasicGameDto>? games = await ApiService.GetManyAsync<BasicGameDto>(GameRequest);
+                genreGames = games?.Data.Select(g => new CardContainer(new BasicGameCardStrat(true), g)).ToArray();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading games: {ex.Message}");
+        }
+    }
+
+
+}

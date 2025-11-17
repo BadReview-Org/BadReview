@@ -1,0 +1,104 @@
+@page "/about"
+
+@inject NavigationManager Navigation
+<PageTitle>About - BadReview</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudPaper Class="pa-6" Elevation="8" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
+        
+        <!-- Header -->
+        <MudStack AlignItems="AlignItems.Center" Spacing="3" Class="mb-6">
+            <img src="icon-192_white.png" alt="BadReview Logo" style="width: 120px; height: 120px; border-radius: 50%; box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);" />
+            <MudText Typo="Typo.h2" Style="font-weight: 700; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                About BadReview
+            </MudText>
+        </MudStack>
+
+        <!-- Description -->
+        <MudPaper Class="pa-4 mb-4" Elevation="4" Style="background: rgba(255,255,255,0.05);">
+            <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Medium" Class="mr-2" />
+                    What is BadReview?
+                </MudStack>
+            </MudText>
+            <MudText Typo="Typo.body1" Style="line-height: 1.8; color: #e0e0e0;">
+                BadReview is a comprehensive video game review platform where users can discover, rate, and review their favorite games. 
+                Keep track of your gaming journey, share your opinions, and explore what others think about the latest releases.
+            </MudText>
+        </MudPaper>
+
+        <!-- Project Info -->
+        <MudPaper Class="pa-4 mb-4" Elevation="4" Style="background: rgba(255,255,255,0.05);">
+            <MudText Typo="Typo.h5" Class="mb-3" Style="color: #764ba2;">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Medium" Class="mr-2" />
+                    About This Project
+                </MudStack>
+            </MudText>
+            <MudText Typo="Typo.body1" Style="line-height: 1.8; color: #e0e0e0;" Class="mb-3">
+                BadReview is a learning project built with ASP.NET Core and Blazor WebAssembly to explore modern web development with .NET technologies.
+                The project is integrated with the IGDB API to stay up-to-date with the latest game information.
+            </MudText>
+            <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap">
+                <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">ASP.NET Core 9.0</MudChip>
+                <MudChip T="string" Color="Color.Secondary" Variant="Variant.Filled">Blazor WebAssembly</MudChip>
+                <MudChip T="string" Color="Color.Error" Variant="Variant.Filled">SQL Server</MudChip>
+                <MudChip T="string" Color="Color.Info" Variant="Variant.Filled">Entity Framework Core</MudChip>
+                <MudChip T="string" Color="Color.Success" Variant="Variant.Filled">MudBlazor</MudChip>
+                <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled">IGDB API</MudChip>
+            </MudStack>
+        </MudPaper>
+
+        <!-- Developers -->
+        <MudPaper Class="pa-4" Elevation="4" Style="background: rgba(255,255,255,0.05);">
+            <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="3">
+                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Medium" />
+                    Developers
+                </MudStack>
+            </MudText>
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudPaper Class="pa-4" Elevation="2" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); text-align: center;">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Surface" Size="Size.Large" Class="mb-2" />
+                        <MudText Typo="Typo.h6" Style="color: white; font-weight: 600;">
+                            Lautaro Peralta
+                        </MudText>
+                        <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.9);">
+                            Full Stack Developer
+                        </MudText>
+                        <MudStack Class="mt-2" Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                            <MudLink Href="https://github.com/lautaroperalta" Target="_blank">
+                            <MudIcon Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" Color="Color.Dark" Class="ml-1" />
+                            </MudLink>
+                            <MudLink Href="https://www.linkedin.com/in/lautaroperalta" Target="_blank">
+                            <MudIcon Icon="@Icons.Custom.Brands.LinkedIn" Size="Size.Small" Color="Color.Dark" Class="ml-1" />
+                            </MudLink>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudPaper Class="pa-4" Elevation="2" Style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); text-align: center;">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Surface" Size="Size.Large" Class="mb-2" />
+                        <MudText Typo="Typo.h6" Style="color: white; font-weight: 600;">
+                            Manuel Herrera
+                        </MudText>
+                        <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.9);">
+                            Full Stack Developer 
+                        </MudText>
+                        <MudStack Class="mt-2" Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                            <MudLink Href="https://github.com/manuelmhs" Target="_blank">
+                            <MudIcon Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" Color="Color.Dark" Class="ml-1" />
+                            </MudLink>
+                            <MudLink Href="https://www.linkedin.com/in/manuelmhs1104" Target="_blank">
+                            <MudIcon Icon="@Icons.Custom.Brands.LinkedIn" Size="Size.Small" Color="Color.Dark" Class="ml-1" />
+                            </MudLink>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+    </MudPaper>
+</MudContainer>

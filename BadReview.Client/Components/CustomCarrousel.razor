@@ -1,5 +1,6 @@
 @typeparam T
 @inject NavigationManager Navigation
+@inject ApiService ApiService
 
 <MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
@@ -9,6 +10,11 @@
                 @Title
             </MudText>
         </MudStack>
+        <CustomDropdown T="T" DropdownChanged="OnDropdownSelected" SearchElements="OnSearchElements" Label="Search for games..." >
+        <ItemTemplate Context ="element">
+            @DropdownTemplate(element)
+        </ItemTemplate>
+        </CustomDropdown>
         <MudStack Row="true" Spacing="1">
             <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
                           Color="Color.Primary" 
@@ -69,12 +75,19 @@
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Category;
     [Parameter] public RenderFragment<T> ItemTemplate { get; set; } = null!;
+
+    [Parameter] public RenderFragment<T> DropdownTemplate { get; set; } = null!;
     [Parameter] public EventCallback<T> OnItemClick { get; set; }
+    [Parameter] public EventCallback<T> DropdownChanged { get; set; }
+
+    [Parameter] public string URI { get; set; } = "";
     
     private int scrollPosition = 0;
     private const int cardWidth = 220; // ancho de card + spacing
     private bool isTransitioning = true;
     private bool _open = false;
+
+    private string _searchText = string.Empty;
     protected override void OnInitialized()
     {
         // Empezar en la posición del primer set de items (después de los duplicados iniciales)
@@ -120,4 +133,31 @@
         var transition = isTransitioning ? "transition: transform 0.5s ease;" : "";
         return $"transform: translateX({position}px); {transition}";
     }
+
+    private async Task<IEnumerable<T>> OnSearchElements(string searchText)
+    {    
+        ApiRequest apiRequest = new ApiRequest{
+            URI = URI, 
+            PageSize = 30,
+            Page = 0 };
+
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            // Retornar todos los juegos
+            var allElements = await ApiService.GetManyAsync<T>(apiRequest);
+            return allElements?.Data ?? Enumerable.Empty<T>();
+        }
+        apiRequest.Filters = $"@name ~ *\"{searchText}\"*";
+        PagedResult<T>? responseDto = await ApiService.GetManyAsync<T>(apiRequest);
+        if (responseDto != null)
+        {
+            return responseDto?.Data ?? Enumerable.Empty<T>();
+        }
+        return Enumerable.Empty<T>();
+    }
+
+    private void OnDropdownSelected(T element){
+        DropdownChanged.InvokeAsync(element);
+    }
+
 }

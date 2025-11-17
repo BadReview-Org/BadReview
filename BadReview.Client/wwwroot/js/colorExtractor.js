@@ -72,3 +72,14 @@ window.colorExtractor = {
         });
     }
 };
+
+// Check if text is truncated (line-clamp applied)
+window.checkIfTruncated = function(element) {
+    if (!element) return false;
+    
+    // Find the actual text element (MudText might be nested)
+    const textElement = element.querySelector('.mud-typography') || element.firstElementChild || element;
+    
+    // Check if scrollHeight is greater than clientHeight (indicates overflow/truncation)
+    return textElement.scrollHeight > textElement.clientHeight;
+};

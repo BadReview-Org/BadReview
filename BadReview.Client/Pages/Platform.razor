@@ -1,4 +1,4 @@
-@page "/developer/{id:int}"
+@page "/platform/{id:int}"
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Client.Utils
 @using BadReview.Shared.Utils
@@ -9,9 +9,9 @@
 @inject ApiService ApiService
 @inject AuthenticationStateProvider _AuthStateProvider
 
-<PageTitle>@developer?.Name</PageTitle>
+<PageTitle>@platform?.Name</PageTitle>
 
-@if (developer == null)
+@if (platform == null)
 {
     <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
         <MudGrid>
@@ -34,22 +34,22 @@ else
             <!-- Título con Gradient dinámico basado en la cover -->
                 <MudPaper Class="pa-4" Elevation="8" Style="@($"background: linear-gradient(135deg, {primaryColor} 0%, {secondaryColor} 100%); border-radius: 12px; transition: background 0.5s ease;")">
                     <MudText Align="Align.Center" Typo="Typo.h2" Style="font-weight: 700; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                        @developer.Name <br />
+                        @platform.Name <br />
                         <MudText Typo="Typo.body2" Style="color: rgba(255,255,255,0.9);">
-                            @(developer.StartDate.HasValue ? "Started in" : "") @(developer.StartDate.HasValue ? DateTimeOffset.FromUnixTimeSeconds(developer.StartDate.Value).DateTime.ToString("d 'de' MMMM, yyyy") : "")
+                            @(platform.Generation.HasValue ? "Generation " + platform.Generation.Value : "") 
                         </MudText>
                     </MudText>
                 </MudPaper>
             </MudItem>
             <!-- Cover y Info Lateral - Primera Columna -->
-            @if(developer.LogoId != null)
+            @if(platform.LogoId != null)
             {   
                 <MudItem xs="12" md="6" lg="3">
                     <MudStack Spacing="3">
                         <!-- Cover Image -->
                         <MudPaper Elevation="10" Class="pa-3 mud-elevation-hover" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); transition: all 0.3s ease;">
-                            <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" 
-                                    Alt="@developer.Name" 
+                            <MudImage Src="@ImageHelper.GetCoverUrl(platform.LogoId)" 
+                                    Alt="@platform.Name" 
                                     Class="rounded-lg" 
                                     Style="width: 100%; height: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
                         </MudPaper>
@@ -65,22 +65,22 @@ else
                 <MudStack Spacing="4">
 
                     <!-- Description -->
-                    <GameDescription Title="About This Developer" Summary="@developer.Description" />
+                    <GameDescription Title="About This Platform" Summary="@platform.Summary" />
                 </MudStack>
             </MudItem>
             
             <!-- Tercera Columna - Country -->
-            @if (developer.Country != null && developer.Country != 0)
+            @if (platform.PlatformType != null && platform.PlatformType != 0)
             {
             <MudItem xs="12" md="12" lg="3">
                 <MudStack Spacing="3">
                     <!-- Country -->
-                    @if (developer.Country != null)
+                    @if (platform.PlatformType != null)
                     {
                     <GameInfoSection TItem="int"
-                                     Title="Country"
+                                     Title="Platform Type"
                                      Icon="@Icons.Material.Filled.Flag"
-                                     Items="@Country"
+                                     Items="@PlatformType"
                                      ChipColor="Color.Primary"
                                      GetItemText="@(c => c.ToString())" />
                     }
@@ -88,18 +88,18 @@ else
                 </MudStack>
             </MudItem>
             }
-            <!-- Developer's Games -->
+            <!-- platform's Games -->
             <MudItem xs="12" md="12" lg="12">
                 <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
                         <MudText Typo="Typo.h5" Style="color: #764ba2;">
                             <MudIcon Icon="@Icons.Material.Filled.Games" Size="Size.Medium" />
-                            @developer.Name Games
+                            @platform.Name Games
                         </MudText>
                     </MudStack>
 
                     <MudStack Spacing="1">
-                        <CustomGridCard  pageSize="6" CardHeight="350" PageChanged="@OnDevelopersGameChanged" totalPages="totalPagesGames" arrayElement="developerGames" placeholderTitle="No games found." placeholderBody="This company has no games." />
+                        <CustomGridCard  pageSize="6" CardHeight="350" PageChanged="@OnplatformsGameChanged" totalPages="totalPagesGames" arrayElement="platformGames" placeholderTitle="No games found." placeholderBody="This company has no games." />
                     </MudStack>     
                 </MudPaper>
             </MudItem>
@@ -109,30 +109,30 @@ else
 
 @code{
     [Parameter] public int id { get; set; }
-    private DetailDeveloperDto? developer { get; set; }
+    private PlatformDto? platform { get; set; }
     private int totalPagesGames = 1;
-    private CardContainer[]? developerGames { get; set; }
-    private List<int> Country = new List<int>();
+    private CardContainer[]? platformGames { get; set; }
+    private List<int> PlatformType = new List<int>();
 
     private int descriptionWidth = 6;
     protected override async Task OnInitializedAsync(){
-        developer = await ApiService.PublicGetByIdAsync<DetailDeveloperDto>(APIUTILS.URIS.DEVELOPER, id);
-        Country.Add(developer?.Country ?? 0);
+        platform = await ApiService.PublicGetByIdAsync<PlatformDto>(APIUTILS.URIS.PLATFORMS, id);
+        PlatformType.Add(platform?.PlatformType ?? 0);
         var GameRequest = new ApiRequest{
             URI = APIUTILS.URIS.GAMES,
-            Filters = $"involved_companies.company = {id}&involved_companies.developer = true",
+            Filters = $"platforms = [{id}]",
             PageSize = 6,
             OrderBy = "total_rating_count",
             Order = SortOrder.DSC,
             Page = 0
         };
         PagedResult<BasicGameDto>? games = await ApiService.GetManyAsync<BasicGameDto>(GameRequest);
-        developerGames = games?.Data.Select(g => new CardContainer(new BasicGameCardStrat(true), g)).ToArray();
+        platformGames = games?.Data.Select(g => new CardContainer(new BasicGameCardStrat(true), g)).ToArray();
         totalPagesGames = (int)Math.Ceiling((double)(games?.TotalCount ?? 0) / (games?.PageSize ?? 1));
-        if(developer?.Country is null || developer?.Country == 0){
+        if(platform?.PlatformType is null){
             descriptionWidth += 3;
         }
-        if(developer?.LogoId is null){
+        if(platform?.LogoId is null){
             descriptionWidth += 3;
         }
         await ExtractColorsFromCover();
@@ -142,7 +142,7 @@ else
     {
         try
         {
-            var coverUrl = ImageHelper.GetCoverUrl(developer?.LogoId);
+            var coverUrl = ImageHelper.GetCoverUrl(platform?.LogoId);
             if (!string.IsNullOrEmpty(coverUrl))
             {
                 var colors = await JS.InvokeAsync<ColorPalette>("colorExtractor.extractColors", coverUrl);
@@ -168,22 +168,22 @@ else
         public string? Primary { get; set; }
         public string? Secondary { get; set; }
     }
-    private async Task OnDevelopersGameChanged(int page)
+    private async Task OnplatformsGameChanged(int page)
     {
-        developerGames = null; // Mostrar skeleton mientras se carga la nueva página
+        platformGames = null; // Mostrar skeleton mientras se carga la nueva página
 
         try
         {
                 var GameRequest = new ApiRequest{
                     URI = APIUTILS.URIS.GAMES,
-                    Filters = $"involved_companies.company = {id} & involved_companies.developer = true",
+                    Filters = $"platforms = [{id}]",
                     PageSize = 6,
                     OrderBy = "total_rating_count",
                     Order = SortOrder.DSC,
                     Page = page - 1
                 };
                 PagedResult<BasicGameDto>? games = await ApiService.GetManyAsync<BasicGameDto>(GameRequest);
-                developerGames = games?.Data.Select(g => new CardContainer(new BasicGameCardStrat(true), g)).ToArray();
+                platformGames = games?.Data.Select(g => new CardContainer(new BasicGameCardStrat(true), g)).ToArray();
         }
         catch (Exception ex)
         {

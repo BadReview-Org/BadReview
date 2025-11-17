@@ -76,7 +76,10 @@ else
                  Items="platforms" 
                  Title="Platforms"
                  Icon="@Icons.Material.Filled.Devices"
-                 OnItemClick="@(platform => Navigation.NavigateTo($"/explore?platform={platform.Id}"))">
+                 OnItemClick="@(platform => Navigation.NavigateTo($"/platform/{platform.Id}"))"
+                 DropdownChanged="@(platform => Navigation.NavigateTo($"/platform/{platform.Id}"))"
+                 URI = "@APIUTILS.URIS.PLATFORMS"
+                 >
             <ItemTemplate Context="platform">
                 <MudIcon Icon="@IconsMap.PlatformTypeIcon[(IconsMap.PlatformTypes)(platform.PlatformType ?? 0)]" 
                          Size="Size.Large" 
@@ -88,8 +91,18 @@ else
                                             overflow: hidden;;">
                     @platform.Name
                 </MudText>
-
+            
             </ItemTemplate>
+            <DropdownTemplate Context="platform">
+                <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
+                    <MudImage Src="@ImageHelper.GetCoverUrl(platform.LogoId)" 
+                                Alt="@platform.Name" 
+                                Style="height: 50px; width: 50px; margin-bottom: 10px;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Left" Style="color: white;">
+                        @platform.Name
+                    </MudText>
+                </MudStack>
+            </DropdownTemplate>
         </CustomCarrousel>
 
         <!-- Genres Section -->
@@ -97,7 +110,10 @@ else
                         Items="genres" 
                         Title="Genres"
                         Icon="@Icons.Material.Filled.Category"
-                        OnItemClick="@(genre => Navigation.NavigateTo($"/explore?genre={genre.Id}"))">
+                        OnItemClick="@(genre => Navigation.NavigateTo($"/genre/{genre.Id}"))"
+                        DropdownChanged="@(genre => Navigation.NavigateTo($"/genre/{genre.Id}"))"
+                        URI = "@APIUTILS.URIS.GENRES"
+                        >
             <ItemTemplate Context="genre">
                 <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center"
                           >
@@ -114,6 +130,16 @@ else
                 </MudStack>
                 
             </ItemTemplate>
+            <DropdownTemplate Context="genre">
+                <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
+                    <MudIcon Icon="@IconsMap.GenreIcon[(IconsMap.Genres)genre.Id]" 
+                         Size="Size.Large" 
+                         Style="color: white;" />
+                    <MudText Typo="Typo.subtitle1" Align="Align.Left" Style="color: white;">
+                        @genre.Name
+                    </MudText>
+                </MudStack>
+            </DropdownTemplate>
         </CustomCarrousel>
 
         <!-- Developers Section -->
@@ -121,8 +147,9 @@ else
                  Items="developers" 
                  Title="Developers"
                  Icon="@Icons.Material.Filled.Code"
-                 OnItemClick="@(dev => Navigation.NavigateTo($"/explore?developer={dev.Id}"))"
-                 >
+                 OnItemClick="@(dev => Navigation.NavigateTo($"/developer/{dev.Id}"))"
+                 DropdownChanged="@(dev => Navigation.NavigateTo($"/developer/{dev.Id}"))"
+                 URI = "@APIUTILS.URIS.DEVELOPERS">
                 <ItemTemplate Context="dev">
                     @if (!string.IsNullOrEmpty(dev.LogoId))
                     {
@@ -134,8 +161,18 @@ else
                     >
                         @dev.Name
                     </MudText>
-    </ItemTemplate>
-</CustomCarrousel>
+                </ItemTemplate>
+                <DropdownTemplate Context="dev">
+                    <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
+                        <MudImage Src="@ImageHelper.GetCoverUrl(dev.LogoId)" 
+                                    Alt="@dev.Name" 
+                                    Style="height: 50px; width: 50px; margin-bottom: 10px;" />
+                        <MudText Typo="Typo.subtitle1" Align="Align.Left" Style="color: white;">
+                            @dev.Name
+                        </MudText>
+                    </MudStack>
+                </DropdownTemplate>
+        </CustomCarrousel>
     </MudContainer>
 }
 
