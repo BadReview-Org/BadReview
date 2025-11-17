@@ -2,10 +2,14 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.JSInterop;
-using BadReview.Shared.DTOs.Request;
-using BadReview.Shared.DTOs.Response;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Headers;
+
+using BadReview.Shared.DTOs.Request;
+using BadReview.Shared.DTOs.Response;
+using System.Net;
+
+namespace BadReview.Client.Services;
 
 public class AuthService
 {
@@ -42,15 +46,15 @@ public class AuthService
         return true;
     }
 
-    public async Task<bool> LoginAsync(JWTAuthStateProvider prov, LoginUserRequest request)
+    public async Task<HttpStatusCode> LoginAsync(JWTAuthStateProvider prov, LoginUserRequest request)
     {
         var response = await http.PostAsJsonAsync("api/login", request);
         if (!response.IsSuccessStatusCode)
-            return false;
-
+            return response.StatusCode;
+            
         var content = await response.Content.ReadFromJsonAsync<UserTokensDto>();
         if (content is null)
-            return false;
+            return response.StatusCode;
 
         Console.WriteLine($"Received an access token:\n{content.AccessToken}");
         Console.WriteLine($"Received a refresh token:\n{content.RefreshToken}");
@@ -58,7 +62,7 @@ public class AuthService
         await js.InvokeVoidAsync("localStorage.setItem", RefreshKey, content.RefreshToken);
 
         prov.NotifyAuthStateChanged();
-        return true;
+        return response.StatusCode;
     }
 
     public async Task LogoutAsync(JWTAuthStateProvider prov)

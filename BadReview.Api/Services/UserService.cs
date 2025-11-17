@@ -280,4 +280,8 @@ public class UserService : IUserService
         
         return (UserCode.OK, new UserTokensDto(newAccessToken, newRefreshToken));
     }
+
+    public async Task<bool> UsernameExists(string username) => await _db.Users.AnyAsync(u => u.Username == username);
+
+    public async Task<bool> EmailExists(string email) => await _db.Users.AnyAsync(u => u.Email == email);
 }

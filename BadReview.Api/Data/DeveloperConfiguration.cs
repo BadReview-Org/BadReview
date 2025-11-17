@@ -9,13 +9,13 @@ public class DeveloperConfiguration : IEntityTypeConfiguration<Developer>
         // NO usar IDENTITY para mantener IDs de IGDB
         builder.Property(e => e.Id).ValueGeneratedNever();
 
-        builder.OwnsOne(e => e.Logo).Property(c => c.ImageId).HasMaxLength(100);         
+        builder.OwnsOne(e => e.Logo).Property(c => c.ImageId).HasMaxLength(200);         
 
         builder.Property(e => e.Name)
-            .HasMaxLength(200);
+            .HasMaxLength(400);
 
         builder.Property(e => e.Description)
-            .HasMaxLength(2000);
+            .HasMaxLength(10000);
 
         builder.Property(e => e.Country)
             .HasDefaultValue(0);

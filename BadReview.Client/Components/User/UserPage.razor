@@ -1,10 +1,11 @@
 @using System.Globalization
+@using BadReview.Client.Services
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Shared.DTOs.Request
 @using BadReview.Shared.Utils
 @using BadReview.Client.Utils
 @inject ApiService ApiService
-
+@inject IsoCountryMap countriesMap
 
 @if (user == null)
 {
@@ -75,6 +76,13 @@ else
                                 </MudText>
                             </MudStack>
 
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" Color="Color.Primary" />
+                                <MudText Typo="Typo.body2">
+                                    <strong>Country:</strong> @countryString
+                                </MudText>
+                            </MudStack>
+
                             @if (IsPrivateProfile && !string.IsNullOrEmpty(AsPrivate?.FullName))
                             {
                                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
@@ -91,16 +99,6 @@ else
                                     <MudIcon Icon="@Icons.Material.Filled.Cake" Size="Size.Small" Color="Color.Primary" />
                                     <MudText Typo="Typo.body2">
                                         <strong>Birthday:</strong> @AsPrivate.Birthday.Value.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)
-                                    </MudText>
-                                </MudStack>
-                            }
-
-                            @if (IsPrivateProfile && AsPrivate?.Country.HasValue == true)
-                            {
-                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
-                                    <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" Color="Color.Primary" />
-                                    <MudText Typo="Typo.body2">
-                                        <strong>Country:</strong> @GetCountryName(AsPrivate.Country.Value)
                                     </MudText>
                                 </MudStack>
                             }
@@ -185,7 +183,7 @@ else
                     <MudForm @ref="settingsForm" Model="@settingsModel">
                         <MudStack Spacing="3" Class="mt-4">
                             <!-- Username -->
-                            <MudTextField @bind-Value="settingsModel.Username"
+                            <MudTextField @bind-Value="settingsModel.First.Username"
                                           Label="Username"
                                           Variant="Variant.Outlined"
                                           Required="true"
@@ -194,14 +192,14 @@ else
                                           AdornmentIcon="@Icons.Material.Filled.AccountCircle" />
 
                             <!-- Full Name -->
-                            <MudTextField @bind-Value="settingsModel.FullName"
+                            <MudTextField @bind-Value="settingsModel.Second.FullName"
                                           Label="Full Name"
                                           Variant="Variant.Outlined"
                                           Adornment="Adornment.Start"
                                           AdornmentIcon="@Icons.Material.Filled.Badge" />
 
                             <!-- Email -->
-                            <MudTextField @bind-Value="settingsModel.Email"
+                            <MudTextField @bind-Value="settingsModel.First.Email"
                                           Label="Email"
                                           InputType="InputType.Email"
                                           Variant="Variant.Outlined"
@@ -211,7 +209,7 @@ else
                                           AdornmentIcon="@Icons.Material.Filled.Email" />
 
                             <!-- Birthday -->
-                            <MudDatePicker @bind-Date="settingsModel.Birthday"
+                            <MudDatePicker @bind-Date="settingsModel.Second.Birthday"
                                            Label="Birthday"
                                            Variant="Variant.Outlined"
                                            Editable="true"
@@ -221,12 +219,19 @@ else
                                            AdornmentIcon="@Icons.Material.Filled.Cake" />
 
                             <!-- Country -->
-                            <MudTextField @bind-Value="settingsModel.Country"
-                                          Label="Country Code"
-                                          Variant="Variant.Outlined"
-                                          HelperText="Enter country code (e.g., 1 for USA)"
-                                          Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Flag" />
+                            <MudAutocomplete T="IsoCountry" @bind-Value="settingsModel.Second.Country"
+                                            ToStringFunc="@(c => c == null ? null : $"{c.Name} ({c.Alpha_3})")"
+                                            SearchFunc="SearchCountry"
+                                            Variant="Variant.Outlined"
+                                            Label="Country"
+                                            Clearable="true"
+                                            Strict="false"
+                                            Adornment="Adornment.Start"
+                                            AdornmentIcon="@Icons.Material.Filled.Flag">
+                                <NoItemsTemplate>
+                                    <MudText Align="Align.Center"> No country matching your search... </MudText>
+                                </NoItemsTemplate>
+                            </MudAutocomplete>
 
                         </MudStack>
                     </MudForm>
@@ -241,12 +246,12 @@ else
                                 Password Settings
                             </MudText>
                         </MudStack>
-                                                <!-- Password Section -->
+                                <!-- Password Section -->
                                 <MudText Typo="Typo.h6" Style="color: #667eea;">
                                     Change Password 
                                 </MudText>
                                 
-                                <MudTextField @bind-Value="settingsModel.Password"
+                                <MudTextField @bind-Value="settingsModel.First.Password"
                                             Label="New Password"
                                             InputType="InputType.Password"
                                             Variant="Variant.Outlined"
@@ -258,7 +263,7 @@ else
                                             Label="Confirm New Password"
                                             InputType="InputType.Password"
                                             Variant="Variant.Outlined"
-                                            Error="@(!string.IsNullOrEmpty(settingsModel.Password) && settingsModel.Password != confirmPassword)"
+                                            Error="@(!string.IsNullOrEmpty(settingsModel.First.Password) && settingsModel.First.Password != confirmPassword)"
                                             ErrorText="Passwords don't match"
                                             Adornment="Adornment.Start"
                                             AdornmentIcon="@Icons.Material.Filled.Lock" />
@@ -308,21 +313,43 @@ else
 
     [Parameter] public RegisterForm settingsModel { get; set; } = new();
 
-    
+
     private bool IsPrivateProfile => user is PrivateUserDto;
     private bool showSettings = false;
     private PrivateUserDto? AsPrivate => user as PrivateUserDto;
-    
+
     // Settings form
     private MudForm? settingsForm;
     private string confirmPassword = "";
     private bool isSaving = false;
     private string settingsMessage = "";
     private Severity settingsMessageSeverity = Severity.Info;
-    
-    private string GetCountryName(int countryCode)
+
+    private string countryString = "";
+
+    private async Task<IEnumerable<IsoCountry>> SearchCountry(string value, CancellationToken token)
     {
-        return $"Country Code: {countryCode}";
+        Dictionary<int, IsoCountry> countriesDict = null!;
+        try { countriesDict = await countriesMap.GetAsync(); }
+        catch { return []; }
+
+        var countries = countriesDict.Values;
+        
+        if (string.IsNullOrEmpty(value)) return countries;
+
+        return countries
+            .Where(c => c.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task<string> GetCountryName(int? countryCode)
+    {
+        IsoCountry? country = null;
+        if (countryCode is not null) country = await countriesMap.GetAsync((int)countryCode);
+        
+        if (country is null) return "No country selected";
+
+
+        return $"{country.Name} ({country.Alpha_3})";
     }
 
 
@@ -340,7 +367,7 @@ else
         }
 
         // Validar contraseñas si se proporcionó una
-        if (!string.IsNullOrEmpty(settingsModel.Password) && settingsModel.Password != confirmPassword)
+        if (!string.IsNullOrEmpty(settingsModel.First.Password) && settingsModel.First.Password != confirmPassword)
         {
             settingsMessage = "Passwords don't match.";
             settingsMessageSeverity = Severity.Error;
@@ -353,12 +380,12 @@ else
         try
         {
             var updateRequest = new CreateUserRequest(
-                Username: settingsModel.Username ?? "",
-                Email: settingsModel.Email ?? "",
-                Password: string.IsNullOrEmpty(settingsModel?.Password) ? "" : settingsModel.Password,
-                FullName: string.IsNullOrEmpty(settingsModel?.FullName) ? null : settingsModel.FullName,
-                Birthday: settingsModel?.Birthday,
-                Country: settingsModel?.Country
+                Username: settingsModel.First.Username ?? "",
+                Email: settingsModel.First.Email ?? "",
+                Password: string.IsNullOrEmpty(settingsModel?.First.Password) ? "" : settingsModel.First.Password,
+                FullName: string.IsNullOrEmpty(settingsModel?.Second.FullName) ? null : settingsModel.Second.FullName,
+                Birthday: settingsModel?.Second.Birthday,
+                Country: settingsModel?.Second.Country?.Country_code
             );
 
             var response = await ApiService.PutAsync<CreateUserRequest, BasicUserDto>(
@@ -373,12 +400,12 @@ else
                 confirmPassword = "";
                 if (settingsModel != null)
                 {
-                    settingsModel.Password = "";
+                    settingsModel.First.Password = "";
                 }
-                
+
                 // Notificar al componente padre que se actualizó el usuario
                 await OnUserUpdated.InvokeAsync();
-                
+
                 // Volver a la vista principal después de 2 segundos
                 await Task.Delay(2000);
                 showSettings = false;
@@ -431,7 +458,7 @@ else
         {
             Console.WriteLine($"Error loading user reviews: {ex.Message}");
         }
-        
+
     }
 
     private async Task OnPageFavoriteChanged(int page)
@@ -448,5 +475,11 @@ else
         {
             Console.WriteLine($"Error loading favorite games: {ex.Message}");
         }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (user is not null)
+            countryString = await GetCountryName(user.Country);
     }
 }

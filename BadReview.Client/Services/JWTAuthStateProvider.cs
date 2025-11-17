@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
+namespace BadReview.Client.Services;
+
 public class JWTAuthStateProvider : AuthenticationStateProvider
 {
     private readonly AuthService authService;

@@ -1,5 +1,6 @@
 @page "/profile"
 @page "/user/{id:int}"
+
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Shared.Utils
 @using BadReview.Client.Utils
@@ -8,6 +9,7 @@
 @inject NavigationManager Navigation
 @inject AuthService AuthService
 @inject ApiService ApiService
+@inject IsoCountryMap countriesMap
 
 <PageTitle>Profile</PageTitle>
 
@@ -15,7 +17,9 @@
 {
     <AuthorizeView>
         <Authorized>
-            <UserPage settingsModel="settingsModel" user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards" totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" OnUserUpdated="@ReloadUserData" />
+            <UserPage settingsModel="settingsModel" user="user" userReviews="userReviews"
+                      favoriteGameCards="favoriteGameCards" totalPagesFavorite="totalPagesFavorite"
+                      totalPagesReviews="totalPagesReviews" OnUserUpdated="@ReloadUserData" />
         </Authorized>
         <NotAuthorized>
             @{ Navigation.NavigateTo("/login", true); }
@@ -24,7 +28,8 @@
 }
 else
 {
-    <UserPage user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards" totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" />
+    <UserPage user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards"
+              totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" />
 }
 
 @code {
@@ -52,15 +57,28 @@ else
             // Cargar perfil privado
             user = await ApiService.PrivateGetAsync<PrivateUserDto>(APIUTILS.URIS.PROFILE);
             var privateuser = user as PrivateUserDto;
-            settingsModel = new RegisterForm
+
+            if (privateuser is null) Navigation.NavigateTo("/"); 
+            else
             {
-                Username = privateuser?.Username ?? "",
-                FullName = privateuser?.FullName ?? "",
-                Email = privateuser?.Email,
-                Birthday = privateuser?.Birthday,
-                Country = privateuser?.Country,
-                Password = ""
-            };
+                settingsModel = new RegisterForm
+                {
+                    First = new RegisterFirstStep
+                    {
+                        Username = privateuser.Username ?? "",
+                        Password = "",
+                        RepeatPassword = "",
+                        Email = privateuser.Email ?? ""
+                    },
+                    Second = new RegisterSecondStep
+                    {
+                        FullName = privateuser.FullName,
+                        Birthday = privateuser.Birthday,
+                        Country = privateuser.Country is null ?
+                                    null : await countriesMap.GetAsync((int)privateuser.Country)
+                    }
+                };
+            }
         }
         else
         {

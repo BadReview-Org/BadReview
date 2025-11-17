@@ -1,33 +1,45 @@
-﻿@using FluentValidation
-
-@page "/login"
+﻿@page "/login"
 
 @inject ILogger<Login> Logger
 @inject HttpClient Client
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
 
 <PageTitle>Log in</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small">
     <MudCard Elevation=8 Class="pa-6">
         <MudCardHeader>
-        <MudText Typo="Typo.h3"> Log in </MudText>
+            <MudStack Class="ml-n3" Row="true" Spacing="4">
+                <MudIcon Icon="@Icons.Material.Filled.Login"
+                    Color="Color.Primary"
+                    Style="font-size: 4rem;" />
+                <MudText Typo="Typo.h4" Style="margin-top: 21px;"> Log in </MudText>
+            </MudStack>
         </MudCardHeader>
 
         <MudCardContent>
-            <MudForm Model="@model" @ref="@form" Validation="@(ValidateState)" ValidationDelay="0" Spacing="4">
-                <MudTextField 
-                    @bind-Value="model.Username" For="@(() => model.Username)"
-                    Label="Username" />
+
+            <MudCollapse Expanded="@(showErrors)">
+                <MudAlert Class="mb-2" Severity="Severity.Error"
+                            Variant="Variant.Filled" Dense="true">
+                    @(errorMsg)
+                </MudAlert>
+            </MudCollapse>
+
+            <MudForm Model="@model" @ref="@form" Validation="@ValidateState" Spacing="4" Class="mb-6">
+                <MudTextField @bind-Value="model.Username"
+                    For="@(() => model.Username)" Label="Username" />
 
                 <MudTextField @bind-Value="model.Password" For="@(() => model.Password)"
                     InputType="InputType.Password" Label="Password" />
 
                 <MudPaper MaxWidth="25%" Elevation=0>
-                    <MudButton Disabled="!enableFormButton" Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="LoginAsync"> Log in </MudButton>
+                    <MudButton Class="mt-4" Size="Size.Large"
+                        Variant="Variant.Filled" Color="errorButton ? Color.Error : Color.Primary" OnClick="LoginAsync"> Log in </MudButton>
                 </MudPaper>
-                <MudLink Href="/register">Don't have an account yet? Register.</MudLink>
             </MudForm>
+            <MudLink Href="/register">Don't have an account yet? Register.</MudLink>
         </MudCardContent>
     </MudCard>
 </MudContainer>
@@ -37,7 +49,21 @@
     private Func<object, string, Task<IEnumerable<string>>> ValidateState => async (model, propertyName) =>
     {
         var validation = await validator.ValidateAsync((LoginForm)model);
-        enableFormButton = validation.IsValid;
+        errorButton = !validation.IsValid;
+
+        StateHasChanged();
+        Console.WriteLine("-------------------Validation-------------------------");
+        if (!validation.IsValid)
+        {
+            Console.WriteLine($"Form validation failed.");
+            var dict = validation.ToDictionary();
+            foreach (var kv in dict)
+            {
+                Console.WriteLine($"- {kv.Key}: {string.Join("\n    ", kv.Value)}");
+            }
+        }
+        else Console.WriteLine($"Form validation passed!");
+        Console.WriteLine("------------------------------------------------------");
 
         if (validation.IsValid) return Array.Empty<string>();
 
@@ -57,23 +83,73 @@
 
     MudForm form = null!;
     LoginForm model = new ();
-
-    bool enableFormButton = false;
-
+    bool errorButton = false;
     LoginFormValidator validator = new();
 
+    bool showErrors = false;
+    string? errorMsg = null;
+
     async Task LoginAsync() {
-        Console.WriteLine("Now login...");
+        Console.WriteLine("Now logging in...");
+
+        var validation = await validator.ValidateAsync((LoginForm)model);
+
+        if (!validation.IsValid) 
+        {
+            errorButton = true;
+            showErrors = true;
+            errorMsg = "Some fields contain incorrect information...";
+            return;
+        }
 
         LoginUserRequest request = new (model.Username, model.Password);
 
-        bool login = await authS.LoginAsync(provider, request);
+        HttpStatusCode login = await authS.LoginAsync(provider, request);
 
-        var msg = login ? "Logged in successfully" : "Couldn't log in";
+        switch (login)
+        {
+            case HttpStatusCode.OK:
+                Console.WriteLine("Logged in successfully");
+                showErrors = false;
+                ShowSnackbar("Logged in successfully! Redirecting to home page ...", Severity.Success);
+                await Task.Delay(1000);
+                Navigation.NavigateTo("/profile");
+                break;
+            case HttpStatusCode.NotFound:
+                Console.WriteLine("Couldn't log in");
+                showErrors = true;
+                errorButton = true;
+                errorMsg = "Username not found... Try again.";
+                break;
+            case HttpStatusCode.Unauthorized:
+                Console.WriteLine("Couldn't log in");
+                showErrors = true;
+                errorButton = true;
+                errorMsg = "Password is invalid... Try again.";
+                break;
+            default:
+                Console.WriteLine("Couldn't log in");
+                showErrors = true;
+                errorMsg = "Unexpected error during log in... Try again later.";
+                break;
+        }
 
-        Console.WriteLine(msg);
-
-        if (login) Navigation.NavigateTo("/");
+        void ShowSnackbar(string msg, Severity severity)
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+            var config = (SnackbarOptions options) =>
+            {
+                options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+                options.VisibleStateDuration = 2000;
+                options.HideTransitionDuration = 750;
+                options.ShowTransitionDuration = 500;
+                options.CloseAfterNavigation = false;
+                options.IconSize = Size.Large;
+                options.ShowCloseIcon = false;
+            };
+            Snackbar.Add(msg, severity, config);
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomStart;
+        }
     }
 
     protected override void OnInitialized()

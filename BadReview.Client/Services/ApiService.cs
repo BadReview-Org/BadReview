@@ -1,10 +1,7 @@
-using BadReview.Shared.DTOs.Response;
-using BadReview.Client.Utils;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.JSInterop;
-using BadReview.Shared.DTOs.Request;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using System;
 using System.Threading.Tasks;
@@ -12,7 +9,13 @@ using System.Net.Http.Headers;
 using System.Net;
 using System.Linq.Expressions;
 
+using BadReview.Client.Utils;
+
+using BadReview.Shared.DTOs.Request;
+using BadReview.Shared.DTOs.Response;
+
 namespace BadReview.Client.Services;
+
 public class ApiService
 {
     private readonly HttpClient _httpClient;

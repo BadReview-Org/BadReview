@@ -1,39 +1,282 @@
 ﻿@page "/register"
+@using BadReview.Shared.DTOs.Request
+@using MudBlazor
 
-@inject ILogger<Login> Logger
+@inject ILogger<Register> Logger
 @inject HttpClient Client
+@inject ApiService ApiService // ?
 @inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+@inject IsoCountryMap countriesMap
+@inject RegisterFirstStepValidator firstValidator
+@inject RegisterSecondStepValidator secondValidator
 
 <PageTitle>Register</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Small">
     <MudCard Elevation=8 Class="pa-6">
         <MudCardHeader>
-        <MudText Typo="Typo.h3"> Register </MudText>
+            <MudStack Row="true" Spacing="6">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd"
+                    Color="Color.Primary"
+                    Style="font-size: 4rem;" />
+                <MudText Typo="Typo.h4" Style="margin-top: 21px;">Register</MudText>
+            </MudStack>
         </MudCardHeader>
 
         <MudCardContent>
-            <MudForm Spacing="4">
-                <MudTextField @bind-Value="form.Username" Label="Username" HelperText="*Required" />
-                <MudTextField @bind-Value="form.Password" InputType="InputType.Password" Label="Password" HelperText="*Required" />
-                <MudTextField @bind-Value="form.RepeatPassword" InputType="InputType.Password" Label="Repeat Password" HelperText="*Required" />
-                <MudTextField @bind-Value="form.Email" Label="Email" HelperText="*Required" />
+            <MudStepper CompletedStepColor="Color.Success" OnPreviewInteraction="OnPreviewInteraction">
+                <MudStep Title="Credentials" HasError="firstHasError">
 
-                <MudTextField @bind-Value="form.FullName" Label="Full Name" HelperText="Optional" />
-                <MudDatePicker @bind-Date="form.Birthday" Label="Birthday" HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" />
-                <MudTextField @bind-Value="form.Country" Label="Country" HelperText="Optional" />
+                    <MudCollapse Expanded="@(!usernameAvailable)">
+                        <MudAlert Icon="@Icons.Material.Filled.AccountCircle" Class="mb-2" Severity="Severity.Error"
+                                  Variant="Variant.Filled" Dense="true">
+                            Username is already in use.
+                        </MudAlert>
+                    </MudCollapse>
 
-                <MudPaper MaxWidth="25%" Elevation=0>
-                    <MudButton Class="mt-8" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="@(async () => await RegisterAsync())"> Register </MudButton>
-                </MudPaper>
-                <MudLink Href="/login">Already have an account? Log in.</MudLink>
-            </MudForm>
+                    <MudCollapse Expanded="@(!emailAvailable)">
+                        <MudAlert Icon="@Icons.Material.Filled.Email" Class="mb-2" Severity="Severity.Error"
+                                  Variant="Variant.Filled" Dense="true">
+                            Email is already in use.
+                        </MudAlert>
+                    </MudCollapse>
+
+
+                    <MudForm Model="@firstModel" @ref="@firstForm" Validation="@ValidateFirst" Spacing=4 Class="mb-6">
+                        <MudTextField @bind-Value="firstModel.Username" Label="Username"
+                            For="@(() => firstModel.Username)" OnBlur="UsernameIsAvailable" HelperText="*Required"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.AccountCircle" />
+
+                        <MudTextField @bind-Value="firstModel.Password" InputType="InputType.Password"
+                            For="@(() => firstModel.Password)" Label="Password" HelperText="*Required"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
+
+                        <MudTextField @bind-Value="firstModel.RepeatPassword" InputType="InputType.Password"
+                            For="@(() => firstModel.RepeatPassword)" Label="Repeat Password" HelperText="*Required"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
+
+                        <MudTextField @bind-Value="firstModel.Email" Label="Email"
+                            For="@(() => firstModel.Email)" OnBlur="EmailIsAvailable" HelperText="*Required"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+                    </MudForm>
+                </MudStep>
+                <MudStep Title="Personal information" SecondaryText="Optional" HasError="secondHasError">
+                    <MudForm Model="@secondModel" @ref="@secondForm" Validation="@ValidateSecond" Spacing=4 Class="mb-6">
+                        <MudTextField @bind-Value="secondModel.FullName" Label="Full Name"
+                            For="@(() => secondModel.FullName)" HelperText="Optional"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
+
+                        <MudDatePicker @bind-Date="secondModel.Birthday" Label="Birthday" For="@(() => secondModel.Birthday)"
+                            HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" Clearable="true"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Cake" />
+
+                        <MudAutocomplete T="IsoCountry" @bind-Value="secondModel.Country"
+                                        ToStringFunc="@(c => c == null ? null : $"{c.Name} ({c.Alpha_3})")"
+                                        SearchFunc="SearchCountry"
+                                        Variant="Variant.Outlined"
+                                        Label="Country"
+                                        HelperText="Optional"
+                                        Clearable="true"
+                                        Strict="false"
+                                        Adornment="Adornment.Start"
+                                        AdornmentIcon="@Icons.Material.Filled.Flag" >
+                            <NoItemsTemplate>
+                                <MudText Align="Align.Center"> No country matching your search... </MudText>
+                            </NoItemsTemplate>
+                        </MudAutocomplete>
+                    </MudForm>
+                </MudStep>
+            </MudStepper>
+            <MudLink Class="mt-12 ml-4" OnClick="GoToLogin">Already have an account? Log in.</MudLink>
         </MudCardContent>
     </MudCard>
 </MudContainer>
 
+<CustomDialog @ref="confirmGoToLogin"
+              Title="Go to log in"
+              Icon="@Icons.Material.Filled.Announcement"
+              OnConfirm="@(() => Navigation.NavigateTo("/login"))">
+    <MudText> Unsaved changes will be lost. Continue? </MudText>
+</CustomDialog>
+
 @code {
 
+    private async Task UsernameIsAvailable(FocusEventArgs _)
+    {
+        if (string.IsNullOrWhiteSpace(firstModel.Username))
+        {
+            usernameAvailable = true;
+            return;
+        }
+
+        var response = await Client.PostAsJsonAsync
+            ("/api/usernameavailable", new UserCheckAvailable(firstModel.Username, null));
+
+        usernameAvailable = response.IsSuccessStatusCode;
+        if (usernameAvailable && emailAvailable && firstValidation) firstHasError = false;
+    }
+
+    private async Task EmailIsAvailable()
+    {
+        if (string.IsNullOrWhiteSpace(firstModel.Email))
+        {
+            emailAvailable = true;
+            return;
+        }
+
+
+        var response = await Client.PostAsJsonAsync
+            ("/api/emailavailable", new UserCheckAvailable(null, firstModel.Email));
+
+        emailAvailable = response.IsSuccessStatusCode;
+        if (usernameAvailable && emailAvailable && firstValidation) firstHasError = false;
+    }
+
+    private void GoToLogin()
+    {
+        if (alreadyEnteredInfo) confirmGoToLogin?.Open();
+        else Navigation.NavigateTo("/login");
+    }
+
+    private async Task OnPreviewInteraction(StepperInteractionEventArgs arg)
+    {
+        ValidationResult validation;
+        switch (arg.StepIndex)
+        {
+            case 0:
+                validation = await firstValidator.ValidateAsync((RegisterFirstStep)firstModel);
+
+                if (!validation.IsValid || !usernameAvailable || !emailAvailable)
+                {
+                    arg.Cancel = true;
+                    firstHasError = true;
+                    ShowSnackbar("One or more errors during validation. Fix them to continue.", Severity.Error);
+                }
+                else { secondHasError = false; secondModel = new(); }
+                break;
+            case 1:
+                validation = await secondValidator.ValidateAsync((RegisterSecondStep)secondModel);
+
+                if (!validation.IsValid)
+                {
+                    arg.Cancel = true;
+                    secondHasError = true;
+                    ShowSnackbar("One or more errors during validation. Fix them to continue.", Severity.Error);
+                }
+                else
+                {
+                    bool register = await RegisterAsync();
+                    if (register)
+                    {
+                        ShowSnackbar("Registered successfully! Redirecting to home page ...", Severity.Success);
+                        await Task.Delay(1000);
+                        Navigation.NavigateTo("/profile");
+                    }
+                    else {
+                        ShowSnackbar("Error while registering. Try again later...", Severity.Error);
+                        await Task.Delay(millisecondsDelay: 3000);
+                        Navigation.Refresh();
+                    }
+                }
+                break;
+        }
+
+        void ShowSnackbar(string msg, Severity severity)
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+            var config = (SnackbarOptions options) =>
+            {
+                options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+                options.VisibleStateDuration = 2000;
+                options.HideTransitionDuration = 750;
+                options.ShowTransitionDuration = 500;
+                options.CloseAfterNavigation = false;
+                options.IconSize = Size.Large;
+                options.ShowCloseIcon = false;
+            };
+            Snackbar.Add(msg, severity, config);
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomStart;
+        }
+    }
+
+    private async Task<IEnumerable<IsoCountry>> SearchCountry(string value, CancellationToken token)
+    {
+        Dictionary<int, IsoCountry> countriesDict = null!;
+        try { countriesDict = await countriesMap.GetAsync(); }
+        catch { return []; }
+
+        var countries = countriesDict.Values;
+        
+        if (string.IsNullOrEmpty(value)) return countries;
+
+        return countries
+            .Where(c => c.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private Func<object, string, Task<IEnumerable<string>>> ValidateFirst => async (model, propertyName) =>
+    {
+        var validation = await firstValidator.ValidateAsync((RegisterFirstStep)model);
+        firstValidation = validation.IsValid;
+        alreadyEnteredInfo = true;
+
+        if (firstValidation && usernameAvailable && emailAvailable) firstHasError = false;
+
+        StateHasChanged();
+        Console.WriteLine("-------------------Validation-------------------------");
+        if (!validation.IsValid)
+        {
+            Console.WriteLine($"Form validation failed.");
+            var dict = validation.ToDictionary();
+            foreach (var kv in dict)
+            {
+                Console.WriteLine($"- {kv.Key}: {string.Join("\n    ", kv.Value)}");
+            }
+        }
+        else Console.WriteLine($"Form validation passed!");
+        Console.WriteLine("------------------------------------------------------");
+
+        if (validation.IsValid) return Array.Empty<string>();
+
+        var propertyErrors = validation.Errors
+            .Where(e => e.PropertyName == propertyName)
+            .Select(e => e.ErrorMessage);
+
+        return propertyErrors;
+    };
+
+    private Func<object, string, Task<IEnumerable<string>>> ValidateSecond => async (model, propertyName) =>
+    {
+        var validation = await secondValidator.ValidateAsync((RegisterSecondStep)model);
+        secondValidation = validation.IsValid;
+
+        if (secondValidation) secondHasError = false;
+
+        StateHasChanged();
+        Console.WriteLine("-------------------Validation-------------------------");
+        if (!validation.IsValid)
+        {
+            Console.WriteLine($"Form validation failed.");
+            var dict = validation.ToDictionary();
+            foreach (var kv in dict)
+            {
+                Console.WriteLine($"- {kv.Key}: {string.Join("\n    ", kv.Value)}");
+            }
+        }
+        else Console.WriteLine($"Form validation passed!");
+        Console.WriteLine("------------------------------------------------------");
+
+        if (validation.IsValid) return Array.Empty<string>();
+
+        var propertyErrors = validation.Errors
+            .Where(e => e.PropertyName == propertyName)
+            .Select(e => e.ErrorMessage);
+
+        return propertyErrors;
+    };
+    
     [CascadingParameter]
     public AuthenticationStateProvider _provider { get; set; } = null!;
     JWTAuthStateProvider provider = null!;
@@ -41,18 +284,22 @@
     [CascadingParameter]
     public AuthService authS { get; set;} = null!;
 
-    RegisterForm form = new ();
+    CustomDialog? confirmGoToLogin;
+    MudForm firstForm = null!;
+    MudForm secondForm = null!;
+    RegisterFirstStep firstModel = new ();
+    RegisterSecondStep secondModel = new();
+    bool firstValidation, firstHasError, secondValidation, secondHasError;
+    bool alreadyEnteredInfo;
+    bool usernameAvailable = true; bool emailAvailable = true;
 
-    async Task RegisterAsync() {
-        if (string.IsNullOrWhiteSpace(form.Username) || string.IsNullOrWhiteSpace(form.Password) || string.IsNullOrWhiteSpace(form.Email))
-        {
-            Console.WriteLine("Can't register. Fill in the obligatory fields.");
-            return;
-        }
+    async Task<bool> RegisterAsync() {
 
         Console.WriteLine("Registering a new account...");
 
-        CreateUserRequest request = new (form.Username, form.Email, form.Password, form.FullName, form.Birthday, form.Country);
+        CreateUserRequest request = new
+            (firstModel.Username, firstModel.Email, firstModel.Password,
+            secondModel.FullName, secondModel.Birthday, secondModel.Country?.Country_code);
 
         bool registered = await authS.RegisterAsync(provider, request);
 
@@ -60,7 +307,9 @@
 
         Console.WriteLine(msg);
 
-        if (registered) Navigation.NavigateTo("/");
+        return registered;
+
+        //if (registered) Navigation.NavigateTo("/");
     }
 
     protected override void OnInitialized()

@@ -18,6 +18,8 @@ public record CreateUserRequest(
     int? Country
 );
 
+public record UserCheckAvailable(string? Username, string? Email);
+
 public class LoginUserRequestValidator : AbstractValidator<LoginUserRequest>
 {
     public LoginUserRequestValidator()

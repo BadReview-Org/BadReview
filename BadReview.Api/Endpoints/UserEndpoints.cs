@@ -15,6 +15,7 @@ using BadReview.Shared.DTOs.Request;
 using static BadReview.Api.Mapper.Mapper;
 using static BadReview.Api.Services.IUserService;
 using static BadReview.Api.Services.IReviewService;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BadReview.Api.Endpoints;
 
@@ -39,6 +40,10 @@ public static class UserEndpoints
         app.MapGet("/api/users/{id}", GetPublicProfile).WithName("GetUser");
 
         app.MapPost("/api/refresh", RefreshUserTokens).RequireAuthorization("RefreshTokenPolicy");
+
+        app.MapPost("/api/usernameavailable", IsUsernameAvailable);
+
+        app.MapPost("/api/emailavailable", IsEmailAvailable);
 
         // GET: /api/users - Obtener todos los usuarios (solo para debugging)
         //app.MapGet("/api/users", GetUsers).WithName("GetUsers");
@@ -220,5 +225,27 @@ public static class UserEndpoints
             default:
                 return Results.BadRequest("Pagination field is incorrect.");
         }
+    }
+
+    private static async Task<IResult> IsUsernameAvailable
+    (UserCheckAvailable req, IUserService userService)
+    {
+        string? username = req.Username;
+        if (string.IsNullOrWhiteSpace(username)) return Results.BadRequest();
+
+        bool exists = await userService.UsernameExists(username);
+
+        return exists ? Results.Conflict(username) : Results.Ok(username);
+    }
+
+    private static async Task<IResult> IsEmailAvailable
+    (UserCheckAvailable req, IUserService userService)
+    {
+        string? email = req.Email;
+        if (string.IsNullOrWhiteSpace(email)) return Results.BadRequest();
+
+        bool exists = await userService.EmailExists(email);
+
+        return exists ? Results.Conflict(email) : Results.Ok(email);
     }
 }

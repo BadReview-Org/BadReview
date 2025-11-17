@@ -1,6 +1,7 @@
-using System.Security.Cryptography.X509Certificates;
+using BadReview.Client.Services;
 using BadReview.Shared.DTOs.Request;
 using FluentValidation;
+using MudBlazor;
 
 namespace BadReview.Client.Utils;
 
@@ -10,46 +11,60 @@ public class LoginForm
     public string Password { get; set; } = null!;
 }
 
-public class RegisterForm
-{
-    public string Username { get; set; } = null!;
-    public string Password { get; set; } = null!;
-    public string RepeatPassword { get; set; } = null!;
-    public string? FullName { get; set; } = null;
-    public string? Email { get; set; } = null;
-    public DateTime? Birthday { get; set; } = null;
-    public int? Country { get; set; } = null;
-}
-
 public class LoginFormValidator : AbstractValidator<LoginForm>
 {
     public LoginFormValidator()
     {
         // Username
-        RuleFor(x => x.Username).UsernameRule();
+        RuleFor(x => x.Username).Cascade(CascadeMode.Stop).UsernameRule();
 
         // Password
-        RuleFor(x => x.Password).PasswordRule();
+        RuleFor(x => x.Password).Cascade(CascadeMode.Stop).PasswordRule();
     }
 }
 
-public class RegisterFormValidator : AbstractValidator<RegisterForm>
+public class RegisterForm
 {
-    public RegisterFormValidator()
+    public RegisterFirstStep First { get; set; } = null!;
+    public RegisterSecondStep Second { get; set; } = null!;
+}
+
+public class RegisterFirstStep
+{
+    public string Username { get; set; } = null!;
+    public string Password { get; set; } = null!;
+    public string RepeatPassword { get; set; } = null!;
+    public string Email { get; set; } = null!;
+}
+
+public class RegisterSecondStep
+{
+    public string? FullName { get; set; } = null;
+    public DateTime? Birthday { get; set; } = null;
+    public IsoCountry? Country { get; set; } = null;
+}
+
+public class RegisterFirstStepValidator : AbstractValidator<RegisterFirstStep>
+{
+    public RegisterFirstStepValidator()
     {
         // Username
-        RuleFor(x => x.Username).UsernameRule();
+        RuleFor(x => x.Username).Cascade(CascadeMode.Stop).UsernameRule();
 
         // Password
-        RuleFor(x => x.Password).PasswordRule();
-        RuleFor(x => x.RepeatPassword).PasswordRule();
+        RuleFor(x => x.Password).Cascade(CascadeMode.Stop).PasswordRule();
 
-        RuleFor(x => x)
-            .Must(x => x.Password is null || x.RepeatPassword is null ||
-                  x.Password == x.RepeatPassword);
+        // Repeat Password
+        RuleFor(x => x.RepeatPassword)
+            .Equal(x => x.Password)
+                .When(x => x.Password is not null && x.RepeatPassword is not null,
+                      ApplyConditionTo.CurrentValidator)
+                .WithMessage("Passwords must match.")
+            .NotEmpty()
+                .WithMessage("Password is required.");
 
         // Email
-        RuleFor(x => x.Email)
+        RuleFor(x => x.Email).Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Email is required.")
             .MaximumLength(30)
             .Matches("^[a-zA-Z0-9@._-]+$")
@@ -58,12 +73,18 @@ public class RegisterFormValidator : AbstractValidator<RegisterForm>
                 .WithMessage("Invalid email format (correct example: user@domain.com).")
             .Must(email => email.Count(c => c == '@') == 1)
                 .WithMessage("Email must contain exactly one '@' character.");
+    }
+}
 
+public class RegisterSecondStepValidator : AbstractValidator<RegisterSecondStep>
+{
+    public RegisterSecondStepValidator(IsoCountryMap countries)
+    {
         // FullName (solo letras y espacios, 40 caracteres máx)
         RuleFor(x => x.FullName)
             .MaximumLength(40)
+                .WithMessage("Full name is too long: must contain at most 40 characters.")
             .Matches(@"^[a-zA-Z ]*$")
-                .When(x => !string.IsNullOrEmpty(x.FullName))
                 .WithMessage("Full name must only contain letters and whitespaces.");
 
         // Birthday (mínimo 12 años)
@@ -72,10 +93,20 @@ public class RegisterFormValidator : AbstractValidator<RegisterForm>
                 .When(x => x.Birthday.HasValue)
                 .WithMessage("User must be at least 12 years old.");
 
-        // Country (>= 0)
+        // Country (debe coincidir con los paises del ISO 3166)
         RuleFor(x => x.Country)
-            .GreaterThanOrEqualTo(0)
-                .When(x => x.Country.HasValue)
-                .WithMessage("Country code can't be negative.");
+            .MustAsync(async (c, ct) => await countries.GetAsync(c!.Country_code) is not null)
+                .When(x => x.Country is not null)
+                .WithMessage("Country code is invalid.");
+    }
+}
+
+public class RegisterFormValidator : AbstractValidator<RegisterForm>
+{
+    public RegisterFormValidator(RegisterFirstStepValidator validator1,
+                                 RegisterSecondStepValidator validator2)
+    {
+        RuleFor(x => x.First).SetValidator(validator1);
+        RuleFor(x => x.Second).SetValidator(validator2);
     }
 }

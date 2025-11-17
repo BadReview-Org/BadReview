@@ -4,6 +4,7 @@ using BadReview.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BadReview.Api.Migrations
 {
     [DbContext(typeof(BadReviewContext))]
-    partial class BadReviewContextModelSnapshot : ModelSnapshot
+    [Migration("20251113225244_NewMigration")]
+    partial class NewMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,13 +36,13 @@ namespace BadReview.Api.Migrations
                         .HasDefaultValue(0);
 
                     b.Property<string>("Description")
-                        .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<long?>("StartDate")
                         .HasColumnType("bigint");
@@ -69,8 +72,8 @@ namespace BadReview.Api.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<double>("RatingIGDB")
                         .ValueGeneratedOnAdd()
@@ -79,8 +82,8 @@ namespace BadReview.Api.Migrations
                         .HasDefaultValue(0.0);
 
                     b.Property<string>("Summary")
-                        .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<long>("Total_RatingBadReview")
                         .ValueGeneratedOnAdd()
@@ -88,8 +91,8 @@ namespace BadReview.Api.Migrations
                         .HasDefaultValue(0L);
 
                     b.Property<string>("Video")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -155,8 +158,8 @@ namespace BadReview.Api.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -169,8 +172,8 @@ namespace BadReview.Api.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Abbreviation")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("Generation")
                         .ValueGeneratedOnAdd()
@@ -179,8 +182,8 @@ namespace BadReview.Api.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("PlatformType")
                         .ValueGeneratedOnAdd()
@@ -188,12 +191,12 @@ namespace BadReview.Api.Migrations
                         .HasDefaultValue(0);
 
                     b.Property<string>("PlatformTypeName")
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Summary")
-                        .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.HasKey("Id");
 
@@ -235,8 +238,8 @@ namespace BadReview.Api.Migrations
                         .HasDefaultValue(0);
 
                     b.Property<string>("ReviewText")
-                        .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
@@ -335,8 +338,8 @@ namespace BadReview.Api.Migrations
 
                             b1.Property<string>("ImageId")
                                 .IsRequired()
-                                .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)");
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
 
                             b1.Property<int?>("ImageWidth")
                                 .HasColumnType("int");
@@ -364,8 +367,8 @@ namespace BadReview.Api.Migrations
 
                             b1.Property<string>("ImageId")
                                 .IsRequired()
-                                .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)");
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
 
                             b1.Property<int?>("ImageWidth")
                                 .HasColumnType("int");
@@ -450,8 +453,8 @@ namespace BadReview.Api.Migrations
 
                             b1.Property<string>("ImageId")
                                 .IsRequired()
-                                .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)");
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
 
                             b1.Property<int?>("ImageWidth")
                                 .HasColumnType("int");

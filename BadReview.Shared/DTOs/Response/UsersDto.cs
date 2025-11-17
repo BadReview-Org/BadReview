@@ -36,6 +36,8 @@ public record PublicUserDto(
 public record BasicUserDto(
     int Id,
     string Username
-) ;
+);
+
 public record RegisterUserDto(BasicUserDto UserDto, UserTokensDto LoginDto);
+
 public record UserTokensDto(string AccessToken, string RefreshToken);

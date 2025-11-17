@@ -59,7 +59,7 @@ public record BasicGameIgdbDto(int Id, string Name, ImageIgdbDto? Cover, double?
     involved_companies.company.logo.image_id, involved_companies.company.logo.height, involved_companies.company.logo.width")]
 public record DetailGameIgdbDto(
     int Id, string Name, ImageIgdbDto? Cover, long? First_release_date, string? Summary, double? Rating, List<VideoIgdbDto>? Videos,
-    HashSet<GenreIgdbDto>? Genres, HashSet<PlatformIgdbDto>? Platforms, HashSet<InvCompIgdbDto>? Involved_Companies);
+    List<GenreIgdbDto>? Genres, List<PlatformIgdbDto>? Platforms, List<InvCompIgdbDto>? Involved_Companies); // deberian ser hashsets para busqueda O(1)
 
 [IgdbFields("game_id")]
 public record PopularIgdbDto(int Game_id);

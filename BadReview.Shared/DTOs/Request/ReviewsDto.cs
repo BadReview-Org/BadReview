@@ -24,10 +24,10 @@ public class CreateReviewRequestValidator : AbstractValidator<CreateReviewReques
             .InclusiveBetween(0, 5)
             .WithMessage("Rating must be a int between [0, 5]");
 
-        // ReviewText: máximo 2000 caracteres
+        // ReviewText: máximo 3000 caracteres
         RuleFor(x => x.ReviewText)
-            .MaximumLength(2000)
-            .WithMessage("The text review must not exceed 2000 characters.");
+            .MaximumLength(3000)
+            .WithMessage("The text review must not exceed 3000 characters.");
 
         // GameId: debe ser >= 0
         RuleFor(x => x.GameId)
