@@ -46,25 +46,32 @@
 
                     <MudForm Model="@firstModel" @ref="@firstForm" Validation="@ValidateFirst" Spacing=4 Class="mb-6">
                         <MudTextField @bind-Value="firstModel.Username" Label="Username"
-                            For="@(() => firstModel.Username)" OnBlur="UsernameIsAvailable" HelperText="*Required"/>
+                            For="@(() => firstModel.Username)" OnBlur="UsernameIsAvailable" HelperText="*Required"
+                            Adornment="Adornment.Start"
+                            AdornmentIcon="@Icons.Material.Filled.AccountCircle" />
 
                         <MudTextField @bind-Value="firstModel.Password" InputType="InputType.Password"
-                            For="@(() => firstModel.Password)" Label="Password" HelperText="*Required"/>
+                            For="@(() => firstModel.Password)" Label="Password" HelperText="*Required"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
 
                         <MudTextField @bind-Value="firstModel.RepeatPassword" InputType="InputType.Password"
-                            For="@(() => firstModel.RepeatPassword)" Label="Repeat Password" HelperText="*Required"/>
+                            For="@(() => firstModel.RepeatPassword)" Label="Repeat Password" HelperText="*Required"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
 
                         <MudTextField @bind-Value="firstModel.Email" Label="Email"
-                            For="@(() => firstModel.Email)" OnBlur="EmailIsAvailable" HelperText="*Required"/>
+                            For="@(() => firstModel.Email)" OnBlur="EmailIsAvailable" HelperText="*Required"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
                     </MudForm>
                 </MudStep>
                 <MudStep Title="Personal information" SecondaryText="Optional" HasError="secondHasError">
                     <MudForm Model="@secondModel" @ref="@secondForm" Validation="@ValidateSecond" Spacing=4 Class="mb-6">
                         <MudTextField @bind-Value="secondModel.FullName" Label="Full Name"
-                            For="@(() => secondModel.FullName)" HelperText="Optional"/>
+                            For="@(() => secondModel.FullName)" HelperText="Optional"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
 
                         <MudDatePicker @bind-Date="secondModel.Birthday" Label="Birthday" For="@(() => secondModel.Birthday)"
-                            HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" Clearable="true"/>
+                            HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" Clearable="true"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Cake" />
 
                         <MudAutocomplete T="IsoCountry" @bind-Value="secondModel.Country"
                                         ToStringFunc="@(c => c == null ? null : $"{c.Name} ({c.Alpha_3})")"
@@ -72,7 +79,10 @@
                                         Variant="Variant.Outlined"
                                         Label="Country"
                                         HelperText="Optional"
-                                        Clearable="true">
+                                        Clearable="true"
+                                        Strict="false"
+                                        Adornment="Adornment.Start"
+                                        AdornmentIcon="@Icons.Material.Filled.Flag" >
                             <NoItemsTemplate>
                                 <MudText Align="Align.Center"> No country matching your search... </MudText>
                             </NoItemsTemplate>
