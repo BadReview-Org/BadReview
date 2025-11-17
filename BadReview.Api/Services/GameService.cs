@@ -45,16 +45,16 @@ public class GameService : IGameService
             .FirstOrDefaultAsync();
     }
 
-    private async Task AddRelatedGenres(HashSet<GenreIgdbDto>? genres)
+    private async Task AddRelatedGenres(List<GenreIgdbDto>? genres)
     {
         if (genres is null) return;
 
-        var genreIds = genres.Select(g => g.Id).ToHashSet();
+        var genreIds = genres.Select(g => g.Id).ToList();
 
         var existingIds = await _db.Genres
             .Where(g => genreIds.Contains(g.Id))
             .Select(g => g.Id)
-            .ToHashSetAsync();
+            .ToListAsync();
 
         var newGenres = genres
             .Where(g => !existingIds.Contains(g.Id))
@@ -64,16 +64,16 @@ public class GameService : IGameService
         if (newGenres.Count > 0) _db.Genres.AddRange(newGenres);
     }
 
-    private async Task AddRelatedPlatforms(HashSet<PlatformIgdbDto>? plats)
+    private async Task AddRelatedPlatforms(List<PlatformIgdbDto>? plats)
     {
         if (plats is null) return;
 
-        var platIds = plats.Select(p => p.Id).ToHashSet();
+        var platIds = plats.Select(p => p.Id).ToList();
 
         var existingIds = await _db.Platforms
             .Where(p => platIds.Contains(p.Id))
             .Select(p => p.Id)
-            .ToHashSetAsync();
+            .ToListAsync();
 
         var newPlats = plats
             .Where(p => !existingIds.Contains(p.Id))
@@ -83,17 +83,20 @@ public class GameService : IGameService
         if (newPlats.Count > 0) _db.Platforms.AddRange(newPlats);
     }
 
-    private async Task AddRelatedDevelopers(HashSet<InvCompIgdbDto>? companies)
+    private async Task AddRelatedDevelopers(List<InvCompIgdbDto>? companies)
     {
         if (companies is null) return;
 
-        var devs = companies.Where(c => c.Developer).Select(c => c.Company).ToList();
-        var devIds = devs.Select(d => d.Id).ToHashSet();
+        var devs = companies
+            .Select(c => c.Company)
+            .ToList();
+
+        var devIds = devs.Select(d => d.Id).ToList();
 
         var existingIds = await _db.Developers
             .Where(d => devIds.Contains(d.Id))
             .Select(d => d.Id)
-            .ToHashSetAsync();
+            .ToListAsync();
 
         var newDevs = devs
             .Where(d => !existingIds.Contains(d.Id))
@@ -144,10 +147,10 @@ public class GameService : IGameService
     public async Task<DetailGameDto?> GetGameByIdAsync(int id, PaginationRequest reviewsPag, bool cache)
     {
         DetailGameDto? gameDB = await GetGameByIdDB(id, reviewsPag);
-
+        
         if (gameDB is not null) Console.WriteLine($"Fetching game: {gameDB.Name}, from DB");
         if (gameDB is not null) return gameDB;
-        
+
 
         var query = new IgdbRequest { Filters = $"id = {id}" };
         //query.SetDefaults();
@@ -159,24 +162,32 @@ public class GameService : IGameService
 
         if (gameIGDB is null) return null;
 
+        // sanear juego de IGDB para evitar duplicados
+        DetailGameIgdbDto safeGame = new DetailGameIgdbDto(
+            gameIGDB.Id, gameIGDB.Name, gameIGDB.Cover, gameIGDB.First_release_date,
+            gameIGDB.Summary, gameIGDB.Rating, gameIGDB.Videos,
+            gameIGDB.Genres?.DistinctBy(g => g.Id).ToList(),
+            gameIGDB.Platforms?.DistinctBy(p => p.Id).ToList(),
+            gameIGDB.Involved_Companies?.Where(c => c.Developer).DistinctBy(c => c.Company.Id).ToList()
+            );
 
         //mapear a Game y persistir (si cache == true)
         if (cache)
         {
-            var newGame = CreateGameEntity(gameIGDB);
+            var newGame = CreateGameEntity(safeGame);
             
             // Investigar: es EF thread-safe para juntar los 3 primeros awaits?
-            await AddRelatedGenres(gameIGDB.Genres);
-            await AddRelatedPlatforms(gameIGDB.Platforms);
-            await AddRelatedDevelopers(gameIGDB.Involved_Companies);
+            await AddRelatedGenres(safeGame.Genres);
+            await AddRelatedPlatforms(safeGame.Platforms);
+            await AddRelatedDevelopers(safeGame.Involved_Companies);
             _db.Games.Add(newGame);
 
             if (!await _db.SafeSaveChangesAsync())
                 throw new WritingToDBException("Exception while saving new game from IGDB to DB.");
 
-            Console.WriteLine($"Cached IGDB game: {gameIGDB.Name} into the database");
+            Console.WriteLine($"Cached IGDB game: {safeGame.Name} into the database");
         }
 
-        return CreateDetailGameDto(gameIGDB, reviewsPag);
+        return CreateDetailGameDto(safeGame, reviewsPag);
     }
 }

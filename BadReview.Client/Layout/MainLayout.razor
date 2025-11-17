@@ -16,6 +16,7 @@
 @inject ILogger<MainLayout> Logger
 @inject AuthService AuthService
 @inject AuthenticationStateProvider _provider
+@inject ISnackbar Snackbar
 
 @inject IJSRuntime js
 
@@ -39,7 +40,7 @@
                 <Authorized>
                     <MudMenuItem OnClick="LogToken" Label="Profile"/>
                     <MudMenuItem Label="My account"/>
-                    <MudMenuItem OnClick="LogoutAsync" Label="Log out"/>
+                    <MudMenuItem OnClick="() => confirmLogout?.Open()" Label="Log out"/>
                 </Authorized>
                 <NotAuthorized>
                     <MudMenuItem Href="/login" Label="Log in" />
@@ -75,8 +76,17 @@
     </MudMainContent>
 </MudLayout>
 
+<CustomDialog @ref="confirmLogout"
+              Title="Log out"
+              Icon="@Icons.Material.Filled.Logout"
+              OnConfirm="LogoutAsync">
+    <MudText> Are you sure you wish to log out? </MudText>
+</CustomDialog>
+
 @code {
     private string _searchText = string.Empty;
+
+    CustomDialog? confirmLogout;
 
     private async Task<IEnumerable<BasicGameDto>> OnSearchGames(string searchText)
     {    
@@ -127,9 +137,30 @@
 
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
-    //private async void LoginAsync() => await AuthService.LoginAsync(stateProvider,"lauti", "hola123"); 
+    private async void LogoutAsync()
+    {
+        await AuthService.LogoutAsync(stateProvider); 
+        ShowSnackbar("Logged out, reloading the page ...", Severity.Info);
+        await Task.Delay(2000);
+        Navigation.Refresh();
 
-    private async void LogoutAsync() => await AuthService.LogoutAsync(stateProvider); 
+        void ShowSnackbar(string msg, Severity severity)
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+            var config = (SnackbarOptions options) =>
+            {
+                options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+                options.VisibleStateDuration = 2000;
+                options.HideTransitionDuration = 750;
+                options.ShowTransitionDuration = 500;
+                options.CloseAfterNavigation = false;
+                options.IconSize = Size.Large;
+                options.ShowCloseIcon = false;
+            };
+            Snackbar.Add(msg, severity, config);
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomStart;
+        }
+    }
 
     private void LogToken() => AuthService.LogJWToken(authState, Logger); 
 

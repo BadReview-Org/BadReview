@@ -15,6 +15,7 @@ using BadReview.Shared.DTOs.Request;
 using static BadReview.Api.Mapper.Mapper;
 using static BadReview.Api.Services.IUserService;
 using static BadReview.Api.Services.IReviewService;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BadReview.Api.Endpoints;
 
@@ -227,16 +228,22 @@ public static class UserEndpoints
     }
 
     private static async Task<IResult> IsUsernameAvailable
-    (string username, IUserService userService)
+    (UserCheckAvailable req, IUserService userService)
     {
+        string? username = req.Username;
+        if (string.IsNullOrWhiteSpace(username)) return Results.BadRequest();
+
         bool exists = await userService.UsernameExists(username);
 
         return exists ? Results.Conflict(username) : Results.Ok(username);
     }
 
     private static async Task<IResult> IsEmailAvailable
-    (string email, IUserService userService)
+    (UserCheckAvailable req, IUserService userService)
     {
+        string? email = req.Email;
+        if (string.IsNullOrWhiteSpace(email)) return Results.BadRequest();
+
         bool exists = await userService.EmailExists(email);
 
         return exists ? Results.Conflict(email) : Results.Ok(email);

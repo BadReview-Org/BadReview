@@ -1,6 +1,7 @@
 using BadReview.Client.Services;
 using BadReview.Shared.DTOs.Request;
 using FluentValidation;
+using MudBlazor;
 
 namespace BadReview.Client.Utils;
 
@@ -52,11 +53,15 @@ public class RegisterFirstStepValidator : AbstractValidator<RegisterFirstStep>
 
         // Password
         RuleFor(x => x.Password).Cascade(CascadeMode.Stop).PasswordRule();
-        RuleFor(x => x.RepeatPassword).PasswordRule();
 
-        /*RuleFor(x => x)
-            .Must(x => x.Password is null || x.RepeatPassword is null ||
-                    x.Password == x.RepeatPassword);*/
+        // Repeat Password
+        RuleFor(x => x.RepeatPassword)
+            .Equal(x => x.Password)
+                .When(x => x.Password is not null && x.RepeatPassword is not null,
+                      ApplyConditionTo.CurrentValidator)
+                .WithMessage("Passwords must match.")
+            .NotEmpty()
+                .WithMessage("Password is required.");
 
         // Email
         RuleFor(x => x.Email).Cascade(CascadeMode.Stop)

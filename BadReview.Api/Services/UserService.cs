@@ -281,13 +281,7 @@ public class UserService : IUserService
         return (UserCode.OK, new UserTokensDto(newAccessToken, newRefreshToken));
     }
 
-    public Task<bool> UsernameExists(string username)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task<bool> UsernameExists(string username) => await _db.Users.AnyAsync(u => u.Username == username);
 
-    public Task<bool> EmailExists(string email)
-    {
-        throw new NotImplementedException();
-    }
+    public async Task<bool> EmailExists(string email) => await _db.Users.AnyAsync(u => u.Email == email);
 }

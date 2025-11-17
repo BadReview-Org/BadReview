@@ -1,7 +1,10 @@
 ﻿@page "/register"
+@using BadReview.Shared.DTOs.Request
+@using MudBlazor
 
-@inject ILogger<Login> Logger
+@inject ILogger<Register> Logger
 @inject HttpClient Client
+@inject ApiService ApiService // ?
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 
@@ -14,15 +17,36 @@
 <MudContainer MaxWidth="MaxWidth.Small">
     <MudCard Elevation=8 Class="pa-6">
         <MudCardHeader>
-        <MudText Typo="Typo.h3"> Register </MudText>
+            <MudStack Row="true" Spacing="6">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd"
+                    Color="Color.Primary"
+                    Style="font-size: 4rem;" />
+                <MudText Typo="Typo.h4" Style="margin-top: 21px;">Register</MudText>
+            </MudStack>
         </MudCardHeader>
 
         <MudCardContent>
             <MudStepper CompletedStepColor="Color.Success" OnPreviewInteraction="OnPreviewInteraction">
                 <MudStep Title="Credentials" HasError="firstHasError">
+
+                    <MudCollapse Expanded="@(!usernameAvailable)">
+                        <MudAlert Icon="@Icons.Material.Filled.AccountCircle" Class="mb-2" Severity="Severity.Error"
+                                  Variant="Variant.Filled" Dense="true">
+                            Username is already in use.
+                        </MudAlert>
+                    </MudCollapse>
+
+                    <MudCollapse Expanded="@(!emailAvailable)">
+                        <MudAlert Icon="@Icons.Material.Filled.Email" Class="mb-2" Severity="Severity.Error"
+                                  Variant="Variant.Filled" Dense="true">
+                            Email is already in use.
+                        </MudAlert>
+                    </MudCollapse>
+
+
                     <MudForm Model="@firstModel" @ref="@firstForm" Validation="@ValidateFirst" Spacing=4 Class="mb-6">
                         <MudTextField @bind-Value="firstModel.Username" Label="Username"
-                            For="@(() => firstModel.Username)" HelperText="*Required"/>
+                            For="@(() => firstModel.Username)" OnBlur="UsernameIsAvailable" HelperText="*Required"/>
 
                         <MudTextField @bind-Value="firstModel.Password" InputType="InputType.Password"
                             For="@(() => firstModel.Password)" Label="Password" HelperText="*Required"/>
@@ -31,7 +55,7 @@
                             For="@(() => firstModel.RepeatPassword)" Label="Repeat Password" HelperText="*Required"/>
 
                         <MudTextField @bind-Value="firstModel.Email" Label="Email"
-                            For="@(() => firstModel.Email)" HelperText="*Required"/>
+                            For="@(() => firstModel.Email)" OnBlur="EmailIsAvailable" HelperText="*Required"/>
                     </MudForm>
                 </MudStep>
                 <MudStep Title="Personal information" SecondaryText="Optional" HasError="secondHasError">
@@ -70,6 +94,37 @@
 
 @code {
 
+    private async Task UsernameIsAvailable(FocusEventArgs _)
+    {
+        if (string.IsNullOrWhiteSpace(firstModel.Username))
+        {
+            usernameAvailable = true;
+            return;
+        }
+
+        var response = await Client.PostAsJsonAsync
+            ("/api/usernameavailable", new UserCheckAvailable(firstModel.Username, null));
+
+        usernameAvailable = response.IsSuccessStatusCode;
+        if (usernameAvailable && emailAvailable && firstValidation) firstHasError = false;
+    }
+
+    private async Task EmailIsAvailable()
+    {
+        if (string.IsNullOrWhiteSpace(firstModel.Email))
+        {
+            emailAvailable = true;
+            return;
+        }
+
+
+        var response = await Client.PostAsJsonAsync
+            ("/api/emailavailable", new UserCheckAvailable(null, firstModel.Email));
+
+        emailAvailable = response.IsSuccessStatusCode;
+        if (usernameAvailable && emailAvailable && firstValidation) firstHasError = false;
+    }
+
     private void GoToLogin()
     {
         if (alreadyEnteredInfo) confirmGoToLogin?.Open();
@@ -84,7 +139,7 @@
             case 0:
                 validation = await firstValidator.ValidateAsync((RegisterFirstStep)firstModel);
 
-                if (!validation.IsValid)
+                if (!validation.IsValid || !usernameAvailable || !emailAvailable)
                 {
                     arg.Cancel = true;
                     firstHasError = true;
@@ -108,10 +163,12 @@
                     {
                         ShowSnackbar("Registered successfully! Redirecting to home page ...", Severity.Success);
                         await Task.Delay(1000);
-                        Navigation.NavigateTo("/");
+                        Navigation.NavigateTo("/profile");
                     }
                     else {
                         ShowSnackbar("Error while registering. Try again later...", Severity.Error);
+                        await Task.Delay(millisecondsDelay: 3000);
+                        Navigation.Refresh();
                     }
                 }
                 break;
@@ -155,7 +212,7 @@
         firstValidation = validation.IsValid;
         alreadyEnteredInfo = true;
 
-        if (firstValidation) firstHasError = false;
+        if (firstValidation && usernameAvailable && emailAvailable) firstHasError = false;
 
         StateHasChanged();
         Console.WriteLine("-------------------Validation-------------------------");
@@ -224,6 +281,7 @@
     RegisterSecondStep secondModel = new();
     bool firstValidation, firstHasError, secondValidation, secondHasError;
     bool alreadyEnteredInfo;
+    bool usernameAvailable = true; bool emailAvailable = true;
 
     async Task<bool> RegisterAsync() {
 
