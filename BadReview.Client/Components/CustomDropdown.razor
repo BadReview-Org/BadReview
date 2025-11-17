@@ -1,6 +1,6 @@
 @typeparam T
 <MudAutocomplete T="T" 
-                            Label="@Label" 
+                            Label="@Label"
                             SearchFunc="@OnSearchElements"
                             Variant="Variant.Outlined"
                             Margin="Margin.Dense"
@@ -36,6 +36,7 @@
     }
 
     private void OnDropdownChanged(T element){
+
         DropdownChanged.InvokeAsync(element);
     }
 }
