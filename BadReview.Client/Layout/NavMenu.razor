@@ -1,17 +1,17 @@
 ﻿
 <MudNavMenu>
-    <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Store">Home</MudNavLink>
-    <MudNavLink Href="/trending-games" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.TrendingUp">Trending games</MudNavLink>
-    <MudNavLink Href="/explore"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Explore">Explore</MudNavLink>
+    <MudNavLink IconColor="Color.Surface" Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Store">Home</MudNavLink>
+    <MudNavLink IconColor="Color.Surface" Href="/trending-games" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.TrendingUp">Trending games</MudNavLink>
+    <MudNavLink IconColor="Color.Surface" Href="/explore"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Explore">Explore</MudNavLink>
     <!--<MudNavGroup Title="Settings" Expanded="true">
         <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
         <MudNavLink Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
 </MudNavGroup> -->
     <AuthorizeView>
         <Authorized>
-                <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+                <MudNavLink IconColor="Color.Surface" Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
         </Authorized>
     </AuthorizeView>
-    <MudNavLink Href="/about"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
-    <MudNavLink Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
+    <MudNavLink IconColor="Color.Surface" Href="/about"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
+    <MudNavLink IconColor="Color.Surface" Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
 </MudNavMenu>

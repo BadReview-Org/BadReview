@@ -34,7 +34,7 @@
             <MudImage Src="icon-192_white.png" Alt="BadReview Logo Dark" Height="100" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
         }
         <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
-        <CustomDropdown T="BasicGameDto" DropdownChanged="OnDropdownSelected" SearchElements="OnSearchGames" Label="Search for games...">
+        <CustomDropdown T="BasicGameDto" ToStringFunc="@(game => game?.Name ?? "")" DropdownChanged="OnDropdownSelected" SearchElements="OnSearchGames" Label="Search for games...">
             <ItemTemplate Context="game">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                     <img src="@ImageHelper.GetCoverUrl(game.CoverId)" 
@@ -84,7 +84,7 @@
         </MudMenu>
 
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen" Fixed="true" Variant="@DrawerVariant.Mini" OpenMiniOnHover="true">
+    <MudDrawer Color=Color.Primary @bind-Open="@_drawerOpen" Fixed="true" Variant="@DrawerVariant.Mini" OpenMiniOnHover="true">
         <NavMenu/>
     </MudDrawer>
     <MudMainContent Style="display: flex; flex-direction: column; min-height: 100vh;">
@@ -144,9 +144,19 @@
     AuthenticationState authState = null!;
     JWTAuthStateProvider stateProvider = null!;
 
-    private MudTheme _theme = new MudTheme();
+ //   private MudTheme _theme = new MudTheme();
 
-    
+    private MudTheme _theme = new MudTheme()
+{
+    PaletteDark = new PaletteDark()
+    {
+
+    },
+    PaletteLight = new PaletteLight()
+    {
+    Background = "#FBFEF9"
+    }
+};
     public bool _isDarkMode;
     bool _drawerOpen = true;
     bool disableDarkModeToggle = false;

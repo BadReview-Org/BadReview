@@ -4,17 +4,19 @@
 
 <MudPaper Class="pa-6 mb-8" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border-radius: 12px;">
     <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width: 200px; width: 200px;">
             <MudIcon Icon="@Icon" Color="Color.Primary" Size="Size.Large" />
             <MudText Typo="Typo.h4" Style="font-weight: 600; color: #667eea;">
                 @Title
             </MudText>
         </MudStack>
-        <CustomDropdown T="T" DropdownChanged="OnDropdownSelected" SearchElements="OnSearchElements" Label="Search for games..." >
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width: 300px; width: 500px;">
+        <CustomDropdown T="T"  DropdownChanged="OnDropdownSelected" SearchElements="OnSearchElements" Label="Search for games..." >
         <ItemTemplate Context ="element">
             @DropdownTemplate(element)
         </ItemTemplate>
         </CustomDropdown>
+        </MudStack>
         <MudStack Row="true" Spacing="1">
             <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" 
                           Color="Color.Primary" 

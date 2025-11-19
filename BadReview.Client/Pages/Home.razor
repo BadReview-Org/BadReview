@@ -11,10 +11,7 @@
 
 
 <PageTitle>BadReview - Home</PageTitle>
-<MudPaper Style="background: rgba(0,0,0,0)" Elevation="2" Width="100%">
-Test
 
-</MudPaper>
 @if (isLoading)
 {
     <!-- Loading Skeleton -->
@@ -128,7 +125,6 @@ else
                     @genre.Name
                 </MudText>
                 </MudStack>
-                
             </ItemTemplate>
             <DropdownTemplate Context="genre">
                 <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
@@ -352,7 +348,7 @@ else
             
         StateHasChanged();
     }
-
+    // Get scroll style for MudStack
     private string GetScrollStyle(int position)
     {
         return $"transform: translateX({position}px); transition: transform 0.5s ease;";
