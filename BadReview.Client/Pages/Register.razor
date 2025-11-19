@@ -8,9 +8,9 @@
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
 
-@inject IsoCountryMap countriesMap
-@inject RegisterFirstStepValidator firstValidator
-@inject RegisterSecondStepValidator secondValidator
+@inject ICountriesIso countriesMap
+@inject UserFirstStepCreateValidator firstValidator
+@inject UserSecondStepCreateValidator secondValidator
 
 <PageTitle>Register</PageTitle>
 
@@ -45,40 +45,39 @@
 
 
                     <MudForm Model="@firstModel" @ref="@firstForm" Validation="@ValidateFirst" Spacing=4 Class="mb-6">
-                        <MudTextField @bind-Value="firstModel.Username" Label="Username"
-                            For="@(() => firstModel.Username)" OnBlur="UsernameIsAvailable" HelperText="*Required"
-                            Adornment="Adornment.Start"
+                        <MudTextField @bind-Value="firstModel.Username"
+                            For="@(() => firstModel.Username)"
+                            HelperText="Username *" Adornment="Adornment.Start"
                             AdornmentIcon="@Icons.Material.Filled.AccountCircle" />
 
                         <MudTextField @bind-Value="firstModel.Password" InputType="InputType.Password"
-                            For="@(() => firstModel.Password)" Label="Password" HelperText="*Required"
+                            For="@(() => firstModel.Password)" HelperText="Password *"
                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
 
                         <MudTextField @bind-Value="firstModel.RepeatPassword" InputType="InputType.Password"
-                            For="@(() => firstModel.RepeatPassword)" Label="Repeat Password" HelperText="*Required"
+                            For="@(() => firstModel.RepeatPassword)" HelperText="Repeat Password *"
                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
 
-                        <MudTextField @bind-Value="firstModel.Email" Label="Email"
-                            For="@(() => firstModel.Email)" OnBlur="EmailIsAvailable" HelperText="*Required"
+                        <MudTextField @bind-Value="firstModel.Email"
+                            For="@(() => firstModel.Email)" HelperText="Email *"
                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
                     </MudForm>
                 </MudStep>
                 <MudStep Title="Personal information" SecondaryText="Optional" HasError="secondHasError">
                     <MudForm Model="@secondModel" @ref="@secondForm" Validation="@ValidateSecond" Spacing=4 Class="mb-6">
-                        <MudTextField @bind-Value="secondModel.FullName" Label="Full Name"
-                            For="@(() => secondModel.FullName)" HelperText="Optional"
+                        <MudTextField @bind-Value="secondModel.FullName"
+                            For="@(() => secondModel.FullName)" HelperText="Full name"
                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
 
-                        <MudDatePicker @bind-Date="secondModel.Birthday" Label="Birthday" For="@(() => secondModel.Birthday)"
-                            HelperText="Optional" ShowToolbar="false" DateFormat="dd/MM/yyyy" Clearable="true"
-                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Cake" />
+                        <MudDatePicker @bind-Date="secondModel.Birthday" For="@(() => secondModel.Birthday)"
+                            HelperText="Birthdate" ShowToolbar="false" DateFormat="dd/MM/yyyy" Clearable="true"
+                            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Cake" MaxDate="@DateTime.Today"/>
 
                         <MudAutocomplete T="IsoCountry" @bind-Value="secondModel.Country"
                                         ToStringFunc="@(c => c == null ? null : $"{c.Name} ({c.Alpha_3})")"
                                         SearchFunc="SearchCountry"
                                         Variant="Variant.Outlined"
-                                        Label="Country"
-                                        HelperText="Optional"
+                                        HelperText="Country"
                                         Clearable="true"
                                         Strict="false"
                                         Adornment="Adornment.Start"
@@ -104,36 +103,21 @@
 
 @code {
 
-    private async Task UsernameIsAvailable(FocusEventArgs _)
-    {
-        if (string.IsNullOrWhiteSpace(firstModel.Username))
-        {
-            usernameAvailable = true;
-            return;
-        }
+    [CascadingParameter]
+    public AuthenticationStateProvider _provider { get; set; } = null!;
+    JWTAuthStateProvider provider = null!;
 
-        var response = await Client.PostAsJsonAsync
-            ("/api/usernameavailable", new UserCheckAvailable(firstModel.Username, null));
+    [CascadingParameter]
+    public AuthService authS { get; set;} = null!;
 
-        usernameAvailable = response.IsSuccessStatusCode;
-        if (usernameAvailable && emailAvailable && firstValidation) firstHasError = false;
-    }
-
-    private async Task EmailIsAvailable()
-    {
-        if (string.IsNullOrWhiteSpace(firstModel.Email))
-        {
-            emailAvailable = true;
-            return;
-        }
-
-
-        var response = await Client.PostAsJsonAsync
-            ("/api/emailavailable", new UserCheckAvailable(null, firstModel.Email));
-
-        emailAvailable = response.IsSuccessStatusCode;
-        if (usernameAvailable && emailAvailable && firstValidation) firstHasError = false;
-    }
+    CustomDialog? confirmGoToLogin;
+    MudForm firstForm = null!;
+    MudForm secondForm = null!;
+    UserFirstStep firstModel = new();
+    UserSecondStep secondModel = new();
+    bool firstValidation, firstHasError, secondValidation, secondHasError;
+    bool alreadyEnteredInfo;
+    bool usernameAvailable = true; bool emailAvailable = true;
 
     private void GoToLogin()
     {
@@ -147,23 +131,21 @@
         switch (arg.StepIndex)
         {
             case 0:
-                validation = await firstValidator.ValidateAsync((RegisterFirstStep)firstModel);
+                validation = await firstValidator.ValidateAsync((UserFirstStep)firstModel);
 
-                if (!validation.IsValid || !usernameAvailable || !emailAvailable)
+                if (!validation.IsValid)
                 {
                     arg.Cancel = true;
-                    firstHasError = true;
                     ShowSnackbar("One or more errors during validation. Fix them to continue.", Severity.Error);
                 }
                 else { secondHasError = false; secondModel = new(); }
                 break;
             case 1:
-                validation = await secondValidator.ValidateAsync((RegisterSecondStep)secondModel);
+                validation = await secondValidator.ValidateAsync((UserSecondStep)secondModel);
 
                 if (!validation.IsValid)
                 {
                     arg.Cancel = true;
-                    secondHasError = true;
                     ShowSnackbar("One or more errors during validation. Fix them to continue.", Severity.Error);
                 }
                 else
@@ -218,16 +200,25 @@
 
     private Func<object, string, Task<IEnumerable<string>>> ValidateFirst => async (model, propertyName) =>
     {
-        var validation = await firstValidator.ValidateAsync((RegisterFirstStep)model);
+        var validation = await firstValidator.ValidateAsync((UserFirstStep)model);
         firstValidation = validation.IsValid;
         alreadyEnteredInfo = true;
 
-        if (firstValidation && usernameAvailable && emailAvailable) firstHasError = false;
+        firstHasError = !firstValidation;
 
-        StateHasChanged();
+        bool tempUsernameAvailable = true; bool tempEmailAvailable = true;
         Console.WriteLine("-------------------Validation-------------------------");
         if (!validation.IsValid)
         {
+            foreach (var error in validation.Errors)
+            {
+                if (error.ErrorCode == "USERNAMENOTAVAILABLE")
+                    tempUsernameAvailable = false;
+
+                if (error.ErrorCode == "EMAILNOTAVAILABLE")
+                    tempEmailAvailable = false;
+            }
+
             Console.WriteLine($"Form validation failed.");
             var dict = validation.ToDictionary();
             foreach (var kv in dict)
@@ -237,6 +228,10 @@
         }
         else Console.WriteLine($"Form validation passed!");
         Console.WriteLine("------------------------------------------------------");
+
+        usernameAvailable = tempUsernameAvailable;
+        emailAvailable = tempEmailAvailable;
+        StateHasChanged();
 
         if (validation.IsValid) return Array.Empty<string>();
 
@@ -249,10 +244,10 @@
 
     private Func<object, string, Task<IEnumerable<string>>> ValidateSecond => async (model, propertyName) =>
     {
-        var validation = await secondValidator.ValidateAsync((RegisterSecondStep)model);
+        var validation = await secondValidator.ValidateAsync((UserSecondStep)model);
         secondValidation = validation.IsValid;
 
-        if (secondValidation) secondHasError = false;
+        secondHasError = !secondValidation;
 
         StateHasChanged();
         Console.WriteLine("-------------------Validation-------------------------");
@@ -276,25 +271,9 @@
 
         return propertyErrors;
     };
-    
-    [CascadingParameter]
-    public AuthenticationStateProvider _provider { get; set; } = null!;
-    JWTAuthStateProvider provider = null!;
 
-    [CascadingParameter]
-    public AuthService authS { get; set;} = null!;
-
-    CustomDialog? confirmGoToLogin;
-    MudForm firstForm = null!;
-    MudForm secondForm = null!;
-    RegisterFirstStep firstModel = new ();
-    RegisterSecondStep secondModel = new();
-    bool firstValidation, firstHasError, secondValidation, secondHasError;
-    bool alreadyEnteredInfo;
-    bool usernameAvailable = true; bool emailAvailable = true;
-
-    async Task<bool> RegisterAsync() {
-
+    async Task<bool> RegisterAsync()
+    {
         Console.WriteLine("Registering a new account...");
 
         CreateUserRequest request = new

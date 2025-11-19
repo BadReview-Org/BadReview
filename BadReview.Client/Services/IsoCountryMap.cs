@@ -1,11 +1,11 @@
+using BadReview.Shared.DTOs.Request;
+
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
 
 namespace BadReview.Client.Services;
 
-public record IsoCountry(string Name, string Alpha_3, int Country_code);
-
-public class IsoCountryMap
+public class IsoCountryMap : ICountriesIso
 {
     public Dictionary<int, IsoCountry>? _lookup { private set; get; }
     private readonly HttpClient _client;

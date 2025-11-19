@@ -28,11 +28,13 @@
             </MudCollapse>
 
             <MudForm Model="@model" @ref="@form" Validation="@ValidateState" Spacing="4" Class="mb-6">
-                <MudTextField @bind-Value="model.Username"
-                    For="@(() => model.Username)" Label="Username" />
+                <MudTextField @bind-Value="model.Username" For="@(() => model.Username)"
+                    HelperText="Username" Adornment="Adornment.Start"
+                    AdornmentIcon="@Icons.Material.Filled.AccountCircle" />
 
                 <MudTextField @bind-Value="model.Password" For="@(() => model.Password)"
-                    InputType="InputType.Password" Label="Password" />
+                    InputType="InputType.Password" HelperText="Password"
+                    Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Lock" />
 
                 <MudPaper MaxWidth="25%" Elevation=0>
                     <MudButton Class="mt-4" Size="Size.Large"

@@ -9,7 +9,7 @@
 @inject NavigationManager Navigation
 @inject AuthService AuthService
 @inject ApiService ApiService
-@inject IsoCountryMap countriesMap
+@inject ICountriesIso countriesMap
 
 <PageTitle>Profile</PageTitle>
 
@@ -43,7 +43,7 @@ else
     private int totalPagesFavorite = 1;
     private int totalPagesReviews = 1;
 
-    private RegisterForm settingsModel = new();
+    private UserForm settingsModel = null!;
     
     protected override async Task OnInitializedAsync()
     {
@@ -61,21 +61,21 @@ else
             if (privateuser is null) Navigation.NavigateTo("/"); 
             else
             {
-                settingsModel = new RegisterForm
+                settingsModel = new UserForm
                 {
-                    First = new RegisterFirstStep
+                    First = new UserFirstStep
                     {
                         Username = privateuser.Username ?? "",
                         Password = "",
                         RepeatPassword = "",
                         Email = privateuser.Email ?? ""
                     },
-                    Second = new RegisterSecondStep
+                    Second = new UserSecondStep
                     {
                         FullName = privateuser.FullName,
                         Birthday = privateuser.Birthday,
                         Country = privateuser.Country is null ?
-                                    null : await countriesMap.GetAsync((int)privateuser.Country)
+                            null : await countriesMap.GetAsync((int)privateuser.Country)
                     }
                 };
             }
