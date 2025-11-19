@@ -10,11 +10,14 @@
                             ValueChanged="@OnDropdownChanged"
                             ResetValueOnEmptyText="true"
                             CoerceText="false"
+                            ToStringFunc="@ToStringFunc"
                              >
     <ItemTemplate Context="element">
         @(ItemTemplate?.Invoke(element))
     </ItemTemplate>
-    
+    <ItemSelectedTemplate Context="element">
+        @(ItemTemplate?.Invoke(element))
+    </ItemSelectedTemplate>
 </MudAutocomplete>
 
 @code{
@@ -22,6 +25,7 @@
     [Parameter] public EventCallback<T?> DropdownChanged { get; set; }
     [Parameter] public Func<string, Task<IEnumerable<T>>>? SearchElements { get; set; }
     [Parameter] public RenderFragment<T>? ItemTemplate { get; set; }
+    [Parameter] public Func<T?, string>? ToStringFunc { get; set; }
 
     private async Task<IEnumerable<T>> OnSearchElements(string value, CancellationToken token)
     { 
