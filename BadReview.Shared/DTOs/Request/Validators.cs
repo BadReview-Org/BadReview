@@ -25,7 +25,8 @@ public static class ValidatorRules
                 .WithMessage("Username must only contain letters, numbers and characters (- _ .)")
             .MustAsync(async (username, ct) => await checker.UsernameAvailable(username))
                 .WithMessage("Username is already in use. Pick another one.")
-                .WithErrorCode("USERNAMENOTAVAILABLE");
+                .WithErrorCode("USERNAMENOTAVAILABLE")
+                .When(x => !string.IsNullOrWhiteSpace(x.Username), ApplyConditionTo.CurrentValidator);
     }
 
     public static IRuleBuilderOptions<T, string> UsernameUpdateRule<T>
@@ -39,7 +40,8 @@ public static class ValidatorRules
             .MustAsync(async (username, ct) => await checker.UsernameAvailable(username))
                 .WithMessage("Username is already in use. Pick another one.")
                 .WithErrorCode("USERNAMENOTAVAILABLE")
-                .When(x => x.Username != originalUsername, ApplyConditionTo.CurrentValidator);
+                .When(x => x.Username != originalUsername && !string.IsNullOrWhiteSpace(x.Username),
+                      ApplyConditionTo.CurrentValidator);
     }
 
     public static IRuleBuilderOptions<T, string> PasswordRequiredRule<T>
@@ -62,8 +64,8 @@ public static class ValidatorRules
                 .WithMessage("Password contains forbidden characters.");
     }
 
-    public static IRuleBuilderOptions<T, string> PasswordOptionalRule<T>
-    (this IRuleBuilder<T, string> rule) where T : IPassword
+    public static IRuleBuilderOptions<T, string?> PasswordOptionalRule<T>
+    (this IRuleBuilder<T, string?> rule) where T : IPassword
     {
         return rule
             .Length(6, 20).WithMessage("Password must have [6-20] characters.")
@@ -87,20 +89,18 @@ public static class ValidatorRules
     {
         return rule
             .Equal(x => x.Password)
-                .When(x => x.Password is not null && x.RepeatPassword is not null,
+                .When(x => !string.IsNullOrWhiteSpace(x.Password) && !string.IsNullOrWhiteSpace(x.RepeatPassword),
                       ApplyConditionTo.CurrentValidator)
                 .WithMessage("Passwords must match.")
             .NotEmpty()
                 .WithMessage("Password is required.");
     }
 
-    public static IRuleBuilderOptions<T, string> RepeatPasswordOptionalRule<T>
-    (this IRuleBuilder<T, string> rule) where T : IPassword
+    public static IRuleBuilderOptions<T, string?> RepeatPasswordOptionalRule<T>
+    (this IRuleBuilder<T, string?> rule) where T : IPassword
     {
         return rule
             .Equal(x => x.Password)
-                .When(x => !string.IsNullOrEmpty(x.Password) && !string.IsNullOrEmpty(x.RepeatPassword),
-                      ApplyConditionTo.CurrentValidator)
                 .WithMessage("Passwords must match.");
     }
 
@@ -109,7 +109,6 @@ public static class ValidatorRules
     {
         return rule
             .NotEmpty()
-                .When(_ => true, ApplyConditionTo.CurrentValidator)
                 .WithMessage("Email is required.")
             .MaximumLength(30)
             .Matches("^[a-zA-Z0-9@._-]+$")
@@ -118,10 +117,11 @@ public static class ValidatorRules
                 .WithMessage("Invalid email format (correct example: user@domain.com).")
             .Must(email => email.Count(c => c == '@') == 1)
                 .WithMessage("Email must contain exactly one '@' character.")
+                .When(x => !string.IsNullOrWhiteSpace(x.Email), ApplyConditionTo.CurrentValidator)
             .MustAsync(async (email, ct) => await checker.EmailAvailable(email))
                 .WithMessage("Email is already in use. Pick another one.")
                 .WithErrorCode("EMAILNOTAVAILABLE")
-                .When(x => x.Email is not null);
+                .When(x => !string.IsNullOrWhiteSpace(x.Email), ApplyConditionTo.CurrentValidator);
     }
 
     public static IRuleBuilderOptions<T, string> EmailUpdateRule<T>
@@ -129,7 +129,6 @@ public static class ValidatorRules
     {
         return rule
             .NotEmpty()
-                .When(_ => true, ApplyConditionTo.CurrentValidator)
                 .WithMessage("Email is required.")
             .MaximumLength(30)
             .Matches("^[a-zA-Z0-9@._-]+$")
@@ -138,11 +137,12 @@ public static class ValidatorRules
                 .WithMessage("Invalid email format (correct example: user@domain.com).")
             .Must(email => email.Count(c => c == '@') == 1)
                 .WithMessage("Email must contain exactly one '@' character.")
+                .When(x => !string.IsNullOrWhiteSpace(x.Email), ApplyConditionTo.CurrentValidator)
             .MustAsync(async (email, ct) => await checker.EmailAvailable(email))
                 .WithMessage("Email is already in use. Pick another one.")
                 .WithErrorCode("EMAILNOTAVAILABLE")
                 .When(x => x.Email != originalEmail, ApplyConditionTo.CurrentValidator)
-                .When(x => x.Email is not null);
+                .When(x => !string.IsNullOrWhiteSpace(x.Email), ApplyConditionTo.CurrentValidator);
     }
 
     public static IRuleBuilderOptions<T, string?> FullNameRule<T, U>

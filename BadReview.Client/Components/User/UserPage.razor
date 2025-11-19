@@ -4,6 +4,7 @@
 @using BadReview.Shared.DTOs.Request
 @using BadReview.Shared.Utils
 @using BadReview.Client.Utils
+@using MudBlazor
 
 @inject ApiService ApiService
 @inject ICountriesIso countriesMap
@@ -268,14 +269,15 @@ else
                                             HelperText="Leave empty to keep current password"
                                             Adornment="Adornment.Start"
                                             AdornmentIcon="@Icons.Material.Filled.Lock" />
-
-                                <MudTextField @bind-Value="settingsModel.First.RepeatPassword"
-                                            For="@(() => settingsModel.First.RepeatPassword)"
-                                            Label="Confirm New Password"
-                                            InputType="InputType.Password"
-                                            Variant="Variant.Outlined"
-                                            Adornment="Adornment.Start"
-                                            AdornmentIcon="@Icons.Material.Filled.Lock" />
+                                <MudCollapse Expanded="@(!string.IsNullOrWhiteSpace(settingsModel.First.Password))">
+                                    <MudTextField @bind-Value="settingsModel.First.RepeatPassword"
+                                                For="@(() => settingsModel.First.RepeatPassword)"
+                                                Label="Confirm New Password"
+                                                InputType="InputType.Password"
+                                                Variant="Variant.Outlined"
+                                                Adornment="Adornment.Start"
+                                                AdornmentIcon="@Icons.Material.Filled.Lock" />
+                                </MudCollapse>
                             </MudForm>
                     </MudPaper>
 
@@ -301,13 +303,12 @@ else
                     </MudPaper>
                 </MudStack>
             
+                <MudCollapse Expanded="@(!string.IsNullOrEmpty(settingsMessage))">
+                    <MudAlert Severity="@settingsMessageSeverity" Class="mt-2">
+                        @settingsMessage
+                    </MudAlert>
+                </MudCollapse>
 
-            @if (!string.IsNullOrEmpty(settingsMessage))
-            {
-                <MudAlert Severity="@settingsMessageSeverity" Class="mt-2">
-                    @settingsMessage
-                </MudAlert>
-            }
             </MudItem>
             }
         </MudGrid>
@@ -338,7 +339,6 @@ else
 
     // Settings form
     private MudForm? settingsForm;
-    private string confirmPassword = "";
     private bool isSaving = false;
     private string settingsMessage = "";
     private Severity settingsMessageSeverity = Severity.Info;
@@ -414,19 +414,13 @@ else
     {
         if (settingsForm == null || AsPrivate == null) return;
 
+
         // Validar formulario
-        await settingsForm.Validate();
-        if (!settingsForm.IsValid)
+        var validation = await settingsValidator.ValidateAsync((UserForm)settingsModel);
+
+        if (!validation.IsValid)
         {
             settingsMessage = "Please fix the errors in the form.";
-            settingsMessageSeverity = Severity.Error;
-            return;
-        }
-
-        // Validar contraseñas si se proporcionó una
-        if (!string.IsNullOrEmpty(settingsModel.First.Password) && settingsModel.First.Password != confirmPassword)
-        {
-            settingsMessage = "Passwords don't match.";
             settingsMessageSeverity = Severity.Error;
             return;
         }
@@ -436,16 +430,16 @@ else
 
         try
         {
-            var updateRequest = new CreateUserRequest(
-                Username: settingsModel.First.Username ?? "",
-                Email: settingsModel.First.Email ?? "",
-                Password: string.IsNullOrEmpty(settingsModel?.First.Password) ? "" : settingsModel.First.Password,
-                FullName: string.IsNullOrEmpty(settingsModel?.Second.FullName) ? null : settingsModel.Second.FullName,
-                Birthday: settingsModel?.Second.Birthday,
-                Country: settingsModel?.Second.Country?.Country_code
+            var updateRequest = new UpdateUserRequest(
+                Username: settingsModel.First.Username!,
+                Email: settingsModel.First.Email!,
+                Password: settingsModel.First.Password,
+                FullName: settingsModel.Second.FullName,
+                Birthday: settingsModel.Second.Birthday,
+                Country: settingsModel.Second.Country?.Country_code
             );
 
-            var response = await ApiService.PutAsync<CreateUserRequest, BasicUserDto>(
+            var response = await ApiService.PutAsync<UpdateUserRequest, BasicUserDto>(
                 APIUTILS.URIS.UPDATEPROFILE, 
                 updateRequest
             );
@@ -454,18 +448,25 @@ else
             {
                 settingsMessage = "Settings saved successfully!";
                 settingsMessageSeverity = Severity.Success;
-                confirmPassword = "";
-                if (settingsModel != null)
-                {
-                    settingsModel.First.Password = "";
-                }
 
-                // Notificar al componente padre que se actualizó el usuario
-                await OnUserUpdated.InvokeAsync();
+                oldSettings = new UserForm(settingsModel);
+                oldSettings.First.Password = null!;
+                oldSettings.First.RepeatPassword = null;
 
+                settingsValidator = new UserFormUpdateValidator(
+                    new UserFirstStepUpdateValidator
+                        (checkAvailables, settingsModel.Username, settingsModel.Email),
+                    new UserSecondStepUpdateValidator(countriesMap));
+
+                StateHasChanged();
                 // Volver a la vista principal después de 2 segundos
                 await Task.Delay(2000);
+                
+                // Notificar al componente padre que se actualizó el usuario
                 showSettings = false;
+                settingsMessage = "";
+
+                await OnUserUpdated.InvokeAsync();
             }
             else
             {
@@ -497,18 +498,7 @@ else
         settingsHasChanged = false;
         settingsModel = new UserForm(oldSettings);
         settingsMessage = "";
-        confirmPassword = "";
     }
-
-    private class UserSettingsModel
-    {
-        public string Username { get; set; } = "";
-        public string FullName { get; set; } = "";
-        public string Email { get; set; } = "";
-        public DateTime? Birthday { get; set; }
-        public int? Country { get; set; }
-        public string Password { get; set; } = "";
-    }   
 
     private async Task OnPageReviewsChanged(int page)
     {

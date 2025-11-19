@@ -10,7 +10,7 @@ public record UserCheckAvailable(string? Username, string? Email);
 // interfaces
 public interface IUsername { string Username { get; } }
 
-public interface IPassword { string Password { get; } string? RepeatPassword { get; } }
+public interface IPassword { string? Password { get; } string? RepeatPassword { get; } }
 
 public interface ILogin : IUsername, IPassword;
 
@@ -29,6 +29,18 @@ public record CreateUserRequest(
     string Username,
     string Email,
     string Password,
+    string? FullName,
+    DateTime? Birthday,
+    int? Country
+) : IRequireds, IOptionals<int?>
+{
+    public string? RepeatPassword => null;
+}
+
+public record UpdateUserRequest(
+    string Username,
+    string Email,
+    string? Password,
     string? FullName,
     DateTime? Birthday,
     int? Country
@@ -139,6 +151,28 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 
         // Birthday (mínimo 12 años)
         RuleFor(x => x.Birthday).BirthdayRule<CreateUserRequest, int?>(); 
+    }
+}
+
+public class UpdateUserRequestValidator : AbstractValidator<UpdateUserRequest>
+{
+    public UpdateUserRequestValidator
+    (ValidatorRules.ICheckAvailables checker, string? originalUsername, string? originalEmail)
+    {
+        // Username
+        RuleFor(x => x.Username).UsernameUpdateRule(checker, originalUsername);
+
+        // Password
+        RuleFor(x => x.Password).PasswordOptionalRule();
+
+        // Email
+        RuleFor(x => x.Email).EmailUpdateRule(checker, originalEmail);
+
+        // FullName (solo letras y espacios, 40 caracteres máx)
+        RuleFor(x => x.FullName).FullNameRule<UpdateUserRequest, int?>();
+
+        // Birthday (mínimo 12 años)
+        RuleFor(x => x.Birthday).BirthdayRule<UpdateUserRequest, int?>(); 
     }
 }
 

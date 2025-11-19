@@ -48,10 +48,10 @@ builder.Services.AddScoped<UserFirstStepCreateValidator>();
 builder.Services.AddScoped<UserSecondStepCreateValidator>();
 builder.Services.AddScoped<UserFormCreateValidator>();
 
-// Profile (update)
-builder.Services.AddScoped<UserFirstStepUpdateValidator>();
-builder.Services.AddScoped<UserSecondStepUpdateValidator>();
-builder.Services.AddScoped<UserFormUpdateValidator>();
+// Profile (update) (can't be automatically injected because the first step update validator requires two strings)
+//builder.Services.AddScoped<UserFirstStepUpdateValidator>();
+//builder.Services.AddScoped<UserSecondStepUpdateValidator>();
+//builder.Services.AddScoped<UserFormUpdateValidator>();
 
 builder.Services.AddAuthorizationCore();
 
