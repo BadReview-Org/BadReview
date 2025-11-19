@@ -17,6 +17,16 @@ public class IsoCountryMap
         _client = client;
         _nav = nav;
     }
+    public async Task<string> GetCountryName(int? countryCode)
+    {
+        IsoCountry? country = null;
+        if (countryCode is not null) country = await GetAsync((int)countryCode);
+        
+        if (country is null) return "No country selected";
+
+
+        return $"{country.Name} ({country.Alpha_3})";
+    }
 
     public async Task<IsoCountry?> GetAsync(int code)
     {

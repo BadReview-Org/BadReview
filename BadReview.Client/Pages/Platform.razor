@@ -77,12 +77,20 @@ else
                     <!-- Country -->
                     @if (platform.PlatformType != null)
                     {
-                    <GameInfoSection TItem="int"
+                    <GameInfoSection TItem="PlatformDto"
                                      Title="Platform Type"
                                      Icon="@Icons.Material.Filled.Flag"
                                      Items="@PlatformType"
                                      ChipColor="Color.Primary"
-                                     GetItemText="@(c => c.ToString())" />
+                                     RenderAsChips="false"
+                                    >
+                    <ItemTemplate Context="plat">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@IconsMap.PlatformTypeIcon[(IconsMap.PlatformTypes)(platform.PlatformType ?? 0)]" Size="Size.Small" />
+                             @plat.PlatformTypeName
+                        </MudStack>
+                    </ItemTemplate>
+                    </GameInfoSection>
                     }
 
                 </MudStack>
@@ -112,12 +120,13 @@ else
     private PlatformDto? platform { get; set; }
     private int totalPagesGames = 1;
     private CardContainer[]? platformGames { get; set; }
-    private List<int> PlatformType = new List<int>();
+    private List<PlatformDto> PlatformType = new List<PlatformDto>();
 
     private int descriptionWidth = 6;
     protected override async Task OnInitializedAsync(){
         platform = await ApiService.PublicGetByIdAsync<PlatformDto>(APIUTILS.URIS.PLATFORMS, id);
-        PlatformType.Add(platform?.PlatformType ?? 0);
+        if(platform is not null)
+            PlatformType.Add(platform);
         var GameRequest = new ApiRequest{
             URI = APIUTILS.URIS.GAMES,
             Filters = $"platforms = [{id}]",

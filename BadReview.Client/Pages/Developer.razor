@@ -3,11 +3,13 @@
 @using BadReview.Client.Utils
 @using BadReview.Shared.Utils
 @using Microsoft.JSInterop
+@using BadReview.Client.Services
 @inject HttpClient Client
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inject ApiService ApiService
 @inject AuthenticationStateProvider _AuthStateProvider
+@inject IsoCountryMap countriesMap
 
 <PageTitle>@developer?.Name</PageTitle>
 
@@ -77,14 +79,20 @@ else
                     <!-- Country -->
                     @if (developer.Country != null)
                     {
-                    <GameInfoSection TItem="int"
+                    <GameInfoSection TItem="DetailDeveloperDto"
                                      Title="Country"
                                      Icon="@Icons.Material.Filled.Flag"
                                      Items="@Country"
                                      ChipColor="Color.Primary"
-                                     GetItemText="@(c => c.ToString())" />
+                                     RenderAsChips="false"
+                                        >
+                    <ItemTemplate Context="developer">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                             @countryName
+                        </MudStack>
+                    </ItemTemplate>  
+                    </GameInfoSection>    
                     }
-
                 </MudStack>
             </MudItem>
             }
@@ -112,12 +120,20 @@ else
     private DetailDeveloperDto? developer { get; set; }
     private int totalPagesGames = 1;
     private CardContainer[]? developerGames { get; set; }
-    private List<int> Country = new List<int>();
+    private List<DetailDeveloperDto> Country = new List<DetailDeveloperDto>();
+    private string countryName = "";
 
     private int descriptionWidth = 6;
     protected override async Task OnInitializedAsync(){
         developer = await ApiService.PublicGetByIdAsync<DetailDeveloperDto>(APIUTILS.URIS.DEVELOPER, id);
-        Country.Add(developer?.Country ?? 0);
+        if(developer is not null)
+        {
+            Country.Add(developer);
+            if(developer.Country != null)
+            {
+                countryName = await countriesMap.GetCountryName(developer.Country);
+            }
+        }
         var GameRequest = new ApiRequest{
             URI = APIUTILS.URIS.GAMES,
             Filters = $"involved_companies.company = {id}&involved_companies.developer = true",
@@ -160,6 +176,8 @@ else
             // Keep default colors
         }
     }
+
+
     private string primaryColor = "#667eea";
     private string secondaryColor = "#764ba2";
 
