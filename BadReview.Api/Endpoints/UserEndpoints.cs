@@ -100,9 +100,6 @@ public static class UserEndpoints
             var response = code switch
             {
                 UserCode.OK => Results.Ok(dto),
-                UserCode.USERNAMEALREADYEXISTS => Results.Conflict("Username already exists."),
-                UserCode.EMAILALREADYEXISTS => Results.Conflict("Email already exists."),
-                UserCode.NULLPASSWORD => Results.BadRequest("Didn't receive a password."),
                 _ => Results.InternalServerError()
             };
 
@@ -115,22 +112,28 @@ public static class UserEndpoints
     }
 
     private static async Task<IResult> UpdateUser
-    (ClaimsPrincipal claims, CreateUserRequest req, IUserService userService, IValidator<CreateUserRequest> validator)
+    (ClaimsPrincipal claims, UpdateUserRequest req, IUserService userService, ValidatorRules.ICheckAvailables checker)
     {
+        (UserCode code, User? user) = await userService.GetPlainUserFromClaims(claims);
+
+        if (code == UserCode.BADUSERCLAIMS)
+            return Results.BadRequest("Can't retrieve user id from JWT claims.");
+        else if (code == UserCode.USERNAMENOTFOUND || user is null)
+            return Results.NotFound("User's not registered.");
+
+        IValidator<UpdateUserRequest> validator = new UpdateUserRequestValidator(checker, user.Username, user.Email);
+
         ValidationResult validation = await validator.ValidateAsync(req);
         if (!validation.IsValid) return Results.BadRequest(validation.ToDictionary());
+
         
         try
         {
-            (UserCode code, BasicUserDto? dto) = await userService.UpdateUserAsync(claims, req);
+            (code, BasicUserDto? dto) = await userService.UpdateUserAsync(req, user);
 
             var response = code switch
             {
                 UserCode.OK => Results.Ok(dto),
-                UserCode.BADUSERCLAIMS => Results.BadRequest("Can't retrieve user id from JWT claims."),
-                UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered."),
-                UserCode.USERNAMEALREADYEXISTS => Results.Conflict("Trying to change Username to a one already registered."),
-                UserCode.EMAILALREADYEXISTS => Results.Conflict("Trying to change Email to a one already registered."),
                 _ => Results.InternalServerError()
             };
 
@@ -145,15 +148,21 @@ public static class UserEndpoints
     private static async Task<IResult> DeleteUser
     (ClaimsPrincipal claims, IUserService userService)
     {
+        (UserCode code, User? user) = await userService.GetPlainUserFromClaims(claims);
+
+        if (code == UserCode.BADUSERCLAIMS)
+            return Results.BadRequest("Can't retrieve user id from JWT claims.");
+        else if (code == UserCode.USERNAMENOTFOUND || user is null)
+            return Results.NotFound("User's not registered.");
+
+
         try
         {
-            UserCode code = await userService.DeleteUserAsync(claims);
+            code = await userService.DeleteUserAsync(user);
 
             var response = code switch
             {
                 UserCode.OK => Results.NoContent(),
-                UserCode.BADUSERCLAIMS => Results.BadRequest("Can't retrieve user id from JWT claims."),
-                UserCode.USERNAMENOTFOUND => Results.NotFound("User's not registered."),
                 _ => Results.InternalServerError()
             };
 
@@ -233,9 +242,9 @@ public static class UserEndpoints
         string? username = req.Username;
         if (string.IsNullOrWhiteSpace(username)) return Results.BadRequest();
 
-        bool exists = await userService.UsernameExists(username);
+        bool available = await userService.UsernameAvailable(username);
 
-        return exists ? Results.Conflict(username) : Results.Ok(username);
+        return available ? Results.Ok(username) : Results.Conflict(username);
     }
 
     private static async Task<IResult> IsEmailAvailable
@@ -244,8 +253,8 @@ public static class UserEndpoints
         string? email = req.Email;
         if (string.IsNullOrWhiteSpace(email)) return Results.BadRequest();
 
-        bool exists = await userService.EmailExists(email);
+        bool exists = await userService.EmailAvailable(email);
 
-        return exists ? Results.Conflict(email) : Results.Ok(email);
+        return exists ? Results.Ok(email) : Results.Conflict(email);
     }
 }

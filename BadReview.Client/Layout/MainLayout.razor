@@ -167,9 +167,9 @@
 
     private async void LogoutAsync()
     {
-        await AuthService.LogoutAsync(stateProvider); 
         ShowSnackbar("Logged out, reloading the page ...", Severity.Info);
-        await Task.Delay(2000);
+        await AuthService.LogoutAsync(stateProvider); 
+        await Task.Delay(500);
         Navigation.Refresh();
 
         void ShowSnackbar(string msg, Severity severity)

@@ -69,6 +69,7 @@ public class AuthService
     {
         await js.InvokeVoidAsync("localStorage.removeItem", AccessKey);
         await js.InvokeVoidAsync("localStorage.removeItem", RefreshKey);
+        await Task.Delay(2000);
         prov.NotifyAuthStateChanged();
     }
 

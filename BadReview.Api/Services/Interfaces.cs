@@ -59,16 +59,18 @@ public interface IUserService
 {
     public enum UserCode { OK, USERNAMENOTFOUND, PASSDONTMATCH, USERNAMEALREADYEXISTS, EMAILALREADYEXISTS, BADUSERCLAIMS, NULLPASSWORD }
 
+    
     Task<User?> GetUserByIdAsync(int id);
+    Task<(UserCode, User?)> GetPlainUserFromClaims(ClaimsPrincipal claims);
     Task<(UserCode, PrivateUserDto?)> GetUserPrivateData(int userId, PaginationRequest pag);
     Task<(UserCode, PublicUserDto?)> GetUserPublicData(int userId, PaginationRequest pag);
     Task<(UserCode, RegisterUserDto?)> CreateUserAsync(CreateUserRequest req);
-    Task<(UserCode, BasicUserDto?)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req);
-    Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims);
+    Task<(UserCode, BasicUserDto?)> UpdateUserAsync(UpdateUserRequest req, User existingUser);
+    Task<UserCode> DeleteUserAsync(User existingUser);
     Task<(UserCode, UserTokensDto?)> LoginUserAsync(LoginUserRequest req);
     Task<(UserCode, UserTokensDto?)> RefreshTokens(ClaimsPrincipal refreshTokenClaims);
-    Task<bool> UsernameExists(string username);
-    Task<bool> EmailExists(string email);
+    Task<bool> UsernameAvailable(string username);
+    Task<bool> EmailAvailable(string email);
 }
 
 public interface IIGDBService

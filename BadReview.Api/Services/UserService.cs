@@ -20,23 +20,48 @@ public class UserService : IUserService
     private readonly IIGDBService _igdb;
     private readonly BadReviewContext _db;
     private readonly IAuthService _auth;
+    private readonly ValidatorRules.ICheckAvailables _checkAvailableCreds;
 
-    public UserService(IIGDBService igdb, BadReviewContext db, IAuthService auth)
+    public UserService(IIGDBService igdb, BadReviewContext db, IAuthService auth, ValidatorRules.ICheckAvailables checker)
     {
         _igdb = igdb;
         _db = db;
         _auth = auth;
+        _checkAvailableCreds = checker;
+    }
+
+    public async Task<User?> GetUserByIdAsync(int id)
+    {
+        return await _db.Users
+            .Include(u => u.Reviews)
+                .ThenInclude(r => r.Game)
+            .FirstOrDefaultAsync(u => u.Id == id);
+    }
+
+    public async Task<(UserCode, User?)> GetPlainUserFromClaims(ClaimsPrincipal claims)
+    {
+        string? claimUserId =
+            claims.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+
+        if (claimUserId is null) return (UserCode.BADUSERCLAIMS, null);
+
+        var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(claimUserId));
+
+        if (existingUser is null) return (UserCode.USERNAMENOTFOUND, null);
+
+        return (UserCode.OK, existingUser);
     }
 
     public async Task<(UserCode, RegisterUserDto?)> CreateUserAsync(CreateUserRequest req)
     {
+        /* these validations are no longer necessary since they run on the validator (on the endpoint)
         if (await _db.Users.AnyAsync(u => u.Username == req.Username))
             return (UserCode.USERNAMEALREADYEXISTS, null);
 
         if (await _db.Users.AnyAsync(u => u.Email == req.Email))
             return (UserCode.EMAILALREADYEXISTS, null);
 
-        if (req.Password is null) return (UserCode.NULLPASSWORD, null);
+        if (req.Password is null) return (UserCode.NULLPASSWORD, null);*/
 
 
         var hashedPassword = _auth.HashPassword(req.Username, req.Password);
@@ -66,35 +91,42 @@ public class UserService : IUserService
         return (UserCode.OK, new RegisterUserDto(userDto, new UserTokensDto(accessToken, refreshToken)));
     }
 
-    public async Task<UserCode> DeleteUserAsync(ClaimsPrincipal userClaims)
+    public async Task<(UserCode, BasicUserDto?)> UpdateUserAsync
+    (UpdateUserRequest req, User existingUser)
     {
-        string? claimUserId =
-            userClaims.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+        // Validar que Username sea único (excluyendo el usuario actual)
+        /*if (await _db.Users.AnyAsync(u => u.Username == req.Username && u.Id != existingUser.Id))
+            return (UserCode.USERNAMEALREADYEXISTS, null);
 
-        if (claimUserId is null) return UserCode.BADUSERCLAIMS;
+        // Validar que Email sea único (excluyendo el usuario actual)
+        if (await _db.Users.AnyAsync(u => u.Email == req.Email && u.Id != existingUser.Id))
+            return (UserCode.EMAILALREADYEXISTS, null);*/
 
+        existingUser.Username = req.Username;
+        existingUser.Email = req.Email;
+        existingUser.FullName = req.FullName;
+        existingUser.Birthday = req.Birthday;
+        existingUser.Country = req.Country;
 
-        var existingUser = await _db.Users
-            .Where(u => u.Id == int.Parse(claimUserId))
-            .FirstOrDefaultAsync();
+        if (req.Password is null)
+            existingUser.Password = _auth.HashPassword(existingUser.Username, existingUser.Password);
+        else
+            existingUser.Password = _auth.HashPassword(existingUser.Username, req.Password);
 
-        if (existingUser is null) return UserCode.USERNAMENOTFOUND;
+        if (!await _db.SafeSaveChangesAsync())
+            throw new WritingToDBException("Exception while updating the user information in the DB.");
 
+        return (UserCode.OK, new BasicUserDto(existingUser.Id, existingUser.Username));
+    }
 
+    public async Task<UserCode> DeleteUserAsync(User existingUser)
+    {
         _db.Users.Remove(existingUser);
 
         if (!await _db.SafeSaveChangesAsync())
             throw new WritingToDBException("Exception while removing the requested user from the DB.");
 
         return UserCode.OK;
-    }
-
-    public async Task<User?> GetUserByIdAsync(int id)
-    {
-        return await _db.Users
-            .Include(u => u.Reviews)
-                .ThenInclude(r => r.Game)
-            .FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<(UserCode, PrivateUserDto?)> GetUserPrivateData(int userId, PaginationRequest pag)
@@ -207,43 +239,6 @@ public class UserService : IUserService
         return (UserCode.OK, userDto);
     }
 
-    public async Task<(UserCode, BasicUserDto?)> UpdateUserAsync(ClaimsPrincipal userClaims, CreateUserRequest req)
-    {
-        string? claimUserId =
-            userClaims.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
-
-        if (claimUserId is null) return (UserCode.BADUSERCLAIMS, null);
-
-        var existingUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(claimUserId));
-
-        if (existingUser is null) return (UserCode.USERNAMENOTFOUND, null);
-
-        // Validar que Username sea único (excluyendo el usuario actual)
-        if (await _db.Users.AnyAsync(u => u.Username == req.Username && u.Id != existingUser.Id))
-            return (UserCode.USERNAMEALREADYEXISTS, null);
-
-        // Validar que Email sea único (excluyendo el usuario actual)
-        if (await _db.Users.AnyAsync(u => u.Email == req.Email && u.Id != existingUser.Id))
-            return (UserCode.EMAILALREADYEXISTS, null);
-
-
-        existingUser.Username = req.Username;
-        existingUser.Email = req.Email;
-        existingUser.FullName = req.FullName;
-        existingUser.Birthday = req.Birthday;
-        existingUser.Country = req.Country;
-
-        if (req.Password is null)
-            existingUser.Password = _auth.HashPassword(existingUser.Username, existingUser.Password);
-        else
-            existingUser.Password = _auth.HashPassword(existingUser.Username, req.Password);
-
-        if (!await _db.SafeSaveChangesAsync())
-            throw new WritingToDBException("Exception while updating the user information in the DB.");
-
-        return (UserCode.OK, new BasicUserDto(existingUser.Id, existingUser.Username));
-    }
-
     public async Task<(UserCode, UserTokensDto?)> LoginUserAsync(LoginUserRequest req)
     {
         var user = await _db.Users
@@ -281,7 +276,7 @@ public class UserService : IUserService
         return (UserCode.OK, new UserTokensDto(newAccessToken, newRefreshToken));
     }
 
-    public async Task<bool> UsernameExists(string username) => await _db.Users.AnyAsync(u => u.Username == username);
+    public Task<bool> UsernameAvailable(string username) => _checkAvailableCreds.UsernameAvailable(username);
 
-    public async Task<bool> EmailExists(string email) => await _db.Users.AnyAsync(u => u.Email == email);
+    public Task<bool> EmailAvailable(string email) => _checkAvailableCreds.EmailAvailable(email);
 }

@@ -4,8 +4,12 @@
 @using BadReview.Shared.DTOs.Request
 @using BadReview.Shared.Utils
 @using BadReview.Client.Utils
+@using MudBlazor
+
 @inject ApiService ApiService
-@inject IsoCountryMap countriesMap
+@inject ICountriesIso countriesMap
+@inject ValidatorRules.ICheckAvailables checkAvailables
+@inject HttpClient Client
 
 @if (user == null)
 {
@@ -49,8 +53,11 @@ else
                                 </MudStack>
                             </MudStack>
                             @if(IsPrivateProfile)
-                            { 
-                            <MudIcon @onclick="() => showSettings = !showSettings" Icon="@Icons.Material.Filled.Settings" Size="Size.Large" Style="color: white; cursor: pointer;" />
+                            {
+                                <MudCollapse Expanded="!showSettings">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Settings" 
+                                        Style="color: white" Size="Size.Large" OnClick="() => showSettings = !showSettings"/>
+                                </MudCollapse>
                             }
                         </MudStack>
                     </MudPaper>
@@ -174,25 +181,26 @@ else
             <MudItem xs="12" md="6">
                 <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
-                        <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Medium" />
+                        <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Large" Class="mr-2" />
+                        
                         <MudText Typo="Typo.h5" Style="color: #764ba2;">
                             User Settings
                         </MudText>
                     </MudStack>
                     
-                    <MudForm @ref="settingsForm" Model="@settingsModel">
+                    <MudForm @ref="settingsForm" Model="@settingsModel" Validation="@ValidateSettings">
                         <MudStack Spacing="3" Class="mt-4">
                             <!-- Username -->
                             <MudTextField @bind-Value="settingsModel.First.Username"
+                                          For="@(() => settingsModel.First.Username)"
                                           Label="Username"
                                           Variant="Variant.Outlined"
-                                          Required="true"
-                                          RequiredError="Username is required"
                                           Adornment="Adornment.Start"
                                           AdornmentIcon="@Icons.Material.Filled.AccountCircle" />
 
                             <!-- Full Name -->
                             <MudTextField @bind-Value="settingsModel.Second.FullName"
+                                          For="@(() => settingsModel.Second.FullName)"
                                           Label="Full Name"
                                           Variant="Variant.Outlined"
                                           Adornment="Adornment.Start"
@@ -200,19 +208,20 @@ else
 
                             <!-- Email -->
                             <MudTextField @bind-Value="settingsModel.First.Email"
+                                          For="@(() => settingsModel.First.Email)"
                                           Label="Email"
                                           InputType="InputType.Email"
                                           Variant="Variant.Outlined"
-                                          Required="true"
-                                          RequiredError="Email is required"
                                           Adornment="Adornment.Start"
                                           AdornmentIcon="@Icons.Material.Filled.Email" />
 
                             <!-- Birthday -->
                             <MudDatePicker @bind-Date="settingsModel.Second.Birthday"
+                                           For="@(() => settingsModel.Second.Birthday)"
                                            Label="Birthday"
                                            Variant="Variant.Outlined"
-                                           Editable="true"
+                                           Clearable="true"
+                                           ShowToolbar="false"
                                            DateFormat="dd/MM/yyyy"
                                            MaxDate="@DateTime.Today"
                                            Adornment="Adornment.Start"
@@ -246,27 +255,30 @@ else
                                 Password Settings
                             </MudText>
                         </MudStack>
+                            <MudForm @ref="settingsForm" Model="@settingsModel" Validation="@ValidateSettings">
                                 <!-- Password Section -->
                                 <MudText Typo="Typo.h6" Style="color: #667eea;">
                                     Change Password 
                                 </MudText>
                                 
                                 <MudTextField @bind-Value="settingsModel.First.Password"
+                                            For="@(() => settingsModel.First.Password)"
                                             Label="New Password"
                                             InputType="InputType.Password"
                                             Variant="Variant.Outlined"
                                             HelperText="Leave empty to keep current password"
                                             Adornment="Adornment.Start"
                                             AdornmentIcon="@Icons.Material.Filled.Lock" />
-
-                                <MudTextField @bind-Value="confirmPassword"
-                                            Label="Confirm New Password"
-                                            InputType="InputType.Password"
-                                            Variant="Variant.Outlined"
-                                            Error="@(!string.IsNullOrEmpty(settingsModel.First.Password) && settingsModel.First.Password != confirmPassword)"
-                                            ErrorText="Passwords don't match"
-                                            Adornment="Adornment.Start"
-                                            AdornmentIcon="@Icons.Material.Filled.Lock" />
+                                <MudCollapse Expanded="@(!string.IsNullOrWhiteSpace(settingsModel.First.Password))">
+                                    <MudTextField @bind-Value="settingsModel.First.RepeatPassword"
+                                                For="@(() => settingsModel.First.RepeatPassword)"
+                                                Label="Confirm New Password"
+                                                InputType="InputType.Password"
+                                                Variant="Variant.Outlined"
+                                                Adornment="Adornment.Start"
+                                                AdornmentIcon="@Icons.Material.Filled.Lock" />
+                                </MudCollapse>
+                            </MudForm>
                     </MudPaper>
 
                     <!-- Action Buttons -->
@@ -277,13 +289,13 @@ else
                                             Color="Color.Primary"
                                             StartIcon="@Icons.Material.Filled.Save"
                                             OnClick="SaveSettings"
-                                            Disabled="@isSaving">
+                                            Disabled="@(isSaving || !settingsHasChanged || !settingsValidation)">
                                     @(isSaving ? "Saving..." : "Save Changes")
                                 </MudButton>
                                 <MudButton Variant="Variant.Outlined"
                                             Color="Color.Default"
                                             StartIcon="@Icons.Material.Filled.Cancel"
-                                            OnClick="CancelSettings">
+                                            OnClick="CancelSettingsWrapper">
                                     Cancel
                                 </MudButton>
                             </MudStack>
@@ -291,18 +303,25 @@ else
                     </MudPaper>
                 </MudStack>
             
+                <MudCollapse Expanded="@(!string.IsNullOrEmpty(settingsMessage))">
+                    <MudAlert Severity="@settingsMessageSeverity" Class="mt-2">
+                        @settingsMessage
+                    </MudAlert>
+                </MudCollapse>
 
-            @if (!string.IsNullOrEmpty(settingsMessage))
-            {
-                <MudAlert Severity="@settingsMessageSeverity" Class="mt-2">
-                    @settingsMessage
-                </MudAlert>
-            }
             </MudItem>
             }
         </MudGrid>
     </MudContainer>
+
+    <CustomDialog @ref="confirmCancel"
+                Title="Cancel"
+                Icon="@Icons.Material.Filled.Announcement"
+                OnConfirm="CancelSettings">
+        <MudText> Unsaved changes will be lost. Continue? </MudText>
+    </CustomDialog>
 }
+
 @code{
     [Parameter] public IUserDto? user { get; set; }
     [Parameter] public List<DetailReviewDto>? userReviews { get; set; }
@@ -311,8 +330,8 @@ else
     [Parameter] public int totalPagesReviews { get; set; }
     [Parameter] public EventCallback OnUserUpdated { get; set; }
 
-    [Parameter] public RegisterForm settingsModel { get; set; } = new();
-
+    [Parameter] public UserForm settingsModel { get; set; } = new();
+    private UserForm oldSettings = null!;
 
     private bool IsPrivateProfile => user is PrivateUserDto;
     private bool showSettings = false;
@@ -320,12 +339,50 @@ else
 
     // Settings form
     private MudForm? settingsForm;
-    private string confirmPassword = "";
     private bool isSaving = false;
     private string settingsMessage = "";
     private Severity settingsMessageSeverity = Severity.Info;
 
     private string countryString = "";
+
+    private CustomDialog? confirmCancel;
+    private bool settingsHasChanged = false;
+    private bool usernameAvailable = true;
+    private bool emailAvailable = true;
+    private bool settingsValidation = true;
+    private UserFormUpdateValidator settingsValidator = null!;
+
+    private Func<object, string, Task<IEnumerable<string>>> ValidateSettings => async (model, propertyName) =>
+    {
+        if (settingsValidator is null) return Array.Empty<string>();
+
+        
+        var validation = await settingsValidator.ValidateAsync((UserForm)model);
+        settingsValidation = validation.IsValid;
+        settingsHasChanged = true;
+
+        StateHasChanged();
+        Console.WriteLine("-------------------Validation-------------------------");
+        if (!validation.IsValid)
+        {
+            Console.WriteLine($"Form validation failed.");
+            var dict = validation.ToDictionary();
+            foreach (var kv in dict)
+            {
+                Console.WriteLine($"- {kv.Key}: {string.Join("\n    ", kv.Value)}");
+            }
+        }
+        else Console.WriteLine($"Form validation passed!");
+        Console.WriteLine("------------------------------------------------------");
+
+        if (validation.IsValid) return Array.Empty<string>();
+
+        var propertyErrors = validation.Errors
+            .Where(e => e.PropertyName == propertyName)
+            .Select(e => e.ErrorMessage);
+
+        return propertyErrors;
+    };
 
     private async Task<IEnumerable<IsoCountry>> SearchCountry(string value, CancellationToken token)
     {
@@ -357,19 +414,13 @@ else
     {
         if (settingsForm == null || AsPrivate == null) return;
 
+
         // Validar formulario
-        await settingsForm.Validate();
-        if (!settingsForm.IsValid)
+        var validation = await settingsValidator.ValidateAsync((UserForm)settingsModel);
+
+        if (!validation.IsValid)
         {
             settingsMessage = "Please fix the errors in the form.";
-            settingsMessageSeverity = Severity.Error;
-            return;
-        }
-
-        // Validar contraseñas si se proporcionó una
-        if (!string.IsNullOrEmpty(settingsModel.First.Password) && settingsModel.First.Password != confirmPassword)
-        {
-            settingsMessage = "Passwords don't match.";
             settingsMessageSeverity = Severity.Error;
             return;
         }
@@ -379,16 +430,16 @@ else
 
         try
         {
-            var updateRequest = new CreateUserRequest(
-                Username: settingsModel.First.Username ?? "",
-                Email: settingsModel.First.Email ?? "",
-                Password: string.IsNullOrEmpty(settingsModel?.First.Password) ? "" : settingsModel.First.Password,
-                FullName: string.IsNullOrEmpty(settingsModel?.Second.FullName) ? null : settingsModel.Second.FullName,
-                Birthday: settingsModel?.Second.Birthday,
-                Country: settingsModel?.Second.Country?.Country_code
+            var updateRequest = new UpdateUserRequest(
+                Username: settingsModel.First.Username!,
+                Email: settingsModel.First.Email!,
+                Password: settingsModel.First.Password,
+                FullName: settingsModel.Second.FullName,
+                Birthday: settingsModel.Second.Birthday,
+                Country: settingsModel.Second.Country?.Country_code
             );
 
-            var response = await ApiService.PutAsync<CreateUserRequest, BasicUserDto>(
+            var response = await ApiService.PutAsync<UpdateUserRequest, BasicUserDto>(
                 APIUTILS.URIS.UPDATEPROFILE, 
                 updateRequest
             );
@@ -397,18 +448,25 @@ else
             {
                 settingsMessage = "Settings saved successfully!";
                 settingsMessageSeverity = Severity.Success;
-                confirmPassword = "";
-                if (settingsModel != null)
-                {
-                    settingsModel.First.Password = "";
-                }
 
-                // Notificar al componente padre que se actualizó el usuario
-                await OnUserUpdated.InvokeAsync();
+                oldSettings = new UserForm(settingsModel);
+                oldSettings.First.Password = null!;
+                oldSettings.First.RepeatPassword = null;
 
+                settingsValidator = new UserFormUpdateValidator(
+                    new UserFirstStepUpdateValidator
+                        (checkAvailables, settingsModel.Username, settingsModel.Email),
+                    new UserSecondStepUpdateValidator(countriesMap));
+
+                StateHasChanged();
                 // Volver a la vista principal después de 2 segundos
                 await Task.Delay(2000);
+                
+                // Notificar al componente padre que se actualizó el usuario
                 showSettings = false;
+                settingsMessage = "";
+
+                await OnUserUpdated.InvokeAsync();
             }
             else
             {
@@ -427,22 +485,20 @@ else
         }
     }
 
+    private void CancelSettingsWrapper()
+    {
+        if (settingsHasChanged) confirmCancel?.Open();
+        else CancelSettings();
+    }
+
+
     private void CancelSettings()
     {
         showSettings = false;
+        settingsHasChanged = false;
+        settingsModel = new UserForm(oldSettings);
         settingsMessage = "";
-        confirmPassword = "";
     }
-
-    private class UserSettingsModel
-    {
-        public string Username { get; set; } = "";
-        public string FullName { get; set; } = "";
-        public string Email { get; set; } = "";
-        public DateTime? Birthday { get; set; }
-        public int? Country { get; set; }
-        public string Password { get; set; } = "";
-    }   
 
     private async Task OnPageReviewsChanged(int page)
     {
@@ -479,7 +535,17 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        if (user is not null)
-            countryString = await GetCountryName(user.Country);
+        if (settingsModel is not null)
+        {
+            countryString = await GetCountryName(settingsModel.Country?.Country_code);
+
+            oldSettings = new UserForm(settingsModel);
+
+            settingsValidator = new UserFormUpdateValidator(
+                new UserFirstStepUpdateValidator
+                    (checkAvailables, settingsModel.Username, settingsModel.Email),
+                new UserSecondStepUpdateValidator(countriesMap)
+            );
+        }
     }
 }

@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
-using BadReview.Client;
 using System.Net.Http.Json;
+
 using MudBlazor.Services;
+
+using BadReview.Client;
 using BadReview.Client.Services;
 using BadReview.Client.Utils;
+
+using BadReview.Shared.DTOs.Request;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -30,14 +34,24 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiUri) 
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuthenticationStateProvider, JWTAuthStateProvider>();
-builder.Services.AddScoped<IsoCountryMap>();
+builder.Services.AddScoped<ICountriesIso, IsoCountryMap>();
+builder.Services.AddScoped<ValidatorRules.ICheckAvailables, CredentialsAvailable>();
 builder.Services.AddScoped<IconsMap>();
 
 // Fluent Validation
+
+// Login
 builder.Services.AddScoped<LoginFormValidator>();
-builder.Services.AddScoped<RegisterFirstStepValidator>();
-builder.Services.AddScoped<RegisterSecondStepValidator>();
-builder.Services.AddScoped<RegisterFormValidator>();
+
+// Register (create)
+builder.Services.AddScoped<UserFirstStepCreateValidator>();
+builder.Services.AddScoped<UserSecondStepCreateValidator>();
+builder.Services.AddScoped<UserFormCreateValidator>();
+
+// Profile (update) (can't be automatically injected because the first step update validator requires two strings)
+//builder.Services.AddScoped<UserFirstStepUpdateValidator>();
+//builder.Services.AddScoped<UserSecondStepUpdateValidator>();
+//builder.Services.AddScoped<UserFormUpdateValidator>();
 
 builder.Services.AddAuthorizationCore();
 
