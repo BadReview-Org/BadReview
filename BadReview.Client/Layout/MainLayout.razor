@@ -28,10 +28,10 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle" />
 
         @if(!_isDarkMode){
-            <MudImage Src="icon-192.png" Alt="BadReview Logo" Height="100" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
+            <MudImage Src="icon-192.png" Alt="BadReview Logo" Height="45" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
         }
         else{
-            <MudImage Src="icon-192_white.png" Alt="BadReview Logo Dark" Height="100" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
+            <MudImage Src="icon-192_white.png" Alt="BadReview Logo Dark" Height="45" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
         }
         <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
         <CustomDropdown T="BasicGameDto" ToStringFunc="@(game => game?.Name ?? "")" DropdownChanged="OnDropdownSelected" SearchElements="OnSearchGames" Label="Search for games...">
