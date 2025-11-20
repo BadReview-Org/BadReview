@@ -44,9 +44,9 @@
                 <MudDateRangePicker @ref="_picker" Label="Start date and End date" @bind-DateRange="_dateRange" 
                             AutoClose="true" PickerVariant="PickerVariant.Dialog">
                     <PickerActions>
-                        <MudButton Class="mr-auto align-self-start" OnClick="@(() => _picker?.ClearAsync())">Clear</MudButton>
-                        <MudButton OnClick="@(() => _picker?.CloseAsync(false))">Cancel</MudButton>
-                        <MudButton Color="Color.Primary" OnClick="@(() => _picker.CloseAsync())">OK</MudButton>
+                        <MudButton Class="mr-auto align-self-start" OnClick="@(() => _picker?.ClearAsync()!)">Clear</MudButton>
+                        <MudButton OnClick="@(() => _picker?.CloseAsync(false)!)">Cancel</MudButton>
+                        <MudButton Color="Color.Primary" OnClick="@(() => _picker?.CloseAsync()!)">OK</MudButton>
                     </PickerActions>
                 </MudDateRangePicker>
             }

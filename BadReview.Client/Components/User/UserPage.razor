@@ -347,8 +347,6 @@ else
 
     private CustomDialog? confirmCancel;
     private bool settingsHasChanged = false;
-    private bool usernameAvailable = true;
-    private bool emailAvailable = true;
     private bool settingsValidation = true;
     private UserFormUpdateValidator settingsValidator = null!;
 
@@ -451,7 +449,7 @@ else
 
                 oldSettings = new UserForm(settingsModel);
                 oldSettings.First.Password = null!;
-                oldSettings.First.RepeatPassword = null;
+                oldSettings.First.RepeatPassword = null!;
 
                 settingsValidator = new UserFormUpdateValidator(
                     new UserFirstStepUpdateValidator

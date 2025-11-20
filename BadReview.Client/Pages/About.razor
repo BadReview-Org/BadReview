@@ -23,8 +23,10 @@
                 </MudStack>
             </MudText>
             <MudText Typo="Typo.body1" Style="line-height: 1.8; color: #e0e0e0;">
-                BadReview is a comprehensive video game review platform where users can discover, rate, and review their favorite games. 
-                Keep track of your gaming journey, share your opinions, and explore what others think about the latest releases.
+                BadReview is a <strong>full stack learning project</strong> built entirely in .NET Framework 
+                (<strong>ASP.NET Core</strong>, <strong>Entity Framework Core</strong> and <strong>Blazor WebAssembly</strong>).
+                <br />This website's target audience are enthusiast gamers who want to discover, 
+                rate and review new games. The application's concept is based in rating systems like <strong>IGDB</strong> or IMDB (in movies).
             </MudText>
         </MudPaper>
 
@@ -37,16 +39,23 @@
                 </MudStack>
             </MudText>
             <MudText Typo="Typo.body1" Style="line-height: 1.8; color: #e0e0e0;" Class="mb-3">
-                BadReview is a learning project built with ASP.NET Core and Blazor WebAssembly to explore modern web development with .NET technologies.
-                The project is integrated with the IGDB API to stay up-to-date with the latest game information.
+                This SPA website's technology stack was built on top of ASP.NET Core and Blazor WebAssembly and includes different tools,
+                 libraries and frameworks like Minimal API, Entity Framework Core, Fluent Validation
+                 , PostgreSQL, Postman, JWT Authentication, MudBlazor, etc.
+                <br />We decided to fetch videogames metadata from
+                <MudLink HRef="https://igdb.com">IGDB API</MudLink> to show the latests game's information.
+                For more information you can visit our <MudLink HRef="https://github.com/lautaroperalta/BadReview">github repository</MudLink>.
             </MudText>
             <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap">
-                <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">ASP.NET Core 9.0</MudChip>
-                <MudChip T="string" Color="Color.Secondary" Variant="Variant.Filled">Blazor WebAssembly</MudChip>
-                <MudChip T="string" Color="Color.Error" Variant="Variant.Filled">SQL Server</MudChip>
-                <MudChip T="string" Color="Color.Info" Variant="Variant.Filled">Entity Framework Core</MudChip>
-                <MudChip T="string" Color="Color.Success" Variant="Variant.Filled">MudBlazor</MudChip>
-                <MudChip T="string" Color="Color.Warning" Variant="Variant.Filled">IGDB API</MudChip>
+                <MudChip T="string" Href="https://dotnet.microsoft.com/en-us/apps/aspnet" Color="Color.Primary" Variant="Variant.Filled">ASP.NET Core 9.0.10</MudChip>
+                <MudChip T="string" Href="https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor" Color="Color.Tertiary" Variant="Variant.Filled">Blazor WebAssembly 9.0.10</MudChip>
+                <MudChip T="string" Href="https://www.postgresql.org/" Color="Color.Error" Variant="Variant.Filled">PostgreSQL</MudChip>
+                <MudChip T="string" Href="https://learn.microsoft.com/en-us/ef/core/" Color="Color.Info" Variant="Variant.Filled">Entity Framework Core 9.0.10</MudChip>
+                <MudChip T="string" Href="https://mudblazor.com/" Color="Color.Success" Variant="Variant.Filled">MudBlazor 8.13</MudChip>
+                <MudChip T="string" Href="https://docs.fluentvalidation.net/" Color="Color.Secondary" Variant="Variant.Filled">Fluent Validation 12.1.0</MudChip>
+                <MudChip T="string" Href="https://api-docs.igdb.com/#getting-started" Color="Color.Default" Variant="Variant.Filled">IGDB API v4</MudChip>
+                <MudChip T="string" Href="https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes" Color="Color.Dark" Variant="Variant.Filled">ISO 3166 Countries</MudChip>
+                <MudChip T="string" Href="https://postman.com" Color="Color.Warning" Variant="Variant.Filled">Postman</MudChip>
             </MudStack>
         </MudPaper>
 
@@ -79,7 +88,7 @@
                     </MudPaper>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudPaper Class="pa-4" Elevation="2" Style="background: linear-gradient(135deg, var(--mud-palette-primary) 0%, var(--mud-palette-secondary) 100%); text-align: center;">
+                    <MudPaper Class="pa-4 mud-theme-primary" Elevation="2" Style="text-align: center;">
                         <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Surface" Size="Size.Large" Class="mb-2" />
                         <MudText Typo="Typo.h6" Style="color: white; font-weight: 600;">
                             Manuel Herrera

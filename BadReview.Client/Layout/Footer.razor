@@ -1,4 +1,4 @@
-<footer class="mud-theme-dark" style="margin-top: auto;">
+<footer  style="background: var(--mud-palette-primary-darken); margin-top: auto;">
     <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
         <MudGrid Spacing="4">
             <!-- Logo y descripción -->
@@ -18,13 +18,30 @@
 
             <!-- Links rápidos -->
             <MudItem xs="12" sm="6" md="4">
-                <MudStack Spacing="1">
-                    <MudLink Href="/about" Style="color: #e0e0e0; text-decoration: none;" Class="footer-link">
-                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                            <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" Class="mr-1" /> 
-                            About
-                        </MudStack>
-                    </MudLink>
+                <MudText Typo="Typo.h6" Class="mb-3" Style="color: #764ba2; font-weight: 600;">
+                    Quick links
+                </MudText>
+                <MudStack Spacing="2">
+                    <MudPaper Elevation=0 Class="mud-theme-transparent flex-none d-flex">
+                        <MudLink Href="/" Style="color: #e0e0e0; text-decoration: none;" Class="footer-link" >
+                            <MudStack StretchItems="StretchItems.None" Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" /> 
+                                <MudText Typo="Typo.body2" Style="color: mud-theme-default;">
+                                    Home
+                                </MudText>
+                            </MudStack>
+                        </MudLink>
+                    </MudPaper>
+                    <MudPaper Elevation=0 Class="mud-theme-transparent flex-none d-flex">
+                        <MudLink Href="/about" Style="color: #e0e0e0; text-decoration: none;" Class="footer-link" >
+                            <MudStack StretchItems="StretchItems.None" Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.QuestionMark" Size="Size.Small" /> 
+                                <MudText Typo="Typo.body2" Style="color: mud-theme-default;">
+                                    About
+                                </MudText>
+                            </MudStack>
+                        </MudLink>
+                    </MudPaper>
                 </MudStack>
             </MudItem>
 
@@ -33,15 +50,19 @@
                 <MudText Typo="Typo.h6" Class="mb-3" Style="color: #764ba2; font-weight: 600;">
                     Project Info
                 </MudText>
-                <MudStack Spacing="1">
-                    <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
-                        <MudIcon Icon="@Icons.Material.Filled.Code" Size="Size.Small" Class="mr-1" />
-                        Built with ASP.NET Core & Blazor
-                    </MudText>
-                    <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
-                        <MudIcon Icon="@Icons.Material.Filled.Api" Size="Size.Small" Class="mr-1" />
-                        Powered by IGDB API
-                    </MudText>
+                <MudStack Spacing="2">
+                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Api" Size="Size.Small" />
+                        <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
+                            Built with ASP.NET Core & Blazor
+                        </MudText>
+                    </MudStack>
+                    <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" />
+                        <MudText Typo="Typo.body2" Style="color: #b0b0b0;">
+                            Powered by IGDB API
+                        </MudText>
+                    </MudStack>
                 </MudStack>
             </MudItem>
         </MudGrid>
@@ -56,7 +77,7 @@
                 <MudIconButton Icon="@Icons.Custom.Brands.GitHub" 
                                Color="Color.Default" 
                                Size="Size.Small"
-                               Href="https://github.com/lautaroperalta/APINet" 
+                               Href="https://github.com/lautaroperalta/BadReview" 
                                Target="_blank"
                                Style="color: #b0b0b0;" />
             </MudStack>

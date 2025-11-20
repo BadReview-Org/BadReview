@@ -11,7 +11,7 @@
             </MudText>
         </MudStack>
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width: 300px; width: 500px;">
-        <CustomDropdown T="T"  DropdownChanged="OnDropdownSelected" SearchElements="OnSearchElements" Label="Search for games..." >
+        <CustomDropdown T="T"  DropdownChanged="OnDropdownSelected" SearchElements="OnSearchElements" Label="Label" >
         <ItemTemplate Context ="element">
             @DropdownTemplate(element)
         </ItemTemplate>
@@ -81,6 +81,8 @@
     [Parameter] public RenderFragment<T> DropdownTemplate { get; set; } = null!;
     [Parameter] public EventCallback<T> OnItemClick { get; set; }
     [Parameter] public EventCallback<T> DropdownChanged { get; set; }
+
+    [Parameter] public string Label {get; set;} = null!;
 
     [Parameter] public string URI { get; set; } = "";
     
