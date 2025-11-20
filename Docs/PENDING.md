@@ -38,6 +38,8 @@
 
 # FRONTEND
 
+## Refactorizar formularios y validators (login, register, user profile)
+
 ## Register y update form que no repitan validaciones
 
 ## Responsive
