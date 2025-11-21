@@ -43,3 +43,5 @@
 ## Register y update form que no repitan validaciones
 
 ## Responsive
+
+## Si se borra la cuenta manualmente desde BD, el front conserva el token, descartar o avisar?

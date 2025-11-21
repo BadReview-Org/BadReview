@@ -28,10 +28,10 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle" />
 
         @if(!_isDarkMode){
-            <MudImage Src="icon-192.png" Alt="BadReview Logo" Height="45" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
+            <MudImage Src="icons/badreview/logo_full_256x256.png" Alt="BadReview Logo" Height="45" Class="ml-6" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
         }
         else{
-            <MudImage Src="icon-192_white.png" Alt="BadReview Logo Dark" Height="45" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
+            <MudImage Src="icons/badreview/logo_full_256x256.png" Alt="BadReview Logo Dark" Height="45" Class="ml-6" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
         }
         
         <MudSpacer />
@@ -47,10 +47,10 @@
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                 @if(_isDarkMode)
                                 {
-                                    <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
+                                    <img src="icons/igdb/IGDB_logo-white.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
                                 }
                                 else{
-                                    <img src="IGDB_logo.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
+                                    <img src="icons/igdb/IGDB_logo.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
                                 }
                                 <MudText Typo="Typo.subtitle2">@(((double)(game?.RatingIGDB ?? 0) / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))</MudText>
                             </MudStack>

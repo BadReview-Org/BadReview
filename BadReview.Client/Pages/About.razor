@@ -8,7 +8,7 @@
         
         <!-- Header -->
         <MudStack AlignItems="AlignItems.Center" Spacing="3" Class="mb-6">
-            <img src="icon-192_white.png" alt="BadReview Logo" style="width: 120px; height: 120px; border-radius: 50%; box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);" />
+            <img src="icons/badreview/logo_full_512x512.png" alt="BadReview Logo" style="max-width: 15%; max-height: 15%; border-radius: 10%; box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4); object-fit: contain;" />
             <MudText Typo="Typo.h2" Style="font-weight: 700; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
                 About BadReview
             </MudText>
@@ -43,19 +43,19 @@
                  libraries and frameworks like Minimal API, Entity Framework Core, Fluent Validation
                  , PostgreSQL, Postman, JWT Authentication, MudBlazor, etc.
                 <br />We decided to fetch videogames metadata from
-                <MudLink HRef="https://igdb.com">IGDB API</MudLink> to show the latests game's information.
-                For more information you can visit our <MudLink HRef="https://github.com/lautaroperalta/BadReview">github repository</MudLink>.
+                <MudLink HRef="https://igdb.com" Target="_blank">IGDB API</MudLink> to show the latests game's information.
+                For more information you can visit our <MudLink HRef="https://github.com/lautaroperalta/BadReview" Target="_blank">github repository</MudLink>.
             </MudText>
             <MudStack Row="true" Spacing="2" Wrap="Wrap.Wrap">
-                <MudChip T="string" Href="https://dotnet.microsoft.com/en-us/apps/aspnet" Color="Color.Primary" Variant="Variant.Filled">ASP.NET Core 9.0.10</MudChip>
-                <MudChip T="string" Href="https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor" Color="Color.Tertiary" Variant="Variant.Filled">Blazor WebAssembly 9.0.10</MudChip>
-                <MudChip T="string" Href="https://www.postgresql.org/" Color="Color.Error" Variant="Variant.Filled">PostgreSQL</MudChip>
-                <MudChip T="string" Href="https://learn.microsoft.com/en-us/ef/core/" Color="Color.Info" Variant="Variant.Filled">Entity Framework Core 9.0.10</MudChip>
-                <MudChip T="string" Href="https://mudblazor.com/" Color="Color.Success" Variant="Variant.Filled">MudBlazor 8.13</MudChip>
-                <MudChip T="string" Href="https://docs.fluentvalidation.net/" Color="Color.Secondary" Variant="Variant.Filled">Fluent Validation 12.1.0</MudChip>
-                <MudChip T="string" Href="https://api-docs.igdb.com/#getting-started" Color="Color.Default" Variant="Variant.Filled">IGDB API v4</MudChip>
-                <MudChip T="string" Href="https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes" Color="Color.Dark" Variant="Variant.Filled">ISO 3166 Countries</MudChip>
-                <MudChip T="string" Href="https://postman.com" Color="Color.Warning" Variant="Variant.Filled">Postman</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://dotnet.microsoft.com/en-us/apps/aspnet" Color="Color.Primary" Variant="Variant.Filled">ASP.NET Core 9.0.10</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor" Color="Color.Tertiary" Variant="Variant.Filled">Blazor WebAssembly 9.0.10</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://www.postgresql.org/" Color="Color.Error" Variant="Variant.Filled">PostgreSQL</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://learn.microsoft.com/en-us/ef/core/" Color="Color.Info" Variant="Variant.Filled">Entity Framework Core 9.0.10</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://mudblazor.com/" Color="Color.Success" Variant="Variant.Filled">MudBlazor 8.13</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://docs.fluentvalidation.net/" Color="Color.Secondary" Variant="Variant.Filled">Fluent Validation 12.1.0</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://api-docs.igdb.com/#getting-started" Color="Color.Default" Variant="Variant.Filled">IGDB API v4</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes" Color="Color.Dark" Variant="Variant.Filled">ISO 3166 Countries</MudChip>
+                <MudChip T="string" Target="_blank" Href="https://postman.com" Color="Color.Warning" Variant="Variant.Filled">Postman</MudChip>
             </MudStack>
         </MudPaper>
 
@@ -78,17 +78,16 @@
                             Full Stack Developer
                         </MudText>
                         <MudStack Class="mt-2" Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                            <MudLink Href="https://github.com/lautaroperalta" Target="_blank">
-                            <MudIcon Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" Color="Color.Dark" Class="ml-1" />
-                            </MudLink>
-                            <MudLink Href="https://www.linkedin.com/in/lautaroperalta" Target="_blank">
-                            <MudIcon Icon="@Icons.Custom.Brands.LinkedIn" Size="Size.Small" Color="Color.Dark" Class="ml-1" />
-                            </MudLink>
+                            <MudIconButton Href="https://github.com/lautaroperalta" Target="_blank" 
+                                Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" Color="Color.Dark" Class="ml-1 mud-elevation-hover" />
+
+                            <MudIconButton Href="https://www.linkedin.com/in/lautaroperalta" Target="_blank"
+                                Icon="@Icons.Custom.Brands.LinkedIn" Size="Size.Small" Color="Color.Dark" Class="ml-1 mud-elevation-hover" />
                         </MudStack>
                     </MudPaper>
                 </MudItem>
                 <MudItem xs="12" sm="6">
-                    <MudPaper Class="pa-4 mud-theme-primary" Elevation="2" Style="text-align: center;">
+                    <MudPaper Class="pa-4 mud-theme-primary" Elevation="2" Style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); text-align: center;">
                         <MudIcon Icon="@Icons.Material.Filled.Person" Color="Color.Surface" Size="Size.Large" Class="mb-2" />
                         <MudText Typo="Typo.h6" Style="color: white; font-weight: 600;">
                             Manuel Herrera
@@ -97,12 +96,11 @@
                             Full Stack Developer 
                         </MudText>
                         <MudStack Class="mt-2" Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                            <MudLink Href="https://github.com/manuelmhs" Target="_blank">
-                            <MudIcon Icon="@Icons.Custom.Brands.GitHub" Size="Size.Small" Color="Color.Dark" Class="ml-1" />
-                            </MudLink>
-                            <MudLink Href="https://www.linkedin.com/in/manuelmhs1104" Target="_blank">
-                            <MudIcon Icon="@Icons.Custom.Brands.LinkedIn" Size="Size.Small" Color="Color.Dark" Class="ml-1" />
-                            </MudLink>
+                            <MudIconButton Href="https://github.com/manuelmhs" Target="_blank" Icon="@Icons.Custom.Brands.GitHub"
+                                Size="Size.Small" Color="Color.Dark" Class="ml-1 mud-elevation-hover" />
+
+                            <MudIconButton Href="https://www.linkedin.com/in/manuelmhs1104" Target="_blank"
+                                Icon="@Icons.Custom.Brands.LinkedIn" Size="Size.Small" Color="Color.Dark" Class="ml-1 mud-elevation-hover" />
                         </MudStack>
                     </MudPaper>
                 </MudItem>

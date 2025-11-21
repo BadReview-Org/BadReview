@@ -33,14 +33,14 @@
                 <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
                     @if (game?.RatingIGDB != null && game.RatingIGDB.HasValue)
                     {
-                        <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
+                        <img src="icons/igdb/IGDB_logo-white.svg.png" alt="IGDB" style="height: 16px; width: auto; opacity: 0.8;" />
                         <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
                             @((game.RatingIGDB.Value / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
                         </MudText>
                     }
                     @if (game?.Total_RatingBadReview != null && game.Total_RatingBadReview > 0)
                     {
-                        <img src="icon-192_white.png" alt="BadReview" style="height: 24px; width: auto; opacity: 0.8;" />
+                        <img src="icons/badreview/logo_base_256x256.png" alt="BadReview" style="height: 24px; width: auto; opacity: 0.8;" />
                         <MudText Typo="Typo.body2" Style="color: #b0b0b0; font-size: 0.85rem; font-weight: 500;">
                             @((game?.Total_RatingBadReview ?? 0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))
                         </MudText>
