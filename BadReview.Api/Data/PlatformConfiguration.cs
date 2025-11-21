@@ -22,13 +22,11 @@ public class PlatformConfiguration : IEntityTypeConfiguration<Platform>
 
         builder.Property(e => e.PlatformType)
             .HasDefaultValue(0);
-        builder.ToTable(t => t.HasCheckConstraint("CK_Platforms_PlatformType", "[PlatformType] >= 0"));
 
         builder.Property(e => e.PlatformTypeName)
             .HasMaxLength(400);
 
         builder.Property(e => e.Generation)
             .HasDefaultValue(0);
-        builder.ToTable(t => t.HasCheckConstraint("CK_Platforms_Generation", "[Generation] >= 0"));
     }
 }

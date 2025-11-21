@@ -19,10 +19,8 @@ public class DeveloperConfiguration : IEntityTypeConfiguration<Developer>
 
         builder.Property(e => e.Country)
             .HasDefaultValue(0);
-        builder.ToTable(t => t.HasCheckConstraint("CK_Developers_Country", "[Country] >= 0"));
 
         builder.Property(e => e.StartDate)
             .HasDefaultValue(null);
-        builder.ToTable(t => t.HasCheckConstraint("CK_Developers_StartDate", "[StartDate] >= 0"));
     }
 }

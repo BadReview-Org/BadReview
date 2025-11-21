@@ -10,10 +10,30 @@
 
 <AuthorizeView>
     <Authorized>
-        <p>See any interesting games? You should add it to your pending list!</p>
+        @if(showLoggedAlert)
+        {
+            <MudAlert Severity="Severity.Normal" 
+                Elevation="6" 
+                Variant="Variant.Filled"
+                ShowCloseIcon="true"
+                CloseIconClicked="(() => showLoggedAlert = false)"
+                Style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; max-width: 350px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                See any interesting games? You should add it to your pending list!
+            </MudAlert>
+        }
     </Authorized>
     <NotAuthorized>
-        <p>Create an account or log in to register your activity!</p>
+        @if(showLoggedAlert)
+        {
+            <MudAlert Severity="Severity.Normal" 
+                Elevation="6" 
+                Variant="Variant.Filled"
+                ShowCloseIcon="true"
+                CloseIconClicked="(() => showLoggedAlert = false)"
+                Style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; max-width: 350px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                 Create an account or log in to register your activity!
+            </MudAlert>
+        }
     </NotAuthorized>
 </AuthorizeView>
 
@@ -27,13 +47,13 @@
             </MudText>
         </MudStack>
         <MudText Typo="Typo.body1" Class="mt-2" Style="color: rgba(255,255,255,0.9);">
-            Search for your favorite games and discover new ones! @SelectedFilter
+            Search for your favorite games and discover new ones!
         </MudText>
     </MudPaper>
     <MudPaper Class="pa-4 mb-4" Elevation="6">
         <CustomFilter Dropdown="false" @bind-extraFilters="@extraFilters" ClickApplyFilters="OnFilterChanged" SearchDevelopers="OnSearchDevelopersAsync" SearchGenres="OnSearchGenresAsync" SearchPlatforms="OnSearchPlatformAsync" Developers="@Developers" Platforms="@Platforms" Genres="@Genres" @bind-Value="_searchText" @bind-SelectedFilter="SelectedFilter" SetChips ="true"  OnSearchAsync="OnSearchAsync" Placeholder="Search for games..." />
     </MudPaper>
-    <CustomGridCard CardHeight="350" totalPages="@totalPages" arrayElement="gameCards" PageChanged="OnPageChanged" placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
+    <CustomGridCard selectedPage="@selectedPage" CardHeight="350" totalPages="@totalPages" arrayElement="gameCards" PageChanged="OnPageChanged" placeholderTitle="No games found." placeholderBody="There are no games that match your filters."/>
 </MudContainer>
 
 
@@ -46,6 +66,10 @@
 
     private string extraFilters = "";
     private int totalPages = 1;
+
+    private bool showLoggedAlert = true;
+
+    private int selectedPage = 1;
     private string? SelectedFilter = "released";
     private string _searchText = string.Empty;
     private async Task<IEnumerable<GenreDto>> OnSearchGenresAsync(string searchText)
@@ -150,13 +174,14 @@
     private async Task OnSearchAsync(string searchText)
     {
         gameCards = null; // Mostrar skeletons mientras carga
-        //StateHasChanged();
-        await LoadGamesAsync(1,extraFilters);
+        selectedPage = 1;
+        await LoadGamesAsync(page: 1,extraFilters);
     }
     
     private async Task OnPageChanged(int page)
     {
         gameCards = null; // Mostrar skeletons mientras carga la nueva página
+        selectedPage = page;    
 
         await LoadGamesAsync(page, extraFilters);
     }
@@ -164,7 +189,7 @@
     private async Task OnFilterChanged(string filter)
     {
         gameCards = null; // Mostrar skeletons mientras carga la nueva página
-
-        await LoadGamesAsync(1,filter);
+        selectedPage = 1;
+        await LoadGamesAsync(page: 1,filter);
     }
 }

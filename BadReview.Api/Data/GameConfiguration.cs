@@ -20,7 +20,6 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
         builder.Property(g => g.RatingIGDB)
             .HasDefaultValue(0)
             .HasPrecision(5, 2); // permite hasta 999.99 (suficiente para rating 0–100)
-        builder.ToTable(t => t.HasCheckConstraint("CK_Games_RatingIGDB", "[RatingIGDB] >= 0 AND [RatingIGDB] <= 100"));
 
         builder.Property(g => g.Total_RatingBadReview)
             .HasDefaultValue(0);

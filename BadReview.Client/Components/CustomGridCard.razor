@@ -47,12 +47,10 @@ else
 @if (Pagination && totalPages > 1)
 {
     <div class="d-flex flex-column align-center">
-        <MudPagination Color="Color.Dark" Class="mt-4" SelectedChanged="@OnPageChanged" BoundaryCount="5" Count="totalPages" Selected="@_selected" />
+        <MudPagination Color="Color.Dark" Class="mt-4" SelectedChanged="@OnPageChanged" BoundaryCount="5" Count="totalPages" Selected="@selectedPage" />
     </div>
 }
 @code{
-    private int _selected = 1;
-
 
 
     // --- Parámetros personalizables ---
@@ -60,6 +58,8 @@ else
     [Parameter] public bool Pagination { get; set; } = true;
     [Parameter] public int totalPages { get; set; } = 1;
     [Parameter] public CardContainer[]? arrayElement { get; set; }
+
+    [Parameter] public int selectedPage { get; set; } = 1;
 
     [Parameter] public int pageSize { get; set; } = 12;
     [Parameter] public string? placeholderTitle { get; set; }
@@ -75,7 +75,7 @@ else
 
     public async Task OnPageChanged(int page)
     {
-        _selected = page;
+        selectedPage = page;
         
         if (PageChanged.HasDelegate)
         {

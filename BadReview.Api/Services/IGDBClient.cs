@@ -105,7 +105,7 @@ public class IGDBClient : IIGDBService
     {
         IgdbRequest queryTrending = new IgdbRequest
         {
-            Filters = "popularity_type = 3",
+            Filters = "popularity_type = 5",
             OrderBy = "value"
         };
         //queryTrending.SetDefaults();

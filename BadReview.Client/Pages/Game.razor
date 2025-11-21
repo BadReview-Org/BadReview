@@ -115,7 +115,8 @@ else
                                      Icon="@Icons.Material.Filled.Category"
                                      Items="@gameDetails.Genres"
                                      ChipColor="Color.Primary"
-                                     GetItemText="@(g => g.Name)" />
+                                     GetItemText="@(g => g.Name)" 
+                                     GetItemHref="@(g => "/genre/" + g.Id)"/>
                     }
 
                     <!-- Platforms -->
@@ -126,7 +127,8 @@ else
                                      Icon="@Icons.Material.Filled.Devices"
                                      Items="@gameDetails.Platforms"
                                      ChipColor="Color.Secondary"
-                                     GetItemText="@(p => p.Name)" />
+                                     GetItemText="@(p => p.Name)"
+                                     GetItemHref="@(p => "/platform/" + p.Id)" />
                     }
 
                     <!-- Developers -->
@@ -138,10 +140,12 @@ else
                                          Items="@gameDetails.Developers"
                                          RenderAsChips="false">
                             <ItemTemplate Context="developer">
-                                <MudText Typo="Typo.body2" Color="Color.Default">
-                                    <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" Alt="@developer.Name" Width="32" Height="32" Class="ml-2" Style="vertical-align: middle; border-radius: 4px;" />
-                                    @developer.Name                     
-                                </MudText>
+                                <MudLink Href="@($"/developer/{developer.Id}")" Style="text-decoration: none; color: inherit;">
+                                    <MudText Typo="Typo.body2" Color="Color.Default">
+                                        <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" Alt="@developer.Name" Width="32" Height="32" Class="ml-2" Style="vertical-align: middle; border-radius: 4px;" />
+                                        @developer.Name                     
+                                    </MudText>
+                                </MudLink>
                             </ItemTemplate>
                         </GameInfoSection>
                     }

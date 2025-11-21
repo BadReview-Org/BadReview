@@ -11,7 +11,7 @@
         <MudStack Row="true" Spacing="1" Wrap="Wrap.Wrap">
             @foreach (var item in Items)
             {
-                <MudChip T="string" Size="Size.Small" Color="@ChipColor" Variant="Variant.Filled">
+                <MudChip Href="@(GetItemHref?.Invoke(item) ?? "")" T="string" Size="Size.Small" Color="@ChipColor" Variant="Variant.Filled">
                     @(GetItemText?.Invoke(item) ?? item?.ToString())
                 </MudChip>
             }
@@ -36,5 +36,6 @@
     [Parameter] public bool RenderAsChips { get; set; } = true;
     [Parameter] public Color ChipColor { get; set; } = Color.Primary;
     [Parameter] public Func<TItem, string>? GetItemText { get; set; }
+    [Parameter] public Func<TItem, string>? GetItemHref { get; set; }
     [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
 }
