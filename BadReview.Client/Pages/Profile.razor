@@ -1,10 +1,10 @@
 @page "/profile"
-@page "/user/{id:int}"
+@page "/user/{id:int?}"
 
 @using BadReview.Shared.DTOs.Response
 @using BadReview.Shared.Utils
 @using BadReview.Client.Utils
-@using System.Globalization
+@using System.Globalization 
 @inject HttpClient Client
 @inject NavigationManager Navigation
 @inject AuthService AuthService
@@ -13,7 +13,7 @@
 
 <PageTitle>Profile</PageTitle>
 
-@if (IsOwnProfile)
+@if (IsOwnProfile != null && IsOwnProfile == true)
 {
     <AuthorizeView>
         <Authorized>
@@ -26,7 +26,7 @@
         </NotAuthorized>
     </AuthorizeView>
 }
-else
+else if(IsOwnProfile != null && IsOwnProfile == false)
 {
     <UserPage user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards"
               totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" />
@@ -35,8 +35,12 @@ else
 @code {
     private IUserDto? user;
     [Parameter] public int? Id { get; set; } 
-    private bool IsOwnProfile => Id == null; // Si no hay Id, es /profile
+    private bool? IsOwnProfile = null; // Si no hay Id, es /profile
 
+    [CascadingParameter]
+    Task<AuthenticationState> authStateTask { get; set; } = null!;
+
+    private AuthenticationState authState {get; set;} = null!;
 
     private List<DetailReviewDto> userReviews = new();
     private CardContainer[]? favoriteGameCards;
@@ -47,18 +51,28 @@ else
     
     protected override async Task OnInitializedAsync()
     {
+        authState = await authStateTask!;
+        var idclaim = authState.User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+        if(Id == null)
+            IsOwnProfile = true;
+        else if(idclaim != null)
+            IsOwnProfile = Id == int.Parse(idclaim);
+        else
+            IsOwnProfile = false;
+        if(IsOwnProfile == true)
+            Navigation.NavigateTo("/profile");
         await LoadUserData();
     }
 
     private async Task LoadUserData()
     {
-        if (IsOwnProfile)
+        if (IsOwnProfile == true)
         {
             // Cargar perfil privado
             user = await ApiService.PrivateGetAsync<PrivateUserDto>(APIUTILS.URIS.PROFILE);
             var privateuser = user as PrivateUserDto;
 
-            if (privateuser is null) Navigation.NavigateTo("/"); 
+            if (privateuser is null) Navigation.NavigateTo("/login"); 
             else
             {
                 settingsModel = new UserForm

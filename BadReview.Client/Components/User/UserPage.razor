@@ -176,7 +176,8 @@ else
                 </MudStack>
             </MudItem>
             }
-            else{
+            else if(settingsModel != null)
+            {
             <!-- Settings Panel -->
             <MudItem xs="12" md="6">
                 <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
@@ -330,7 +331,7 @@ else
     [Parameter] public int totalPagesReviews { get; set; }
     [Parameter] public EventCallback OnUserUpdated { get; set; }
 
-    [Parameter] public UserForm settingsModel { get; set; } = new();
+    [Parameter] public UserForm settingsModel { get; set; } = null!;
     private UserForm oldSettings = null!;
 
     private bool IsPrivateProfile => user is PrivateUserDto;
@@ -342,9 +343,7 @@ else
     private bool isSaving = false;
     private string settingsMessage = "";
     private Severity settingsMessageSeverity = Severity.Info;
-
     private string countryString = "";
-
     private CustomDialog? confirmCancel;
     private bool settingsHasChanged = false;
     private bool settingsValidation = true;
@@ -535,8 +534,6 @@ else
     {
         if (settingsModel is not null)
         {
-            countryString = await GetCountryName(settingsModel.Country?.Country_code);
-
             oldSettings = new UserForm(settingsModel);
 
             settingsValidator = new UserFormUpdateValidator(
@@ -545,5 +542,9 @@ else
                 new UserSecondStepUpdateValidator(countriesMap)
             );
         }
+        if(user != null)
+        {
+            countryString = await GetCountryName(user.Country);
+        }   
     }
 }

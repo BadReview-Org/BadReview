@@ -145,7 +145,7 @@
         Navigation.NavigateTo($"/game/{game.Id}");
     }
     [CascadingParameter]
-    Task<AuthenticationState>? authStateTask { get; set; }
+    Task<AuthenticationState> authStateTask { get; set; } = null!;
     AuthenticationState authState = null!;
     JWTAuthStateProvider stateProvider = null!;
 
