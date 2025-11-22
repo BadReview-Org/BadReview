@@ -34,8 +34,6 @@
                 <MudCard Class="carousel-card" 
                         Style="min-width: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;"
                         @onclick="@(() => OnItemClick.InvokeAsync(item))"
-                        @onmouseenter="() => {_open = true;}"
-                        @onmouseleave="() => {_open = false;}"
                         >
                     <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
                         @ItemTemplate(item)
@@ -48,8 +46,6 @@
                 <MudCard Class="carousel-card mud-elevation-hover" 
                         Style="min-width: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer;"
                         @onclick="@(() => OnItemClick.InvokeAsync(item))"
-                        @onmouseenter="() => {_open = true;}"
-                        @onmouseleave="() => {_open = false;}"
                         >
                     <MudCardContent Class="d-flex flex-column align-center justify-center pa-4" Style="height: 150px;">
                         @ItemTemplate(item)
@@ -89,7 +85,6 @@
     private int scrollPosition = 0;
     private const int cardWidth = 220; // ancho de card + spacing
     private bool isTransitioning = true;
-    private bool _open = false;
 
     private string _searchText = string.Empty;
     protected override void OnInitialized()

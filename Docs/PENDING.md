@@ -6,6 +6,8 @@
 
 # Too many requests
 
+## Hashing de contraseñas y seguridad (investigar)
+
 ## Permitir filtrar las reviews por ReviewState
 
 ## Concurrencia

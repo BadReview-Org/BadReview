@@ -64,7 +64,7 @@ public class UserService : IUserService
         if (req.Password is null) return (UserCode.NULLPASSWORD, null);*/
 
 
-        var hashedPassword = _auth.HashPassword(req.Username, req.Password);
+        var hashedPassword = _auth.HashPassword(req.Password);
         var newUser = new User
         {
             Username = req.Username,
@@ -108,10 +108,8 @@ public class UserService : IUserService
         existingUser.Birthday = req.Birthday;
         existingUser.Country = req.Country;
 
-        if (req.Password is null)
-            existingUser.Password = _auth.HashPassword(existingUser.Username, existingUser.Password);
-        else
-            existingUser.Password = _auth.HashPassword(existingUser.Username, req.Password);
+        if (!string.IsNullOrWhiteSpace(req.Password))
+            existingUser.Password = _auth.HashPassword(req.Password);
 
         if (!await _db.SafeSaveChangesAsync())
             throw new WritingToDBException("Exception while updating the user information in the DB.");
@@ -230,7 +228,7 @@ public class UserService : IUserService
                         r.Game.Cover != null ? r.Game.Cover.ImageWidth : null,
                         r.Game.RatingIGDB, r.Game.Total_RatingBadReview, r.Game.Count_RatingBadReview),
                         r.Date.CreatedAt, r.Date.UpdatedAt
-                )).ToPagedResult(reviewCount, page, pageSize),
+                )).ToPagedResult(favoriteCount, page, pageSize),
                 u.Date.CreatedAt
                 )
             )
@@ -248,7 +246,7 @@ public class UserService : IUserService
 
         if (user is null) return (UserCode.USERNAMENOTFOUND, null);
 
-        var validHash = _auth.VerifyPassword(req.Username, req.Password, user.Password);
+        var validHash = _auth.VerifyPassword(req.Password, user.Password);
 
         if (!validHash) return (UserCode.PASSDONTMATCH, null);
 

@@ -19,7 +19,7 @@
         <Authorized>
             <UserPage settingsModel="settingsModel" user="user" userReviews="userReviews"
                       favoriteGameCards="favoriteGameCards" totalPagesFavorite="totalPagesFavorite"
-                      totalPagesReviews="totalPagesReviews" OnUserUpdated="@ReloadUserData" />
+                      totalPagesReviews="totalPagesReviews" OnUserUpdated="@ReloadUserData"/>
         </Authorized>
         <NotAuthorized>
             @{ Navigation.NavigateTo("/login", true); }
@@ -29,13 +29,13 @@
 else if(IsOwnProfile != null && IsOwnProfile == false)
 {
     <UserPage user="user" userReviews="userReviews" favoriteGameCards="favoriteGameCards"
-              totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" />
+              totalPagesFavorite="totalPagesFavorite" totalPagesReviews="totalPagesReviews" userId="Id" />
 }
 
 @code {
     private IUserDto? user;
     [Parameter] public int? Id { get; set; } 
-    private bool? IsOwnProfile = null; // Si no hay Id, es /profile
+    private bool? IsOwnProfile = null;
 
     [CascadingParameter]
     Task<AuthenticationState> authStateTask { get; set; } = null!;
@@ -97,7 +97,7 @@ else if(IsOwnProfile != null && IsOwnProfile == false)
         else
         {
             // Cargar perfil público usando el Id
-            user = await ApiService.PublicGetByIdAsync<PublicUserDto>(APIUTILS.URIS.USERS, Id ?? 0);
+            user = await ApiService.PublicGetByIdAsync<PublicUserDto>(APIUTILS.URIS.USERS, Id ?? 0, "?pagesize=6");
         }
         userReviews = user?.Reviews.Data.ToList() ?? new List<DetailReviewDto>();
         totalPagesFavorite = (int)Math.Ceiling((double)(user?.Favorites.TotalCount ?? 0) / (user?.Favorites.PageSize ?? 1));

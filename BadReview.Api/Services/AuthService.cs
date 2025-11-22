@@ -9,7 +9,10 @@ namespace BadReview.Api.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly PasswordHasher<string> _hasher = new();
+    public class Dummy;
+    private readonly Dummy _dummy = new();
+
+    private readonly PasswordHasher<Dummy> _hasher = new();
     private readonly string _key;
     private readonly string _issuer;
 
@@ -19,16 +22,14 @@ public class AuthService : IAuthService
         _issuer = config["Jwt:Issuer"] ?? throw new Exception("Issuer not set.");
     }
 
-    // Verifica la contraseña (usarías esto con una BD real)
-    public bool VerifyPassword(string username, string password, string hashed)
+    public bool VerifyPassword(string password, string hashed)
     {
-        var result = _hasher.VerifyHashedPassword(username, hashed, password);
+        var result = _hasher.VerifyHashedPassword(_dummy, hashed, password);
         return result == PasswordVerificationResult.Success;
     }
 
-    // Hashea una contraseña nueva (para registrar usuarios)
-    public string HashPassword(string username, string password)
-        => _hasher.HashPassword(username, password);
+    public string HashPassword(string password)
+        => _hasher.HashPassword(_dummy, password);
 
     private string GenerateToken(string username, int userId, string type, double hours)
     {
