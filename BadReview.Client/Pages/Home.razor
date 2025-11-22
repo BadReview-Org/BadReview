@@ -76,6 +76,7 @@ else
                  OnItemClick="@(platform => Navigation.NavigateTo($"/platform/{platform.Id}"))"
                  DropdownChanged="@(platform => Navigation.NavigateTo($"/platform/{platform.Id}"))"
                  URI = "@APIUTILS.URIS.PLATFORMS"
+                 Label = "Search for platforms..."
                  >
             <ItemTemplate Context="platform">
                 <MudIcon Icon="@IconsMap.PlatformTypeIcon[(IconsMap.PlatformTypes)(platform.PlatformType ?? 0)]" 
@@ -110,6 +111,7 @@ else
                         OnItemClick="@(genre => Navigation.NavigateTo($"/genre/{genre.Id}"))"
                         DropdownChanged="@(genre => Navigation.NavigateTo($"/genre/{genre.Id}"))"
                         URI = "@APIUTILS.URIS.GENRES"
+                        Label = "Search for genres..."
                         >
             <ItemTemplate Context="genre">
                 <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center"
@@ -145,7 +147,8 @@ else
                  Icon="@Icons.Material.Filled.Code"
                  OnItemClick="@(dev => Navigation.NavigateTo($"/developer/{dev.Id}"))"
                  DropdownChanged="@(dev => Navigation.NavigateTo($"/developer/{dev.Id}"))"
-                 URI = "@APIUTILS.URIS.DEVELOPERS">
+                 URI = "@APIUTILS.URIS.DEVELOPERS"
+                 Label = "Search for developers...">
                 <ItemTemplate Context="dev">
                     @if (!string.IsNullOrEmpty(dev.LogoId))
                     {

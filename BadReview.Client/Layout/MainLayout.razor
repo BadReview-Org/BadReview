@@ -1,6 +1,7 @@
 ﻿@using System.Threading.Tasks
 @using BadReview.Shared.DTOs.Request
 @using BadReview.Shared.Utils
+@using MudBlazor
 @inherits LayoutComponentBase
 @* Required *@
 <MudThemeProvider @bind-IsDarkMode="DarkMode" Theme="_theme"/>
@@ -26,13 +27,6 @@
 <MudLayout>
     <MudAppBar>
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle" />
-
-        @if(!_isDarkMode){
-            <MudImage Src="icon-192.png" Alt="BadReview Logo" Height="45" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
-        }
-        else{
-            <MudImage Src="icon-192_white.png" Alt="BadReview Logo Dark" Height="45" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
-        }
         
         <MudSpacer />
         
@@ -47,10 +41,10 @@
                             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                                 @if(_isDarkMode)
                                 {
-                                    <img src="IGDB_logo-white.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
+                                    <img src="icons/igdb/IGDB_logo-white.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
                                 }
                                 else{
-                                    <img src="IGDB_logo.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
+                                    <img src="icons/igdb/IGDB_logo.svg.png" alt="IGDB" style="height: 14px; width: auto; opacity: 0.8;" />
                                 }
                                 <MudText Typo="Typo.subtitle2">@(((double)(game?.RatingIGDB ?? 0) / 10).ToString("F1", System.Globalization.CultureInfo.InvariantCulture))</MudText>
                             </MudStack>
@@ -60,22 +54,18 @@
             </CustomDropdown>
         </CascadingValue>
         
-        <MudSpacer />
-        
-        <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" AriaLabel="Open user menu" Dense="true">
-            <AuthorizeView>
-                <Authorized>
-                    <MudMenuItem OnClick="LogToken" Label="Profile"/>
-                    <MudMenuItem Label="My account"/>
-                    <MudMenuItem OnClick="() => confirmLogout?.Open()" Label="Log out"/>
-                </Authorized>
-                <NotAuthorized>
-                    <MudMenuItem Href="/login" Label="Log in" />
-                </NotAuthorized>
-            </AuthorizeView>
+        <MudSpacer/>
 
-            <!-- 
-            <MudDivider></MudDivider>
+        @if(!_isDarkMode){
+            <MudImage Src="icons/badreview/logo_full_256x256.png" Alt="BadReview Logo" Height="45"
+                Class="mr-6 mud-elevation-hover" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
+        }
+        else{
+            <MudImage Src="icons/badreview/logo_full_256x256.png" Alt="BadReview Logo Dark" Height="45"
+            Class="mr-6 mud-elevation-hover" Style="cursor: pointer;" @onclick='() => Navigation.NavigateTo("/")' />
+        }
+
+        <!--<MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" AriaLabel="Open user menu" >
         
             <MudMenuItem OnClick="DarkModeToogle" AutoClose="false">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
@@ -86,8 +76,8 @@
                         ThumbIconColor="@(_isDarkMode==true ? Color.Info : Color.Error)"/>
                 </MudStack>
             </MudMenuItem>
-            -->
-        </MudMenu>
+            
+        </MudMenu>-->
     </MudAppBar>
     <MudDrawer Color=Color.Primary @bind-Open="@_drawerOpen" Fixed="true" Variant="@DrawerVariant.Mini" OpenMiniOnHover="true">
         <NavMenu/>
@@ -106,17 +96,18 @@
     </MudMainContent>
 </MudLayout>
 
+<!--
 <CustomDialog @ref="confirmLogout"
               Title="Log out"
               Icon="@Icons.Material.Filled.Logout"
               OnConfirm="LogoutAsync">
     <MudText> Are you sure you wish to log out? </MudText>
 </CustomDialog>
-
+-->
 @code {
     private string _searchText = string.Empty;
 
-    CustomDialog? confirmLogout;
+    //CustomDialog? confirmLogout;
 
     private async Task<IEnumerable<BasicGameDto>> OnSearchGames(string searchText)
     {    
@@ -151,22 +142,22 @@
 
  //   private MudTheme _theme = new MudTheme();
 
-private MudTheme _theme = new MudTheme()
-{
-    PaletteDark = new PaletteDark()
+    private MudTheme _theme = new MudTheme()
     {
-    PrimaryDarken = "#27272F",
-    Primary = "rgba(255,255,255, 0.2)",
-    InfoLighten = Colors.Green.Default,
-    InfoDarken = Colors.Red.Default
-    },
-    PaletteLight = new PaletteLight()
-    {
-    Background = "#FBFEF9",
-    InfoLighten = Colors.Green.Default,
-    InfoDarken = Colors.Red.Default
-    }
-};
+        PaletteDark = new PaletteDark()
+        {
+        PrimaryDarken = "#27272F",
+        Primary = "rgba(255,255,255, 0.2)",
+        InfoLighten = Colors.Green.Default,
+        InfoDarken = Colors.Red.Default
+        },
+        PaletteLight = new PaletteLight()
+        {
+        Background = "#FBFEF9",
+        InfoLighten = Colors.Green.Default,
+        InfoDarken = Colors.Red.Default
+        }
+    };
     public bool _isDarkMode;
 
     public bool DarkMode = true;
@@ -187,7 +178,7 @@ private MudTheme _theme = new MudTheme()
 
     void DrawerToggle() => _drawerOpen = !_drawerOpen;
 
-    private async void LogoutAsync()
+    /*private async void LogoutAsync()
     {
         ShowSnackbar("Logged out, reloading the page ...", Severity.Info);
         await AuthService.LogoutAsync(stateProvider); 
@@ -210,7 +201,7 @@ private MudTheme _theme = new MudTheme()
             Snackbar.Add(msg, severity, config);
             Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomStart;
         }
-    }
+    }*/
 
     private void LogToken() => AuthService.LogJWToken(authState, Logger); 
 

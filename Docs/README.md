@@ -22,6 +22,10 @@ https://www.jwt.io/
 
 https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries
 
+## EF Core issues and warnings
+
+https://github.com/dotnet/efcore/issues/35285
+
 ## Security in Blazor WebAssembly
 
 https://learn.microsoft.com/en-us/aspnet/core/blazor/security/webassembly/?view=aspnetcore-9.0

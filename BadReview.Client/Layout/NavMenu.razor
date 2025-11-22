@@ -1,17 +1,82 @@
-﻿
+﻿@inject AuthService AuthService
+@inject AuthenticationStateProvider _provider
+@inject NavigationManager Navigation
+
+@inject ISnackbar Snackbar
+
 <MudNavMenu>
-    <MudNavLink IconColor="Color.Surface" Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Store">Home</MudNavLink>
-    <MudNavLink IconColor="Color.Surface" Href="/trending-games" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.TrendingUp">Trending games</MudNavLink>
-    <MudNavLink IconColor="Color.Surface" Href="/explore"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Explore">Explore</MudNavLink>
-    <!--<MudNavGroup Title="Settings" Expanded="true">
-        <MudNavLink Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
-        <MudNavLink Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
-</MudNavGroup> -->
+    <MudNavLink IconColor="Color.Surface" Href="/" Match="NavLinkMatch.All"
+        Icon="@Icons.Material.Filled.Store">Home</MudNavLink>
+
+    <MudNavLink IconColor="Color.Surface" Href="/trending-games" Match="NavLinkMatch.Prefix"
+        Icon="@Icons.Material.Filled.TrendingUp">Trending games</MudNavLink>
+    
+    <MudNavLink IconColor="Color.Surface" Href="/explore"  Match="NavLinkMatch.Prefix"
+        Icon="@Icons.Material.Filled.Explore">Explore</MudNavLink>
+    
+    <MudDivider/>
+
     <AuthorizeView>
         <Authorized>
-                <MudNavLink IconColor="Color.Surface" Href="/profile"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+            <MudNavLink IconColor="Color.Surface" Href="/profile"  Match="NavLinkMatch.Prefix"
+                Icon="@Icons.Material.Filled.Person">Profile</MudNavLink>
+
+            <MudNavLink IconColor="Color.Surface" OnClick="() => confirmLogout?.Open()" Match="NavLinkMatch.Prefix"
+                Icon="@Icons.Material.Filled.Logout">Log out</MudNavLink>
         </Authorized>
+        <NotAuthorized>
+            <MudNavLink IconColor="Color.Surface" Href="/register" Match="NavLinkMatch.Prefix"
+                Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink> 
+
+            <MudNavLink IconColor="Color.Surface" Href="/login" Match="NavLinkMatch.Prefix"
+                Icon="@Icons.Material.Filled.Login">Log in</MudNavLink>
+        </NotAuthorized>
     </AuthorizeView>
-    <MudNavLink IconColor="Color.Surface" Href="/about"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Info">About</MudNavLink>
-    <MudNavLink IconColor="Color.Surface" Href="/logout"  Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.ExitToApp">Log out</MudNavLink>
+
+    <MudDivider/>
+    
+    <MudNavLink IconColor="Color.Surface" Href="/about"  Match="NavLinkMatch.Prefix"
+        Icon="@Icons.Material.Filled.Info">About</MudNavLink>
 </MudNavMenu>
+
+<CustomDialog @ref="confirmLogout"
+              Title="Log out"
+              Icon="@Icons.Material.Filled.Logout"
+              OnConfirm="LogoutAsync">
+    <MudText> Are you sure you wish to log out? </MudText>
+</CustomDialog>
+
+@code {
+    JWTAuthStateProvider stateProvider = null!;
+    CustomDialog? confirmLogout;
+
+    private async void LogoutAsync()
+    {
+        ShowSnackbar("Logged out, reloading the page ...", Severity.Info);
+        await AuthService.LogoutAsync(stateProvider); 
+        await Task.Delay(500);
+        Navigation.Refresh();
+
+        void ShowSnackbar(string msg, Severity severity)
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+            var config = (SnackbarOptions options) =>
+            {
+                options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+                options.VisibleStateDuration = 2000;
+                options.HideTransitionDuration = 750;
+                options.ShowTransitionDuration = 500;
+                options.CloseAfterNavigation = false;
+                options.IconSize = Size.Large;
+                options.ShowCloseIcon = false;
+            };
+            Snackbar.Add(msg, severity, config);
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomStart;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        stateProvider = (JWTAuthStateProvider)_provider;
+    }
+}

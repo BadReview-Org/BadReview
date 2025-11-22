@@ -70,7 +70,7 @@
     private int currentRating = 0;
     private MudDateRangePicker? _picker;
 
-    private DateRange _dateRange = new DateRange(DateTime.Now.Date, null);
+    private DateRange _dateRange = new DateRange(null, null);
     private string reviewText = "";
     private ReviewState reviewState = ReviewState.NONE;
     private string _buttonText = "Select Action";
@@ -98,8 +98,8 @@
     {
         var reviewData = new CreateReviewRequest(
             Rating: currentRating,
-            StartDate: _dateRange.Start,
-            EndDate: _dateRange.End,
+            StartDate: _dateRange?.Start,
+            EndDate: _dateRange?.End,
             ReviewText: reviewText,
             StateEnum: reviewState,
             IsFavorite: UserReview?.IsFavorite ?? false,
