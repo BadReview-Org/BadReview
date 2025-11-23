@@ -11,7 +11,7 @@ public static class ServiceConfig
     {
         // DbContext
         builder.Services.AddDbContext<BadReviewContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
         // IGDB Client
         builder.Services.AddHttpClient<IIGDBService, IGDBClient>(client =>
             client.BaseAddress = new Uri("https://api.igdb.com/v4/"));

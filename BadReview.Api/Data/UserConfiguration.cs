@@ -13,9 +13,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.OwnsOne(e => e.Date, date =>
         {
             date.Property(d => d.CreatedAt)
-                .HasDefaultValueSql("getdate()").ValueGeneratedOnAdd();
+                .HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAdd();
             date.Property(d => d.UpdatedAt)
-                .HasDefaultValueSql("getdate()").ValueGeneratedOnAddOrUpdate();
+                .HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
         });
 
         builder.Property(e => e.Username)
@@ -32,26 +32,26 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.ToTable(t =>
         {
-            t.HasCheckConstraint("CK_Users_Country", "[Country] >= 0");
+            t.HasCheckConstraint("CK_Users_Country", "\"Country\" >= 0");
 
             // Username: solo a-z, 0-9 y ._-
             t.HasCheckConstraint("CK_Users_Username_ValidChars", 
-                "Username NOT LIKE '%[^a-zA-Z0-9._-]%'");
+                "\"Username\" ~ '^[a-zA-Z0-9._-]+$'");
 
             // Email:
             t.HasCheckConstraint("CK_Users_Email_Format",
-                "Email NOT LIKE '% %' " + // sin espacios
-                "AND Email LIKE '___%@__%._%'" + // secuencia (al menos 3 caracteres, @, al menos 2, ., al menos 1)
-                "AND (LEN(Email) - LEN(REPLACE(Email, '@', ''))) = 1" + // exactamente un '@'
-                "AND Email NOT LIKE '%[^a-zA-Z0-9@._-]%'"); // sin caracteres especiales
+                "\"Email\" NOT LIKE '% %' " + // sin espacios
+                "AND \"Email\" LIKE '___%@__%._%' " + // secuencia (al menos 3 caracteres, @, al menos 2, ., al menos 1)
+                "AND (LENGTH(\"Email\") - LENGTH(REPLACE(\"Email\", '@', ''))) = 1 " + // exactamente un '@'
+                "AND \"Email\" ~ '^[a-zA-Z0-9@._-]+$'"); // sin caracteres especiales
 
             // Full name: solo letras y espacios
             t.HasCheckConstraint("CK_Users_FullName_AlphaSpace",
-                "FullName IS NULL OR FullName NOT LIKE '%[^a-zA-Z ]%'");
+                "\"FullName\" IS NULL OR \"FullName\" ~ '^[a-zA-Z ]+$'");
 
             // Birthday: edad >= 12 años
             t.HasCheckConstraint("CK_Users_Birthday_MinAge",
-                "Birthday IS NULL OR DATEDIFF(YEAR, Birthday, GETDATE()) >= 12");
+                "\"Birthday\" IS NULL OR EXTRACT(YEAR FROM AGE(CURRENT_TIMESTAMP, \"Birthday\")) >= 12");
         });
     }
 }

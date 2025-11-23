@@ -3,17 +3,17 @@ using System;
 using BadReview.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace BadReview.Api.Migrations
 {
     [DbContext(typeof(BadReviewContext))]
-    [Migration("20251117221645_FixError")]
-    partial class FixError
+    [Migration("20251123192815_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,46 +21,41 @@ namespace BadReview.Api.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.10")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("BadReview.Api.Models.Developer", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int?>("Country")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<string>("Description")
                         .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(10000)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("character varying(400)");
 
                     b.Property<long?>("StartDate")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Developers", t =>
-                        {
-                            t.HasCheckConstraint("CK_Developers_Country", "[Country] >= 0");
-
-                            t.HasCheckConstraint("CK_Developers_StartDate", "[StartDate] >= 0");
-                        });
+                    b.ToTable("Developers");
                 });
 
             modelBuilder.Entity("BadReview.Api.Models.Game", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<long>("Count_RatingBadReview")
                         .ValueGeneratedOnAdd()
@@ -73,17 +68,17 @@ namespace BadReview.Api.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("character varying(400)");
 
                     b.Property<double>("RatingIGDB")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(5, 2)
-                        .HasColumnType("float(5)")
+                        .HasColumnType("double precision")
                         .HasDefaultValue(0.0);
 
                     b.Property<string>("Summary")
                         .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(10000)");
 
                     b.Property<long>("Total_RatingBadReview")
                         .ValueGeneratedOnAdd()
@@ -92,27 +87,25 @@ namespace BadReview.Api.Migrations
 
                     b.Property<string>("Video")
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Games", t =>
                         {
-                            t.HasCheckConstraint("CK_Games_Count_RatingBadReview", "[Count_RatingBadReview] >= 0");
+                            t.HasCheckConstraint("CK_Games_Count_RatingBadReview", "\"Count_RatingBadReview\" >= 0");
 
-                            t.HasCheckConstraint("CK_Games_RatingIGDB", "[RatingIGDB] >= 0 AND [RatingIGDB] <= 100");
-
-                            t.HasCheckConstraint("CK_Games_Total_RatingBadReview", "[Total_RatingBadReview] >= 0");
+                            t.HasCheckConstraint("CK_Games_Total_RatingBadReview", "\"Total_RatingBadReview\" >= 0");
                         });
                 });
 
             modelBuilder.Entity("BadReview.Api.Models.GameDeveloper", b =>
                 {
                     b.Property<int>("GameId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("DeveloperId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("GameId", "DeveloperId");
 
@@ -124,10 +117,10 @@ namespace BadReview.Api.Migrations
             modelBuilder.Entity("BadReview.Api.Models.GameGenre", b =>
                 {
                     b.Property<int>("GameId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("GenreId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("GameId", "GenreId");
 
@@ -139,10 +132,10 @@ namespace BadReview.Api.Migrations
             modelBuilder.Entity("BadReview.Api.Models.GamePlatform", b =>
                 {
                     b.Property<int>("GameId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("PlatformId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("GameId", "PlatformId");
 
@@ -154,12 +147,12 @@ namespace BadReview.Api.Migrations
             modelBuilder.Entity("BadReview.Api.Models.Genre", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("character varying(400)");
 
                     b.HasKey("Id");
 
@@ -169,86 +162,81 @@ namespace BadReview.Api.Migrations
             modelBuilder.Entity("BadReview.Api.Models.Platform", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Abbreviation")
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int?>("Generation")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("character varying(400)");
 
                     b.Property<int?>("PlatformType")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<string>("PlatformTypeName")
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("character varying(400)");
 
                     b.Property<string>("Summary")
                         .HasMaxLength(10000)
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("character varying(10000)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Platforms", t =>
-                        {
-                            t.HasCheckConstraint("CK_Platforms_Generation", "[Generation] >= 0");
-
-                            t.HasCheckConstraint("CK_Platforms_PlatformType", "[PlatformType] >= 0");
-                        });
+                    b.ToTable("Platforms");
                 });
 
             modelBuilder.Entity("BadReview.Api.Models.Review", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("GameId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsFavorite")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsReview")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<int>("Rating")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<string>("ReviewText")
                         .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
+                        .HasColumnType("character varying(3000)");
 
                     b.Property<DateTime?>("StartDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("StateEnum")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -260,13 +248,13 @@ namespace BadReview.Api.Migrations
 
                     b.ToTable("Reviews", t =>
                         {
-                            t.HasCheckConstraint("CK_Reviews_Dates", "([StartDate] IS NULL OR [EndDate] IS NULL OR [EndDate] >= [StartDate])");
+                            t.HasCheckConstraint("CK_Reviews_Dates", "(\"StartDate\" IS NULL OR \"EndDate\" IS NULL OR \"EndDate\" >= \"StartDate\")");
 
-                            t.HasCheckConstraint("CK_Reviews_Rating", "[Rating] >= 0 AND [Rating] <= 5");
+                            t.HasCheckConstraint("CK_Reviews_Rating", "\"Rating\" >= 0 AND \"Rating\" <= 5");
 
-                            t.HasCheckConstraint("CK_Reviews_ReviewFlags", "([IsReview] = 1 OR [IsFavorite] = 1)");
+                            t.HasCheckConstraint("CK_Reviews_ReviewFlags", "(\"IsReview\" = true OR \"IsFavorite\" = true)");
 
-                            t.HasCheckConstraint("CK_Reviews_StateDates", "([StateEnum] = 1 AND [EndDate] IS NULL) OR\r\n            ([StateEnum] = 2 AND [StartDate] IS NULL AND [EndDate] IS NULL) OR\r\n            ([StateEnum] IN (0,3))");
+                            t.HasCheckConstraint("CK_Reviews_StateDates", "(\"StateEnum\" = 1 AND \"EndDate\" IS NULL) OR (\"StateEnum\" = 2 AND \"StartDate\" IS NULL AND \"EndDate\" IS NULL) OR (\"StateEnum\" IN (0,3))");
                         });
                 });
 
@@ -274,35 +262,35 @@ namespace BadReview.Api.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("Birthday")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("Country")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                        .HasColumnType("character varying(40)");
 
                     b.Property<string>("FullName")
                         .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                        .HasColumnType("character varying(60)");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
 
@@ -314,15 +302,15 @@ namespace BadReview.Api.Migrations
 
                     b.ToTable("Users", t =>
                         {
-                            t.HasCheckConstraint("CK_Users_Birthday_MinAge", "Birthday IS NULL OR DATEDIFF(YEAR, Birthday, GETDATE()) >= 12");
+                            t.HasCheckConstraint("CK_Users_Birthday_MinAge", "\"Birthday\" IS NULL OR EXTRACT(YEAR FROM AGE(CURRENT_TIMESTAMP, \"Birthday\")) >= 12");
 
-                            t.HasCheckConstraint("CK_Users_Country", "[Country] >= 0");
+                            t.HasCheckConstraint("CK_Users_Country", "\"Country\" >= 0");
 
-                            t.HasCheckConstraint("CK_Users_Email_Format", "Email NOT LIKE '% %' AND Email LIKE '___%@__%._%'AND (LEN(Email) - LEN(REPLACE(Email, '@', ''))) = 1AND Email NOT LIKE '%[^a-zA-Z0-9@._-]%'");
+                            t.HasCheckConstraint("CK_Users_Email_Format", "\"Email\" NOT LIKE '% %' AND \"Email\" LIKE '___%@__%._%' AND (LENGTH(\"Email\") - LENGTH(REPLACE(\"Email\", '@', ''))) = 1 AND \"Email\" ~ '^[a-zA-Z0-9@._-]+$'");
 
-                            t.HasCheckConstraint("CK_Users_FullName_AlphaSpace", "FullName IS NULL OR FullName NOT LIKE '%[^a-zA-Z ]%'");
+                            t.HasCheckConstraint("CK_Users_FullName_AlphaSpace", "\"FullName\" IS NULL OR \"FullName\" ~ '^[a-zA-Z ]+$'");
 
-                            t.HasCheckConstraint("CK_Users_Username_ValidChars", "Username NOT LIKE '%[^a-zA-Z0-9._-]%'");
+                            t.HasCheckConstraint("CK_Users_Username_ValidChars", "\"Username\" ~ '^[a-zA-Z0-9._-]+$'");
                         });
                 });
 
@@ -331,18 +319,18 @@ namespace BadReview.Api.Migrations
                     b.OwnsOne("BadReview.Api.Models.Owned.Image", "Logo", b1 =>
                         {
                             b1.Property<int>("DeveloperId")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<int?>("ImageHeight")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<string>("ImageId")
                                 .IsRequired()
                                 .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)");
+                                .HasColumnType("character varying(200)");
 
                             b1.Property<int?>("ImageWidth")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.HasKey("DeveloperId");
 
@@ -360,18 +348,18 @@ namespace BadReview.Api.Migrations
                     b.OwnsOne("BadReview.Api.Models.Owned.Image", "Cover", b1 =>
                         {
                             b1.Property<int>("GameId")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<int?>("ImageHeight")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<string>("ImageId")
                                 .IsRequired()
                                 .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)");
+                                .HasColumnType("character varying(200)");
 
                             b1.Property<int?>("ImageWidth")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.HasKey("GameId");
 
@@ -446,18 +434,18 @@ namespace BadReview.Api.Migrations
                     b.OwnsOne("BadReview.Api.Models.Owned.Image", "Logo", b1 =>
                         {
                             b1.Property<int>("PlatformId")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<int?>("ImageHeight")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<string>("ImageId")
                                 .IsRequired()
                                 .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)");
+                                .HasColumnType("character varying(200)");
 
                             b1.Property<int?>("ImageWidth")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.HasKey("PlatformId");
 
@@ -487,17 +475,17 @@ namespace BadReview.Api.Migrations
                     b.OwnsOne("BadReview.Api.Models.Owned.CUDate", "Date", b1 =>
                         {
                             b1.Property<int>("ReviewId")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("datetime2")
-                                .HasDefaultValueSql("getdate()");
+                                .HasColumnType("timestamp with time zone")
+                                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAddOrUpdate()
-                                .HasColumnType("datetime2")
-                                .HasDefaultValueSql("getdate()");
+                                .HasColumnType("timestamp with time zone")
+                                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                             b1.HasKey("ReviewId");
 
@@ -520,17 +508,17 @@ namespace BadReview.Api.Migrations
                     b.OwnsOne("BadReview.Api.Models.Owned.CUDate", "Date", b1 =>
                         {
                             b1.Property<int>("UserId")
-                                .HasColumnType("int");
+                                .HasColumnType("integer");
 
                             b1.Property<DateTime>("CreatedAt")
                                 .ValueGeneratedOnAdd()
-                                .HasColumnType("datetime2")
-                                .HasDefaultValueSql("getdate()");
+                                .HasColumnType("timestamp with time zone")
+                                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                             b1.Property<DateTime>("UpdatedAt")
                                 .ValueGeneratedOnAddOrUpdate()
-                                .HasColumnType("datetime2")
-                                .HasDefaultValueSql("getdate()");
+                                .HasColumnType("timestamp with time zone")
+                                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                             b1.HasKey("UserId");
 

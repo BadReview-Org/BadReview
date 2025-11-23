@@ -23,11 +23,11 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
 
         builder.Property(g => g.Total_RatingBadReview)
             .HasDefaultValue(0);
-        builder.ToTable(t => t.HasCheckConstraint("CK_Games_Total_RatingBadReview", "[Total_RatingBadReview] >= 0"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_Games_Total_RatingBadReview",  "\"Total_RatingBadReview\" >= 0"));
 
         builder.Property(g => g.Count_RatingBadReview)
             .HasDefaultValue(0);
-        builder.ToTable(t => t.HasCheckConstraint("CK_Games_Count_RatingBadReview", "[Count_RatingBadReview] >= 0"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_Games_Count_RatingBadReview", "\"Count_RatingBadReview\" >= 0"));
 
         builder.Property(g => g.Video)
             .HasMaxLength(200);

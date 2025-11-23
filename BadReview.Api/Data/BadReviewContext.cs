@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using BadReview.Api.Models;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using System.ComponentModel.DataAnnotations;
 
 namespace BadReview.Api.Data;
@@ -55,7 +55,7 @@ public class BadReviewContext : DbContext
             {
                 Console.WriteLine($"[DB Update Error] {ex.Message}");
 
-                if (ex.InnerException is SqlException sqlEx) Console.WriteLine($"[SQL Error] {sqlEx.Message}");
+                if (ex.InnerException is PostgresException sqlEx) Console.WriteLine($"[SQL Error] {sqlEx.Message}");
             }
         }
         catch (ValidationException ex)

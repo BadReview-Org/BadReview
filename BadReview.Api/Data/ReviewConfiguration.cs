@@ -24,14 +24,14 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.OwnsOne(e => e.Date, date =>
         {
             date.Property(d => d.CreatedAt)
-                .HasDefaultValueSql("getdate()").ValueGeneratedOnAdd();
+                .HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAdd();
             date.Property(d => d.UpdatedAt)
-                .HasDefaultValueSql("getdate()").ValueGeneratedOnAddOrUpdate();
+                .HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
         });
 
         builder.Property(e => e.Rating)
             .HasDefaultValue(0);
-        builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_Rating", "[Rating] >= 0 AND [Rating] <= 5"));
+        builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_Rating", "\"Rating\" >= 0 AND \"Rating\" <= 5"));
 
         builder.Property(g => g.ReviewText)
             .HasMaxLength(3000);
@@ -44,21 +44,19 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
 
         // Condicion sobre IsReview/IsFavorite: no pueden ser ambos false a la vez
         builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_ReviewFlags",
-            "([IsReview] = 1 OR [IsFavorite] = 1)"));
+            "(\"IsReview\" = true OR \"IsFavorite\" = true)"));
 
         // Condiciones de Start/EndDate
         // Si ninguno es null, EndDate >= StartDate
         builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_Dates",
-            "([StartDate] IS NULL OR [EndDate] IS NULL OR [EndDate] >= [StartDate])"));
+            "(\"StartDate\" IS NULL OR \"EndDate\" IS NULL OR \"EndDate\" >= \"StartDate\")"));
 
         // Condiciones por ReviewState
         // Si el estado es PLAYING (1), no tiene EndDate
         // Si el estado es WISHLIST (2), no tiene ni StartDate ni EndDate
         // En otro caso, no hay restricciones
         builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_StateDates",
-            @"([StateEnum] = 1 AND [EndDate] IS NULL) OR
-            ([StateEnum] = 2 AND [StartDate] IS NULL AND [EndDate] IS NULL) OR
-            ([StateEnum] IN (0,3))"
+            "(\"StateEnum\" = 1 AND \"EndDate\" IS NULL) OR (\"StateEnum\" = 2 AND \"StartDate\" IS NULL AND \"EndDate\" IS NULL) OR (\"StateEnum\" IN (0,3))"
         ));
     }
 }
