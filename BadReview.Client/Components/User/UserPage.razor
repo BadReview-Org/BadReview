@@ -330,6 +330,7 @@ else
     [Parameter] public int totalPagesFavorite { get; set; }
     [Parameter] public int totalPagesReviews { get; set; }
     [Parameter] public EventCallback OnUserUpdated { get; set; }
+    [Parameter] public int? userId { get; set; } 
 
     [Parameter] public UserForm settingsModel { get; set; } = null!;
     private UserForm oldSettings = null!;
@@ -503,9 +504,20 @@ else
 
         try
         {
-            var apiRequest = $"{APIUTILS.URIS.PROFILE}&page={page - 1}&field=0";
-            var response = await ApiService.PrivateGetAsync<PagedResult<DetailReviewDto>>(apiRequest);
-            userReviews = response?.Data.ToList() ?? new List<DetailReviewDto>();
+            if (IsPrivateProfile)
+            {
+                var apiRequest = $"{APIUTILS.URIS.PROFILE}&page={page - 1}&field=0";
+                var response = await ApiService.PrivateGetAsync<PagedResult<DetailReviewDto>>(apiRequest);
+
+                userReviews = response?.Data.ToList() ?? new List<DetailReviewDto>();
+            }
+            else
+            {
+                var response = await ApiService.PublicGetByIdAsync<PagedResult<DetailReviewDto>>
+                    (APIUTILS.URIS.USERS, userId ?? 0, $"?pagesize=6&page={page - 1}&field=0");
+                    
+                userReviews = response?.Data.ToList() ?? new List<DetailReviewDto>();
+            }
         }
         catch (Exception ex)
         {
@@ -520,9 +532,20 @@ else
 
         try
         {
-            var apiRequest = $"{APIUTILS.URIS.PROFILE}&page={page - 1}&field=1";
-            var response = await ApiService.PrivateGetAsync<PagedResult<DetailReviewDto>>(apiRequest);
-            favoriteGameCards = response?.Data.Select(r => new CardContainer(new BasicGameCardStrat(false), r.Game!)).ToArray();
+            if (IsPrivateProfile)
+            {
+                var apiRequest = $"{APIUTILS.URIS.PROFILE}&page={page - 1}&field=1";
+                var response = await ApiService.PrivateGetAsync<PagedResult<DetailReviewDto>>(apiRequest);
+                
+                favoriteGameCards = response?.Data.Select(r => new CardContainer(new BasicGameCardStrat(false), r.Game!)).ToArray();
+            }
+            else
+            {
+                var response = await ApiService.PublicGetByIdAsync<PagedResult<DetailReviewDto>>
+                    (APIUTILS.URIS.USERS, userId ?? 0, $"?pagesize=6&page={page - 1}&field=1");
+                    
+                favoriteGameCards = response?.Data.Select(r => new CardContainer(new BasicGameCardStrat(false), r.Game!)).ToArray();
+            }
         }
         catch (Exception ex)
         {

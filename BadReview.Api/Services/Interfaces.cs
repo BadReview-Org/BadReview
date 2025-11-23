@@ -88,9 +88,9 @@ public interface IIGDBService
 
 public interface IAuthService
 {
-    bool VerifyPassword(string username, string password, string hashed);
+    bool VerifyPassword(string password, string hashed);
 
-    string HashPassword(string username, string password);
+    string HashPassword(string password);
 
     string GenerateAccessToken(string username, int userId);
 
