@@ -70,7 +70,7 @@ else
                     <!-- Personal Info Card -->
                     <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
-                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" />
+                            <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" Style="color: #667eea;" />
                             <MudText Typo="Typo.h6" Style="color: #667eea;">
                                 Personal Information
                             </MudText>
@@ -116,33 +116,39 @@ else
 
                     <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1" Class="mb-3">
-                            <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Medium" />
+                            <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Medium" Style="color: #764ba2;"/>
                             <MudText Typo="Typo.h6" Style="color: #764ba2;"> 
                                 Activity
                             </MudText>
                         </MudStack>
-                        <MudStack Spacing="2">
-                            <MudStack Row="true" Justify="Justify.SpaceBetween">
-                                <MudText Typo="Typo.body2">
-                                    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Small" Class="mr-1" />
-                                    Reviews
-                                </MudText>
+
+                        <MudStack Spacing=2>
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Small" Color="Color.Primary"/>
+                                    <MudText Typo="Typo.body2">
+                                        Reviews
+                                    </MudText>
+                                </MudStack>
                                 <MudChip T="string" Size="Size.Small" Color="Color.Primary">
                                     @user.Reviews.TotalCount
                                 </MudChip>
                             </MudStack>
-                            <MudStack Row="true" Justify="Justify.SpaceBetween">
-                                <MudText Typo="Typo.body2">
-                                    <MudIcon Icon="@Icons.Material.Filled.Favorite" Size="Size.Small" Class="mr-1" />
-                                    Favorites
-                                </MudText>
+
+                            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Favorite" Size="Size.Small" Color="Color.Primary"/>
+                                    <MudText Typo="Typo.body2">
+                                        Favorites
+                                    </MudText>
+                                </MudStack>
                                 <MudChip T="string" Size="Size.Small" Color="Color.Error">
                                     @user.Favorites.TotalCount
                                 </MudChip>
                             </MudStack>
                         </MudStack>
+
                     </MudPaper>
-                    
                 </MudStack>
             </MudItem>
 

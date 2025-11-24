@@ -47,7 +47,7 @@ else
                     <!-- Cover Image -->
                     <MudPaper Elevation="10" Class="pa-3 mud-elevation-hover" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a); transition: all 0.3s ease;">
                         <MudImage Src="@ImageHelper.GetCoverUrl(gameDetails.CoverId)" 
-                                  Alt="@gameDetails.Name" 
+                                  Alt="" 
                                   Class="rounded-lg" 
                                   Style="width: 100%; height: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
                         <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1" Class="mt-1">
@@ -140,12 +140,22 @@ else
                                          Items="@gameDetails.Developers"
                                          RenderAsChips="false">
                             <ItemTemplate Context="developer">
-                                <MudLink Href="@($"/developer/{developer.Id}")" Style="text-decoration: none; color: inherit;">
+                                <!--<MudLink Href="@($"/developer/{developer.Id}")" Style="text-decoration: none; color: inherit;">
                                     <MudText Typo="Typo.body2" Color="Color.Default">
                                         <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" Alt="@developer.Name" Width="32" Height="32" Class="ml-2" Style="vertical-align: middle; border-radius: 4px;" />
                                         @developer.Name                     
                                     </MudText>
-                                </MudLink>
+                                </MudLink>-->
+                                <MudPaper Elevation=0 Class="mud-theme-transparent flex-none d-flex ml-2 mt-2">
+                                    <MudLink Href="@($"/developer/{developer.Id}")" Style="text-decoration: none; color: inherit;" Class="footer-link">
+                                        <MudStack StretchItems="StretchItems.None" Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                            <MudImage Src="@ImageHelper.GetCoverUrl(developer.LogoId)" Alt="" Width="32" Height="32" Style="vertical-align: middle; border-radius: 4px;" />
+                                            <MudText Typo="Typo.body2" Color="Color.Default">
+                                                @developer.Name
+                                            </MudText>
+                                        </MudStack>
+                                    </MudLink>
+                                </MudPaper>
                             </ItemTemplate>
                         </GameInfoSection>
                     }

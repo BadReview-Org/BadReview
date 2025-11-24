@@ -8,6 +8,8 @@
 
 ## Hashing de contraseñas y seguridad (investigar)
 
+## Eficiencia de CustomDropdown
+
 ## Permitir filtrar las reviews por ReviewState
 
 ## Concurrencia

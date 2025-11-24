@@ -16,12 +16,12 @@
 </style>
 
 <MudPaper Class="pa-4" Elevation="6" Style="background: linear-gradient(145deg, #2a2a2a, #1a1a1a);">
-    <MudText Typo="Typo.h5" Class="mb-3" Style="color: #667eea;">
-    <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Class="mr-2" />
-        Reviews (@totalCount)
-    </MudText>
-    <MudStack Spacing="2">
+    <MudStack Class="mb-3" Spacing="2" Row="true" AlignItems="AlignItems.Center">
+        <MudIcon Icon="@Icons.Material.Filled.RateReview" Size="Size.Medium" Style="color: #667eea;"/>
+        <MudText Typo="Typo.h5" Style="color: #667eea;">Reviews (@totalCount)</MudText>
+    </MudStack>
 
+    <MudStack Spacing="2">
     @if (Reviews == null)
     {
         <MudStack Spacing="2">

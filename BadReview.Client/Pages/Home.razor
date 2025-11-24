@@ -77,6 +77,7 @@ else
                  DropdownChanged="@(platform => Navigation.NavigateTo($"/platform/{platform.Id}"))"
                  URI = "@APIUTILS.URIS.PLATFORMS"
                  Label = "Search for platforms..."
+                 DropDownMinChars="3"
                  >
             <ItemTemplate Context="platform">
                 <MudIcon Icon="@IconsMap.PlatformTypeIcon[(IconsMap.PlatformTypes)(platform.PlatformType ?? 0)]" 
@@ -94,7 +95,7 @@ else
             <DropdownTemplate Context="platform">
                 <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
                     <MudImage Src="@ImageHelper.GetCoverUrl(platform.LogoId)" 
-                                Alt="@platform.Name" 
+                                Alt="" 
                                 Style="height: 50px; width: 50px; margin-bottom: 10px;" />
                     <MudText Typo="Typo.subtitle1" Align="Align.Left" Style="color: white;">
                         @platform.Name
@@ -148,12 +149,13 @@ else
                  OnItemClick="@(dev => Navigation.NavigateTo($"/developer/{dev.Id}"))"
                  DropdownChanged="@(dev => Navigation.NavigateTo($"/developer/{dev.Id}"))"
                  URI = "@APIUTILS.URIS.DEVELOPERS"
-                 Label = "Search for developers...">
+                 Label = "Search for developers..."
+                 DropDownMinChars="3">
                 <ItemTemplate Context="dev">
                     @if (!string.IsNullOrEmpty(dev.LogoId))
                     {
                         <MudImage Src="@ImageHelper.GetCoverUrl(dev.LogoId)" 
-                                Alt="@dev.Name" 
+                                Alt="" 
                                 Style="max-height: 80px; max-width: 150px;" />
                     }
                     <MudText Typo="Typo.h6" Align="Align.Center" Class="mt-2" Style="color: white;"
@@ -164,7 +166,7 @@ else
                 <DropdownTemplate Context="dev">
                     <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
                         <MudImage Src="@ImageHelper.GetCoverUrl(dev.LogoId)" 
-                                    Alt="@dev.Name" 
+                                    Alt="" 
                                     Style="height: 50px; width: 50px; margin-bottom: 10px;" />
                         <MudText Typo="Typo.subtitle1" Align="Align.Left" Style="color: white;">
                             @dev.Name

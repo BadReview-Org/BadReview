@@ -1,12 +1,12 @@
 @implements IDisposable
 
-<MudDialog Class="pa-4" @bind-Visible="_visible" Options="_dialogOptions">
+<MudDialog Class="pa-0" @bind-Visible="_visible" Options="_dialogOptions">
     <TitleContent>
         <MudStack Spacing="2" Row="true" AlignItems="AlignItems.Center">
             @if (!string.IsNullOrWhiteSpace(Icon))
-                {
-                    <MudIcon Icon="@Icon" />
-                }
+            {
+                <MudIcon Icon="@Icon" Size="Size.Large" />
+            }
             <MudText Typo="Typo.h6">
                 @Title
             </MudText>
@@ -62,12 +62,19 @@
     [Parameter] public EventCallback OnCancel { get; set; }
 
     // --- Opciones del diálogo ---
-    private DialogOptions _dialogOptions = new()
+    [Parameter] public bool BackdropClick { get; set; } = true;
+    DialogOptions _dialogOptions = null!;
+
+    protected override void OnInitialized()
     {
-        CloseButton = true,
-        MaxWidth = MaxWidth.Small,
-        FullWidth = true
-    };
+        _dialogOptions = new()
+        {
+            CloseButton = false,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true,
+            BackdropClick = BackdropClick
+        };
+    }
 
     // --- Métodos públicos ---
     public void Open() => _visible = true;

@@ -1,23 +1,31 @@
+@inject NavigationManager Navigation
+
 @typeparam T
 <MudAutocomplete T="T" 
-                            Label="@Label"
-                            SearchFunc="@OnSearchElements"
-                            Variant="Variant.Outlined"
-                            Margin="Margin.Dense"
-                            AdornmentIcon="@Icons.Material.Filled.Search"
-                            Adornment="Adornment.Start"
-                            Clearable="true"
-                            ValueChanged="@OnDropdownChanged"
-                            ResetValueOnEmptyText="true"
-                            CoerceText="false"
-                            ToStringFunc="@ToStringFunc"
-                             >
-    <ItemTemplate Context="element">
-        @(ItemTemplate?.Invoke(element))
-    </ItemTemplate>
-    <ItemSelectedTemplate Context="element">
-        @(ItemTemplate?.Invoke(element))
-    </ItemSelectedTemplate>
+    Label="@Label"
+    SearchFunc="@OnSearchElements"
+    Variant="Variant.Outlined"
+    Margin="Margin.Dense"
+    AdornmentIcon="@Icons.Material.Filled.Search"
+    Adornment="Adornment.Start"
+    Clearable="true"
+    ValueChanged="@OnDropdownChanged"
+    ResetValueOnEmptyText="true"
+    CoerceText="false"
+    ToStringFunc="@ToStringFunc"
+    DebounceInterval="@DebounceTime"
+    SelectOnActivation="false"
+    MinCharacters="@MinChars"
+    MaxItems="@MaxItem"
+    Value="Value"
+    @ref = "_thisDropdown">
+        <ItemTemplate Context="element">
+            @(ItemTemplate?.Invoke(element))
+        </ItemTemplate>
+
+        <ItemSelectedTemplate Context="element">
+            @(ItemTemplate?.Invoke(element))
+        </ItemSelectedTemplate>
 </MudAutocomplete>
 
 @code{
@@ -26,21 +34,43 @@
     [Parameter] public Func<string, Task<IEnumerable<T>>>? SearchElements { get; set; }
     [Parameter] public RenderFragment<T>? ItemTemplate { get; set; }
     [Parameter] public Func<T?, string>? ToStringFunc { get; set; }
+    [Parameter] public bool ClearOnNavigation { get; set; } = false;
+    [Parameter] public int DebounceTime { get; set; } = 500; 
+    [Parameter] public int MinChars { get; set; } = 0;
+    [Parameter] public int? MaxItem { get; set; } = null;
+    [Parameter] public T Value { get; set; } = default!;
+
+    private MudAutocomplete<T> _thisDropdown = null!;
+    private string lastSearchString = "";
+    private IEnumerable<T>? lastSearch;
 
     private async Task<IEnumerable<T>> OnSearchElements(string value, CancellationToken token)
-    { 
+    {
+        if (value == lastSearchString) return lastSearch ?? Enumerable.Empty<T>();
+
         // Si hay un callback definido, se busca en la API
         if (SearchElements != null)
         {
-            var elements = await SearchElements(value);
-            return elements ?? Enumerable.Empty<T>();
+            lastSearch = await SearchElements(value);
+            lastSearchString = value;
+            
+            return lastSearch ?? Enumerable.Empty<T>();
         }
         
         return Enumerable.Empty<T>();
     }
 
-    private void OnDropdownChanged(T element){
+    private void ClearDropdown()
+    {
+        _thisDropdown.ClearAsync();
+        _thisDropdown.BlurAsync();
+    }
 
-        DropdownChanged.InvokeAsync(element);
+    private void OnDropdownChanged(T element) => DropdownChanged.InvokeAsync(element);
+
+    protected override void OnInitialized()
+    {
+        if (ClearOnNavigation)
+            Navigation.LocationChanged += (_, __) => ClearDropdown();
     }
 }

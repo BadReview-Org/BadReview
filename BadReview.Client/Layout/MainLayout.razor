@@ -31,7 +31,14 @@
         <MudSpacer />
         
         <CascadingValue Value="_isDarkMode" Name="IsDarkMode">
-            <CustomDropdown T="BasicGameDto" ToStringFunc="@(game => game?.Name ?? "")" DropdownChanged="OnDropdownSelected" SearchElements="OnSearchGames" Label="Search for games...">
+            <CustomDropdown 
+                T="BasicGameDto"
+                ToStringFunc="@(game => game?.Name ?? "")"
+                DropdownChanged="OnDropdownSelected"
+                SearchElements="OnSearchGames"
+                Label="Search for games..."
+                ClearOnNavigation="true"
+                MinChars="3">
                 <ItemTemplate Context="game">
                     <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                         <img src="@ImageHelper.GetCoverUrl(game.CoverId)" 

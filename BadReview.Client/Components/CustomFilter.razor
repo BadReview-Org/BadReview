@@ -12,7 +12,7 @@
                         DebounceInterval="500"
                         OnDebounceIntervalElapsed="OnSearchAsyncInternal"
                         Margin="Margin.Dense"
-                            />
+                        OnBlur="async () => { if (Value != lastSearched) await OnSearchAsyncInternal(Value); }"/>
 
         @if (SetChips)
         {   
@@ -59,53 +59,74 @@
     <MudStack Spacing="3" Class="mt-2 px-4">
         <MudStack Spacing="2">
             <MudText Typo="Typo.subtitle1" Class="fw-bold">Platform</MudText>
-            <MudAutocomplete T="PlatformDto" 
+            <CustomDropdown T="PlatformDto" 
                                 Label="Name" 
+                                DropdownChanged="@(platform => SelectedPlatform = platform)"
+                                SearchElements="@OnSearchPlatforms"
+                                MinChars="3"
+                                ToStringFunc="@(platform => platform?.Name ?? "")"
                                 Value="@SelectedPlatform"
-                                SearchFunc="@OnSearchPlatforms"
-                                ToStringFunc="@(p => p?.Name ?? "")"
-                                Variant="Variant.Outlined"
-                                Margin="Margin.Dense"
-                                AdornmentIcon="@Icons.Material.Filled.Search"
-                                Adornment="Adornment.Start"
-                                Clearable="true"
-                                ValueChanged="@(platform => SelectedPlatform = platform)"
-                                />
+                                >
+                <ItemTemplate Context="platform">
+                    <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
+                        <MudImage Src="@ImageHelper.GetCoverUrl(platform.LogoId)" 
+                                    Alt="" 
+                                    Style="height: 50px; width: 50px; margin-bottom: 10px;" />
+                        <MudText Typo="Typo.subtitle1" Align="Align.Left" Style="color: white;">
+                            @platform.Name
+                        </MudText>
+                    </MudStack>
+                </ItemTemplate>
+            </CustomDropdown>
         </MudStack>
 
         <MudDivider />
 
         <MudStack Spacing="2">
             <MudText Typo="Typo.subtitle1" Class="fw-bold">Genre</MudText>
-            <MudAutocomplete T="GenreDto" 
-                                Label="Name" 
+            <CustomDropdown T="GenreDto" 
+                                Label="Name"
+                                DropdownChanged="@(genre => SelectedGenre = genre)"
+                                SearchElements="@OnSearchGenres"
+                                ToStringFunc="@(genre => genre?.Name ?? "")"
                                 Value="@SelectedGenre"
-                                SearchFunc="@OnSearchGenres"
-                                ToStringFunc="@(g => g?.Name ?? "")"
-                                Variant="Variant.Outlined"
-                                Margin="Margin.Dense"
-                                AdornmentIcon="@Icons.Material.Filled.Search"
-                                Adornment="Adornment.Start"
-                                Clearable="true"
-                                ValueChanged="@(genre => SelectedGenre = genre)"
-                                />
+                                MinChars="1"
+                                >
+                <ItemTemplate Context="genre">
+                    <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
+                        <MudIcon Icon="@IconsMap.GenreIcon[(IconsMap.Genres)genre.Id]" 
+                            Size="Size.Large" 
+                            Style="color: white;" />
+                        <MudText Typo="Typo.subtitle1" Align="Align.Left" Style="color: white;">
+                            @genre.Name
+                        </MudText>
+                    </MudStack>
+                </ItemTemplate>
+            </CustomDropdown>
         </MudStack>
             <MudDivider />
 
         <MudStack Spacing="2">
             <MudText Typo="Typo.subtitle1" Class="fw-bold">Developers</MudText>
-            <MudAutocomplete T="BasicDeveloperDto" 
+            <CustomDropdown T="BasicDeveloperDto" 
                                 Label="Name" 
+                                DropdownChanged="@(developer => SelectedDeveloper = developer)"
+                                SearchElements="@OnSearchDevelopers"
+                                MinChars="3"
+                                ToStringFunc="@(dev => dev?.Name ?? "")"
                                 Value="@SelectedDeveloper"
-                                SearchFunc="@OnSearchDevelopers"
-                                ToStringFunc="@(g => g?.Name ?? "")"
-                                Variant="Variant.Outlined"
-                                Margin="Margin.Dense"
-                                AdornmentIcon="@Icons.Material.Filled.Search"
-                                Adornment="Adornment.Start"
-                                Clearable="true"
-                                ValueChanged="@(developer => SelectedDeveloper = developer)"
-                                />
+                                >
+                <ItemTemplate Context="dev">
+                    <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
+                        <MudImage Src="@ImageHelper.GetCoverUrl(dev.LogoId)" 
+                                    Alt="" 
+                                    Style="height: 50px; width: 50px; margin-bottom: 10px;" />
+                        <MudText Typo="Typo.subtitle1" Align="Align.Left" Style="color: white;">
+                            @dev.Name
+                        </MudText>
+                    </MudStack>
+                </ItemTemplate>
+            </CustomDropdown>
 
         </MudStack>
 
@@ -160,7 +181,9 @@
     private double MaxRating { get; set; } = 10;
     
     private bool HasRatingFilter => MinRating > 0 || MaxRating < 10;
-    
+
+    private string lastSearched = "";
+
     //--------------- Public Parameters ----------------
     // Dropdown 
     [Parameter] public bool Dropdown {get; set; } = true;
@@ -195,7 +218,7 @@
 
     [Parameter] public EventCallback<string> ClickApplyFilters { get; set; }
 
-    private void OnClickCancel()
+    private async Task OnClickCancel()
     {
         _openEnd = false;
         SelectedDeveloper = null;
@@ -203,6 +226,12 @@
         SelectedPlatform = null;
         MinRating = 0;
         MaxRating = 10;
+        
+        extraFilters = "";
+        await extraFiltersChanged.InvokeAsync(extraFilters);
+        StateHasChanged();
+
+        await OnSearchAsyncInternal(Value);
     }
     
     private void OnMinRatingChanged(double value)
@@ -260,6 +289,7 @@
     private async Task OnSearchAsyncInternal(string value)
     {
         Value = value;
+        lastSearched = value;
         await ValueChanged.InvokeAsync(value);
         if (OnSearchAsync.HasDelegate)
         {
@@ -267,7 +297,7 @@
         }
     }
 
-    private async Task<IEnumerable<PlatformDto>> OnSearchPlatforms(string value, CancellationToken token)
+    private async Task<IEnumerable<PlatformDto>> OnSearchPlatforms(string value)
     {
         // Si hay un callback definido, se busca en la API
         if (SearchPlatforms != null)
@@ -283,7 +313,7 @@
         return Platforms.Where(p => p.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
     }
 
-    private async Task<IEnumerable<GenreDto>> OnSearchGenres(string value, CancellationToken token)
+    private async Task<IEnumerable<GenreDto>> OnSearchGenres(string value)
     {
         // Si hay un callback definido, se busca en la API
         if (SearchGenres != null)
@@ -299,7 +329,7 @@
         return Genres.Where(g => g.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
     }
 
-    private async Task<IEnumerable<BasicDeveloperDto>> OnSearchDevelopers(string value, CancellationToken token)
+    private async Task<IEnumerable<BasicDeveloperDto>> OnSearchDevelopers(string value)
     {
         // Si hay un callback definido, se busca en la API
         if (SearchDevelopers != null)
@@ -314,5 +344,4 @@
             
         return Developers.Where(g => g.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
     }
-
 }
