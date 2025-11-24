@@ -4,6 +4,10 @@ BadReview is a **full stack learning project built entirely in .NET 9**.\
 This is a web application whose target audience are enthusiast gamers who want to **discover, rate and review new games**.
 The application's concept is inspired by platforms like **IGDB** (API that's used to fetch videogames metadata) or **IMDB**, among others.
 
+---
+
+You can access the **website application** for the current release (v1.0) here: https://badreview-org.github.io/
+
 ### Developers
 
 - [Lautaro Peralta](https://www.linkedin.com/in/lautaroperalta)
@@ -61,7 +65,7 @@ Finally, in order to make requests to the **IGDB API** you will need to get the 
 
 ## Usage
 
-You can use the already built application (currently v1.0 release) through the [website](https://...).
+You can use the already built application (currently v1.0 release) through the [website](https://badreview-org.github.io/).
 
 ---
 
