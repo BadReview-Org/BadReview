@@ -42,6 +42,12 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.Property(g => g.IsReview)
             .HasDefaultValue(false);
 
+        builder.Property(e => e.StartDate)
+            .HasColumnType("timestamp without time zone");
+
+        builder.Property(e => e.EndDate)
+            .HasColumnType("timestamp without time zone");
+
         // Condicion sobre IsReview/IsFavorite: no pueden ser ambos false a la vez
         builder.ToTable(t => t.HasCheckConstraint("CK_Reviews_ReviewFlags",
             "(\"IsReview\" = true OR \"IsFavorite\" = true)"));

@@ -30,6 +30,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(e => e.Country)
             .HasDefaultValue(0);
 
+        builder.Property(e => e.Birthday)
+            .HasColumnType("timestamp without time zone");
+
         builder.ToTable(t =>
         {
             t.HasCheckConstraint("CK_Users_Country", "\"Country\" >= 0");
