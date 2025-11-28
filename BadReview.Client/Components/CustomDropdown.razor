@@ -1,32 +1,55 @@
 @inject NavigationManager Navigation
-
 @typeparam T
-<MudAutocomplete T="T" 
-    Label="@Label"
-    SearchFunc="@OnSearchElements"
-    Variant="Variant.Outlined"
-    Margin="Margin.Dense"
-    AdornmentIcon="@Icons.Material.Filled.Search"
-    Adornment="Adornment.Start"
-    Clearable="true"
-    ValueChanged="@OnDropdownChanged"
-    ResetValueOnEmptyText="true"
-    CoerceText="false"
-    ToStringFunc="@ToStringFunc"
-    DebounceInterval="@DebounceTime"
-    SelectOnActivation="false"
-    MinCharacters="@MinChars"
-    MaxItems="@MaxItem"
-    Value="Value"
-    @ref = "_thisDropdown">
-        <ItemTemplate Context="element">
-            @(ItemTemplate?.Invoke(element))
-        </ItemTemplate>
 
-        <ItemSelectedTemplate Context="element">
-            @(ItemTemplate?.Invoke(element))
-        </ItemSelectedTemplate>
-</MudAutocomplete>
+@if (Value is not null)
+{
+    <MudAutocomplete T="T" 
+        Label="@Label"
+        SearchFunc="@OnSearchElements"
+        Variant="Variant.Outlined"
+        Margin="Margin.Dense"
+        AdornmentIcon="@Icons.Material.Filled.Search"
+        Adornment="Adornment.Start"
+        Clearable="true"
+        ValueChanged="@OnDropdownChanged"
+        ResetValueOnEmptyText="true"
+        CoerceText="false"
+        ToStringFunc="ToStringFunc"
+        DebounceInterval="@DebounceTime"
+        SelectOnActivation="false"
+        MinCharacters="@MinChars"
+        MaxItems="@MaxItem"
+        Value="Value"
+        @ref = "_thisDropdown">
+            <ItemTemplate Context="element">
+                @(ItemTemplate?.Invoke(element))
+            </ItemTemplate>
+    </MudAutocomplete>
+}
+else
+{
+    <MudAutocomplete T="T" 
+        Label="@Label"
+        SearchFunc="@OnSearchElements"
+        Variant="Variant.Outlined"
+        Margin="Margin.Dense"
+        AdornmentIcon="@Icons.Material.Filled.Search"
+        Adornment="Adornment.Start"
+        Clearable="true"
+        ValueChanged="@OnDropdownChanged"
+        ResetValueOnEmptyText="true"
+        CoerceText="false"
+        ToStringFunc="ToStringFunc"
+        DebounceInterval="@DebounceTime"
+        SelectOnActivation="false"
+        MinCharacters="@MinChars"
+        MaxItems="@MaxItem"
+        @ref = "_thisDropdown">
+            <ItemTemplate Context="element">
+                @(ItemTemplate?.Invoke(element))
+            </ItemTemplate>
+    </MudAutocomplete>
+}
 
 @code{
     [Parameter] public string Label { get; set; } = "Search...";
@@ -38,7 +61,7 @@
     [Parameter] public int DebounceTime { get; set; } = 500; 
     [Parameter] public int MinChars { get; set; } = 0;
     [Parameter] public int? MaxItem { get; set; } = null;
-    [Parameter] public T Value { get; set; } = default!;
+    [Parameter] public T? Value { get; set; } = default;
 
     private MudAutocomplete<T> _thisDropdown = null!;
     private string lastSearchString = "";
@@ -66,7 +89,10 @@
         _thisDropdown.BlurAsync();
     }
 
-    private void OnDropdownChanged(T element) => DropdownChanged.InvokeAsync(element);
+    private void OnDropdownChanged(T element) {
+        Value = element;
+        DropdownChanged.InvokeAsync(element);
+    }
 
     protected override void OnInitialized()
     {

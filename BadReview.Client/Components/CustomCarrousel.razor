@@ -11,7 +11,12 @@
             </MudText>
         </MudStack>
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Style="min-width: 300px; width: 500px;">
-        <CustomDropdown T="T"  DropdownChanged="OnDropdownSelected" SearchElements="OnSearchElements" Label="@Label" MinChars="DropdownMinChars" >
+        <CustomDropdown
+            T="T"
+            DropdownChanged="OnDropdownSelected"
+            SearchElements="OnSearchElements"
+            Label="@Label"
+            MinChars="DropdownMinChars">
         <ItemTemplate Context ="element">
             @DropdownTemplate(element)
         </ItemTemplate>
