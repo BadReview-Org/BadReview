@@ -6,17 +6,17 @@ The application's concept is inspired by platforms like **IGDB** (API that's use
 
 ---
 
-You can access the **website application** for the current release (v1.0) here: https://badreview-org.github.io/
+You can access the **website application** for the current release (v1.0) here: <a href="https://badreview.tech/" target="_blank" rel="noopener noreferrer">https://badreview.tech/</a>
 
 ### Developers
 
-- [Lautaro Peralta](https://www.linkedin.com/in/lautaroperalta)
-- [Manuel Herrera](https://www.linkedin.com/in/manuelmhs1104)
+- <a href="https://www.linkedin.com/in/lautaroperalta" target="_blank" rel="noopener noreferrer">Lautaro Peralta</a>
+- <a href="https://www.linkedin.com/in/manuelmhs1104" target="_blank" rel="noopener noreferrer">Manuel Herrera</a>
 
 ## Description
 
 This **REST API and SPA** technology stack was built on top of **ASP.NET Core and Blazor WebAssembly**, using technologies such as Minimal APIs, Entity Framework Core, Fluent Validation, PostgreSQL (previously SQL Server), Postman, JWT Authentication, MudBlazor, etc.\
-Videogame metadata is retrieved from the [IGDB API](https://igdb.com) to show the latests game's information.
+Videogame metadata is retrieved from the <a href="https://igdb.com" target="_blank" rel="noopener noreferrer">IGDB API</a> to show the latests game's information.
 
 ---
 
@@ -25,13 +25,13 @@ The program is bundled as a **single .NET's solution** which contains **three pr
 For more technical documentation, read some of the followings:
 
 - **BadReview.Api**: This is a REST API built with .NET's Minimal APIs and Entity Framework Core.\
-  [API documentation](BadReview.Api/README.md)
+  <a href="BadReview.Api/README.md" target="_blank" rel="noopener noreferrer">API documentation</a>
 
 - **BadReview.Client**: This is a SPA built with Blazor WebAssembly. We use MudBlazor's component library for richer UI components and styling.\
-  [Client documentation](BadReview.Client/README.md)
+  <a href="BadReview.Client/README.md" target="_blank" rel="noopener noreferrer">Client documentation</a>
 
 - **BadReview.Shared**: Contains shared DTOs, validators, definitions and utils to provide a common interface between the API and client.\
-  [Shared documentation](BadReview.Shared/README.md)
+  <a href="BadReview.Shared/README.md" target="_blank" rel="noopener noreferrer">Shared documentation</a>
 
 ## Features
 
@@ -54,24 +54,24 @@ If you wish to run this application locally, read these requirements. Otherwise,
 ---
 
 To build and run the app, you will need to install in a compatible OS:
-- [.Net 9](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
-- [PostgreSQL 16](https://www.postgresql.org/download/)
-- [dotnet ef Tool](https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools)
+- <a href="https://dotnet.microsoft.com/en-us/download/dotnet/9.0" target="_blank" rel="noopener noreferrer">.Net 9</a>
+- <a href="https://www.postgresql.org/download/" target="_blank" rel="noopener noreferrer">PostgreSQL 16</a>
+- <a href="https://learn.microsoft.com/en-us/dotnet/core/tools/global-tools" target="_blank" rel="noopener noreferrer">dotnet ef Tool</a>
 
-During development, we tested the app in Windows 10/11 and Ubuntu 24.04 and used a [Docker Image](https://hub.docker.com/_/postgres) for Postgres.\
+During development, we tested the app in Windows 10/11 and Ubuntu 24.04 and used a <a href="https://hub.docker.com/_/postgres" target="_blank" rel="noopener noreferrer">Docker Image</a> for Postgres.\
 To install the `dotnet ef` tool, **once .Net 9 is installed**, you can simply execute: `dotnet tool install --global dotnet-ef`. This will install it globally, otherwise you can decide to install it locally.\
-All other dependencies (.NET packages) should be installed automatically just building the application. You can read the .csproj files in each project to know exactly all packages included ([Api](BadReview.Api/BadReview.Api.csproj), [Client](BadReview.Client/BadReview.Client.csproj), [Shared](BadReview.Shared/BadReview.Shared.csproj)).\
-Finally, in order to make requests to the **IGDB API** you will need to get the necessary credentials to do so. Simply follow the instructions in the following link: https://api-docs.igdb.com/#account-creation 
+All other dependencies (.NET packages) should be installed automatically just building the application. You can read the .csproj files in each project to know exactly all packages included (<a href="BadReview.Api/BadReview.Api.csproj" target="_blank" rel="noopener noreferrer">Api</a>, <a href="BadReview.Client/BadReview.Client.csproj" target="_blank" rel="noopener noreferrer">Client</a>, <a href="BadReview.Shared/BadReview.Shared.csproj" target="_blank" rel="noopener noreferrer">Shared</a>).\
+Finally, in order to make requests to the **IGDB API** you will need to get the necessary credentials to do so. Simply follow the instructions in the following link: <a href="https://api-docs.igdb.com/#account-creation" target="_blank" rel="noopener noreferrer">https://api-docs.igdb.com/#account-creation</a>
 
 ## Usage
 
-You can use the already built application (currently v1.0 release) through the [website](https://badreview-org.github.io/).
+You can use the already built application (currently v1.0 release) through the <a href="https://badreview.tech/" target="_blank" rel="noopener noreferrer">website</a>.
 
 ---
 
 If you intend to run the app locally:
 
-Ensure the requirements are met. Then, clone the [repository](https://github.com/BadReview-Org/BadReview.git) and enter the directory:
+Ensure the requirements are met. Then, clone the <a href="https://github.com/BadReview-Org/BadReview.git" target="_blank" rel="noopener noreferrer">repository</a> and enter the directory:
 
 ### PostgreSQL
 If you are using a Docker image you can run: 
@@ -137,7 +137,7 @@ dotnet ef database update # Run the migration
 ```
 
 Once the database is initialized, you can just run `dotnet run` command to start the API. This will leave the server running and listening requests at the ports specified in the **Properties/launchSettings.json** file (**5003 by default**).\
-You can now use [Postman](https://www.postman.com/) or any other client to test the API endpoints, or launch the **BadReview.Client** app to do so.
+You can now use <a href="https://www.postman.com/" target="_blank" rel="noopener noreferrer">Postman</a> or any other client to test the API endpoints, or launch the **BadReview.Client** app to do so.
 
 ### Client
 
