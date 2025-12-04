@@ -24,7 +24,7 @@ jobs:
         with:
           doc: badreview-api
           token: bAJs4oAMV2aM269ewdFZ77F7o4NGFJCg
-          file: doc/api-documentation.yml
+          file: Docs/api-documentation.yml
   api-diff:
     if: ${{ github.event_name == 'pull_request' }}
     name: Check API diff on Bump.sh
@@ -37,7 +37,7 @@ jobs:
         with:
           doc: badreview-api
           token: bAJs4oAMV2aM269ewdFZ77F7o4NGFJCg
-          file: doc/api-documentation.yml
+          file: Docs/api-documentation.yml
           command: diff
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
