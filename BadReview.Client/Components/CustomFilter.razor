@@ -66,6 +66,7 @@
                                 MinChars="3"
                                 ToStringFunc="@(platform => platform?.Name ?? "")"
                                 Value="@SelectedPlatform"
+                                HasValue="true"
                                 >
                 <ItemTemplate Context="platform">
                     <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
@@ -90,6 +91,7 @@
                                 SearchElements="@OnSearchGenres"
                                 ToStringFunc="@(genre => genre?.Name ?? "")"
                                 Value="@SelectedGenre"
+                                HasValue="true"
                                 MinChars="1"
                                 >
                 <ItemTemplate Context="genre">
@@ -115,6 +117,7 @@
                                 MinChars="3"
                                 ToStringFunc="@(dev => dev?.Name ?? "")"
                                 Value="@SelectedDeveloper"
+                                HasValue="true"
                                 >
                 <ItemTemplate Context="dev">
                     <MudStack Row ="true" AlignItems="AlignItems.Center" Spacing="2" >
