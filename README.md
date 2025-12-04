@@ -95,7 +95,7 @@ Enter the **BadReview.Api folder**.
 You will need to create a new **appsettings.json** file inside the BadReview.Api folder.\
 The content of this new file must be:
 
-```
+```json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Database=BadReviewDb;Username=postgres;Password=pass;Port=5432"
