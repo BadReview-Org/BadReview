@@ -23,29 +23,70 @@ public static class UserEndpoints
 {
     public static WebApplication MapUserEndpoints(this WebApplication app)
     {
-        app.MapPost("/api/login", LoginUser);
+        app.MapPost("/api/login", LoginUser)
+            .WithName("LoginUser")
+            .WithTags("Authentication")
+            .WithSummary("Log in")
+            .WithDescription("Authenticate an user and return JWT tokens");
 
-        app.MapPost("/api/register", RegisterUser).WithName("RegisterUser");
+        app.MapPost("/api/register", RegisterUser)
+            .WithName("RegisterUser")
+            .WithTags("Authentication")
+            .WithSummary("Register user")
+            .WithDescription("Create a new user account")
+            .Produces<UserTokensDto>(StatusCodes.Status200OK, contentType: "application/json");
 
-        // PUT: /api/profile - Actualizar un usuario existente
-        app.MapPut("/api/profile", UpdateUser).RequireAuthorization("AccessTokenPolicy").WithName("UpdateUser");
+        app.MapPost("/api/refresh", RefreshUserTokens)
+            .WithName("RefreshTokens")
+            .RequireAuthorization("RefreshTokenPolicy")
+            .WithTags("Authentication")
+            .WithSummary("Refresh tokens")
+            .WithDescription("Generate new access tokens using the refresh token");
 
-        // DELETE: /api/users/{id} - Eliminar un usuario
-        app.MapDelete("/api/profile", DeleteUser).RequireAuthorization("AccessTokenPolicy").WithName("DeleteUser");
+        // PUT: /api/profile - Update an existing user
+        app.MapPut("/api/profile", UpdateUser)
+            .RequireAuthorization("AccessTokenPolicy")
+            .WithName("UpdateUser")
+            .WithTags("User Profile")
+            .WithSummary("Update profile")
+            .WithDescription("Update the authenticated user's information");
+
+        // DELETE: /api/users/{id} - Delete a user
+        app.MapDelete("/api/profile", DeleteUser)
+            .RequireAuthorization("AccessTokenPolicy")
+            .WithName("DeleteUser")
+            .WithTags("User Profile")
+            .WithSummary("Delete account")
+            .WithDescription("Delete the authenticated user's account");
 
         // autorizar, traer private dto, paginar
-        app.MapGet("/api/profile", GetPrivateProfile).RequireAuthorization("AccessTokenPolicy");
+        app.MapGet("/api/profile", GetPrivateProfile)
+            .RequireAuthorization("AccessTokenPolicy")
+            .WithTags("User Profile")
+            .WithSummary("Get private profile")
+            .WithDescription("Get the complete information of the authenticated user's profile");
 
-        // GET: /api/users/{id} - Obtener un usuario por ID
-        app.MapGet("/api/users/{id}", GetPublicProfile).WithName("GetUser");
+        // GET: /api/users/{id} - Get a user by ID
+        app.MapGet("/api/users/{id}", GetPublicProfile)
+            .WithName("GetUser")
+            .WithTags("User Profile")
+            .WithSummary("Get user by ID")
+            .WithDescription("Get the public information of a user by their ID");
 
-        app.MapPost("/api/refresh", RefreshUserTokens).RequireAuthorization("RefreshTokenPolicy");
 
-        app.MapPost("/api/usernameavailable", IsUsernameAvailable);
+        app.MapPost("/api/usernameavailable", IsUsernameAvailable)
+            .WithTags("Validation")
+            .WithSummary("Check username availability")
+            .WithDescription("Check if a username is available");
 
-        app.MapPost("/api/emailavailable", IsEmailAvailable);
-
-        // GET: /api/users - Obtener todos los usuarios (solo para debugging)
+        app.MapPost("/api/emailavailable", IsEmailAvailable)
+            .WithTags("Validation")
+            .WithSummary("Check email availability")
+            .WithDescription("Check if an email is available for registration")
+            .Produces<string>(StatusCodes.Status200OK, contentType: "application/json")
+            .Produces<string>(StatusCodes.Status409Conflict, contentType: "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest);
+        // GET: /api/users - Get all users (for debugging only)
         //app.MapGet("/api/users", GetUsers).WithName("GetUsers");
 
         return app;
