@@ -84,7 +84,7 @@ Configure the following in `appsettings.json`:
     "URI": "https://api.igdb.com/v4/"
   },
   "Jwt": {
-    "Key": "your_secret_key_minimum_32_characters",
+    "Key": *JWT SECURITY KEY*,
     "Issuer": "https://localhost:5003",
   },
   "Logging": {
@@ -121,11 +121,13 @@ dotnet ef migrations add MigrationName
 ```bash
 dotnet ef database update
 ```
-If any error occurs then you must use:
+
 #### Delete database:
+In case any error occurs, you can delete the database as follows:
 ```bash
 dotnet ef database drop --force
 ```
+Then, you can re-apply the migrations or delete migrations folder and create a new one.
 
 ### Models
 
@@ -140,7 +142,7 @@ Core domain entities:
 - GameDeveloper (many-to-many)
 - GamePlatform (many-to-many)
 
-Owned entities for additional data
+Owned entities for additional data:
 
 - Image
 - CUDate
@@ -154,12 +156,12 @@ The API uses JWT Bearer tokens with two token types:
 
 Protected endpoints require the `Authorization` header:
 ```
-Authorization: Bearer <access-refresh_token>
+Authorization: Bearer <[access/refresh]_token>
 ```
 
 ## CORS
 
-CORS is configured to allow requests from the Blazor WebAssembly client running on `https://localhost:5193`. You can modify, delete or add more domains in `Configuration/CorsConfig.cs` .
+CORS is configured to allow requests from the Blazor WebAssembly client running on `https://localhost:5193`. You can modify, delete or add more domains in `Configuration/CorsConfig.cs`.
 
 ## Running the API
 

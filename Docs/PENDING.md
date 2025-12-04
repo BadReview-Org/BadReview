@@ -1,5 +1,7 @@
-Terminar OpenApi/SwaggerUI
-Hacer docs Api, Client y Shared
+Terminar OpenApi/SwaggerUI (yo)
+
+
+Hacer docs Client
 Comentar codigo por encima
 Tag 1.01 quick fix
 Release/s con CHANGELOG.MD
