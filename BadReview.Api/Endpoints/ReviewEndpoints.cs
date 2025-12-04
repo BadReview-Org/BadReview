@@ -22,20 +22,37 @@ public static class ReviewEndpoints
     public static WebApplication MapReviewEndpoints(this WebApplication app)
     {
         // GET: /api/reviews - Obtener todas las reseñas
-        app.MapGet("/api/reviews", GetReviews);
+        app.MapGet("/api/reviews", GetReviews)
+            .WithName("GetReviews")
+            .WithTags("Reviews")
+            .WithSummary("Get all reviews")
+            .WithDescription("Retrieve a paginated list of all reviews in the system");
 
         // GET: /api/reviews/{id} - Obtener una reseña por ID
-        app.MapGet("/api/reviews/{id}", GetReviewById);
+        app.MapGet("/api/reviews/{id}", GetReviewById)
+            .WithName("GetReviewById")
+            .WithTags("Reviews")
+            .WithSummary("Get review by ID")
+            .WithDescription("Retrieve a specific review by its ID");
 
         //PUT: /api/reviews/{id} - Actualizar una reseña por ID
-        app.MapPut("/api/reviews/{id}", UpdateReviewWithId).RequireAuthorization("AccessTokenPolicy");
-
+        app.MapPut("/api/reviews/{id}", UpdateReviewWithId).RequireAuthorization("AccessTokenPolicy")
+            .WithName("UpdateReviewWithId")
+            .WithTags("Reviews")
+            .WithSummary("Update review by ID")
+            .WithDescription("Update an existing review by its ID");
         // DELETE: /api/reviews/{id} - Eliminar una reseña por ID
-        app.MapDelete("/api/reviews/{id}", DeleteReviewWithId).RequireAuthorization("AccessTokenPolicy");
-
+        app.MapDelete("/api/reviews/{id}", DeleteReviewWithId).RequireAuthorization("AccessTokenPolicy")
+            .WithName("DeleteReviewWithId")
+            .WithTags("Reviews")
+            .WithSummary("Delete review by ID")
+            .WithDescription("Delete an existing review by its ID");
         // POST: /api/reviews - Crear una nueva reseña
-        app.MapPost("/api/reviews", CreateReview).RequireAuthorization("AccessTokenPolicy").WithName("ReviewEndpoints");
-
+        app.MapPost("/api/reviews", CreateReview).RequireAuthorization("AccessTokenPolicy")
+            .WithName("CreateReview")
+            .WithTags("Reviews")
+            .WithSummary("Create a new review")
+            .WithDescription("Create a new review for a game");
         return app;
     }
 

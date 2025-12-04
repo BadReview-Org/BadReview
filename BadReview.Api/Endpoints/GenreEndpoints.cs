@@ -19,9 +19,17 @@ public static class GenreEndpoints
     public static WebApplication MapGenreEndpoints(this WebApplication app)
     {
         // GET: /api/genres - Obtener todos los generos
-        app.MapGet("/api/genres", GetGenres);
+        app.MapGet("/api/genres", GetGenres)
+            .WithName("GetGenres")
+            .WithTags("Genres")
+            .WithSummary("Get all genres")
+            .WithDescription("Retrieve a paginated list of all genres in the system");
 
-        app.MapGet("/api/genres/{id}", GetGenreById);
+        app.MapGet("/api/genres/{id}", GetGenreById)
+            .WithName("GetGenreById")
+            .WithTags("Genres")
+            .WithSummary("Get genre by ID")
+            .WithDescription("Retrieve a specific genre by its ID");
 
         return app;
     }

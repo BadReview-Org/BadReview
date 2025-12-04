@@ -18,10 +18,19 @@ public static class PlatformEndpoints
 {
     public static WebApplication MapPlatformEndpoints(this WebApplication app)
     {
-        // GET: /api/genres - Obtener todas las plataformas
-        app.MapGet("/api/platforms", GetPlatforms);
+        // GET: /api/platforms - Obtener todas las plataformas
+        app.MapGet("/api/platforms", GetPlatforms)
+            .WithName("GetPlatforms")
+            .WithTags("Platforms")
+            .WithSummary("Get all platforms")
+            .WithDescription("Retrieve a paginated list of all platforms in the system");
+        // GET: /api/platforms/{id} - Obtener una plataforma por ID
 
-        app.MapGet("/api/platforms/{id}", GetPlatformById);
+        app.MapGet("/api/platforms/{id}", GetPlatformById)
+            .WithName("GetPlatformById")
+            .WithTags("Platforms")
+            .WithSummary("Get platform by ID")
+            .WithDescription("Retrieve a specific platform by its ID");
 
         return app;
     }
