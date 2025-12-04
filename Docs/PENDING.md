@@ -1,3 +1,12 @@
+Solucionar modo oscuro en el front
+Cambiar contraseña BD
+
+Terminar OpenApi/SwaggerUI
+Hacer docs Api, Client y Shared
+Comentar codigo por encima
+Tag 1.01 quick fix
+Release/s con CHANGELOG.MD
+
 # BACKEND
 
 # Postman y Swagger
