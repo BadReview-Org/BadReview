@@ -4,7 +4,7 @@
 @using MudBlazor
 @inherits LayoutComponentBase
 @* Required *@
-<MudThemeProvider @bind-IsDarkMode="DarkMode" Theme="_theme"/>
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="_theme"/>
 <MudPopoverProvider />
 
 @* Needed for dialogs *@
@@ -147,27 +147,9 @@
     AuthenticationState authState = null!;
     JWTAuthStateProvider stateProvider = null!;
 
- //   private MudTheme _theme = new MudTheme();
-
-    private MudTheme _theme = new MudTheme()
-    {
-        PaletteDark = new PaletteDark()
-        {
-        PrimaryDarken = "#27272F",
-        Primary = "rgba(255,255,255, 0.2)",
-        InfoLighten = Colors.Green.Default,
-        InfoDarken = Colors.Red.Default
-        },
-        PaletteLight = new PaletteLight()
-        {
-        Background = "#FBFEF9",
-        InfoLighten = Colors.Green.Default,
-        InfoDarken = Colors.Red.Default
-        }
-    };
+    private MudTheme _theme = CustomPalettes.CustomTheme;
     public bool _isDarkMode;
 
-    public bool DarkMode = true;
     bool _drawerOpen = true;
     bool disableDarkModeToggle = false;
 
