@@ -1,6 +1,3 @@
-Solucionar modo oscuro en el front
-Cambiar contraseña BD
-
 Terminar OpenApi/SwaggerUI
 Hacer docs Api, Client y Shared
 Comentar codigo por encima
