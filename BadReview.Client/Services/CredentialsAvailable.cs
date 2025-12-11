@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components;
 using BadReview.Shared.Utils;
 
 namespace BadReview.Client.Services;
-
+//Definicion del Check de lado cliente
 public class CredentialsAvailable : ValidatorRules.ICheckAvailables
 {
     private readonly HttpClient _client;
@@ -25,7 +25,7 @@ public class CredentialsAvailable : ValidatorRules.ICheckAvailables
 
         return response.IsSuccessStatusCode;
     }
-
+ 
     public async Task<bool> EmailAvailable(string? email)
     {
         if (string.IsNullOrWhiteSpace(email)) return true;

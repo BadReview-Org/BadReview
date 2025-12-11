@@ -129,7 +129,6 @@ public class GameService : IGameService
         string idsFilter = $"({string.Join(",", gameIds)})";
 
         var queryGames = new IgdbRequest { Filters = $"id = {idsFilter}" };
-        //queryGames.SetDefaults();
 
         var pagGames = new PaginationRequest(null, pag.PageSize);
 
@@ -176,7 +175,6 @@ public class GameService : IGameService
         {
             var newGame = CreateGameEntity(safeGame);
             
-            // Investigar: es EF thread-safe para juntar los 3 primeros awaits?
             await AddRelatedGenres(safeGame.Genres);
             await AddRelatedPlatforms(safeGame.Platforms);
             await AddRelatedDevelopers(safeGame.Involved_Companies);
