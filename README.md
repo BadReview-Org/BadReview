@@ -6,7 +6,7 @@ The application's concept is inspired by platforms like **IGDB** (API that's use
 
 ---
 
-You can access the **website application** for the current release (v1.0) here: <a href="https://badreview.tech/" target="_blank" rel="noopener noreferrer">https://badreview.tech/</a>
+You can access the **website application** for the current release (v1.0) here: <a href="https://bad-review.tech/" target="_blank" rel="noopener noreferrer">https://bad-review.tech/</a>
 
 ### Developers
 
@@ -65,7 +65,7 @@ Finally, in order to make requests to the **IGDB API** you will need to get the 
 
 ## Usage
 
-You can use the already built application (currently v1.0 release) through the <a href="https://badreview.tech/" target="_blank" rel="noopener noreferrer">website</a>.
+You can use the already built application (currently v1.0 release) through the <a href="https://bad-review.tech/" target="_blank" rel="noopener noreferrer">website</a>.
 
 ---
 
