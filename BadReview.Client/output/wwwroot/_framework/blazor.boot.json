@@ -1,10 +1,10 @@
 {
   "mainAssemblyName": "BadReview.Client",
   "resources": {
-    "hash": "sha256-1HKwqf/Iqyu6CMPX2cQVvmCMfoP3msMJ/ccAYnelHg0=",
+    "hash": "sha256-jlzttCHyrm0rRdEhymprGm5U+U7Gc87n4e9ifUQsQAU=",
     "fingerprinting": {
-      "BadReview.Client.5c3y41a7tw.wasm": "BadReview.Client.wasm",
-      "BadReview.Shared.lhvmgb96lq.wasm": "BadReview.Shared.wasm",
+      "BadReview.Client.cn7vo9qwab.wasm": "BadReview.Client.wasm",
+      "BadReview.Shared.rl3qpqmyup.wasm": "BadReview.Shared.wasm",
       "FluentValidation.4kaqij9f23.wasm": "FluentValidation.wasm",
       "Microsoft.AspNetCore.Authorization.3x5ysem791.wasm": "Microsoft.AspNetCore.Authorization.wasm",
       "Microsoft.AspNetCore.Components.Authorization.1eb62k52wh.wasm": "Microsoft.AspNetCore.Components.Authorization.wasm",
@@ -87,8 +87,8 @@
       "System.Runtime.InteropServices.JavaScript.it9v611w20.wasm": "sha256-dr2zPg+11BQOd27TZPxcs18PqUREGUfAtTD9nRdz7sw="
     },
     "assembly": {
-      "BadReview.Client.5c3y41a7tw.wasm": "sha256-Zc0Q2mF/iEVWrUvHUfngulmxDiOSMcA5lIm7nluyfZY=",
-      "BadReview.Shared.lhvmgb96lq.wasm": "sha256-6XS5u/lUEfZ+0q2wYMS3Ep0D4DCSApQsTM0tPQ1MMo4=",
+      "BadReview.Client.cn7vo9qwab.wasm": "sha256-iEu9WTHDgwSoKjicl97zm8DZfUEdQ3dReEzKnbEII4o=",
+      "BadReview.Shared.rl3qpqmyup.wasm": "sha256-v9VJNrF2+FRaB7aUnizNDjcBpTVdhssIn02qHfCzsdY=",
       "FluentValidation.4kaqij9f23.wasm": "sha256-9IX1vfGRQMtGQwPrDkEnY3jroi+9SwZXKDIUQvoLpZ4=",
       "Microsoft.AspNetCore.Authorization.3x5ysem791.wasm": "sha256-dwanDBvu/AVf8h+V+ivC5tr/qcoGX0KYlX/pAX6hnMM=",
       "Microsoft.AspNetCore.Components.Authorization.1eb62k52wh.wasm": "sha256-KWHYEHTRvms7J67orC/mHUMK8gdqt9/YNRnbeNerUhw=",
